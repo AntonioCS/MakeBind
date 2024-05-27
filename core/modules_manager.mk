@@ -12,7 +12,8 @@ mb_modules := $(mb_empty)
 mb_debug_modules ?= $(mb_debug)
 
 define mb_load_modules
-	$(eval mb_load_modules_to_load :=\
+$(strip
+	$(eval mb_load_modules_to_load := \
 			$(addprefix $(mb_modules_path)/, $(filter-out /%, $(mb_project_modules)))\
 			$(filter /%, $(mb_project_modules))\
 	)
@@ -24,6 +25,7 @@ define mb_load_modules
     $(if $(mb_load_modules_to_load),
 		$(eval include $(mb_load_modules_to_load))
 	)
+)
 endef
 
 endif # __MB_CORE_MODULES_MANAGER_MK__
