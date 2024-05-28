@@ -17,19 +17,12 @@ mb_invoke_print_target ?= $(mb_on)
 mb_invoke_no_output ?= $(mb_off)
 mb_invoke_ignore_error ?= $(mb_off)
 mb_invoke_dry_run ?= $(mb_off)
-mb_invoke_pipe_to ?= $(mb_empty)
-mb_invoke_no_error_handling ?= $(mb_off)
-mb_invoke_last_target := $(mb_empty)
 mb_invoke_in_shell ?= $(mb_off)
-mb_invoke_display_info_msg ?= $(mb_on)
+mb_invoke_last_target := $(mb_empty)
 
 
 define mb_invoke
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
-	$(if $(and $(call mb_on,$(mb_invoke_display_info_msg)),$(value mb_info_msg)),
-		$(call mb_printf_info,$(mb_info_msg))
-		$(eval undefine mb_info_msg)
-	)
 	$(eval mb_invoke_should_print_target := $(and
 			$(call mb_is_on,$(mb_invoke_print_target)),
 			$(call mb_is_neq,$(mb_invoke_last_target),$@)
@@ -106,17 +99,12 @@ $(strip
 	)
 )
 endef
-#$(shell read $(mb_ask_user_time_out) -p $$'$(mb_ask_user_initial_text)$(mb_space)'; echo $$REPLY)
-
-#$(shell read -e $(ask_user_initial_text) $(ask_user_time_out) -p $$'$1$(mb_space)'; echo $$REPLY)
 ############################################################################################################################
 ############################################################################################################################
 
 #https://stackoverflow.com/a/63626637/8715
 #https://www.computerhope.com/unix/uprintf.htm
-#mb_printf_info_format_specifier := "[%s]\033[32m[%s]\033[0m %b" 	# Green text for "printf"
-#mb_printf_warn_format_specifier := "[%s]\033[33m[%s]\033[0m $(call mb_colour_text,m_italic,WARNING): %b"  	# Yellow text for "printf"
-#mb_printf_error_format_specifier := "[%s]\033[31m[%s]\033[0m $(call mb_colour_text,m_bold,ERROR): %b" 	# Red text for "printf"
+
 mb_printf_info_format_specifier ?= "[%s]$(call mb_colour_text,Green,[%s]) %b"
 mb_printf_warn_format_specifier ?= "[%s]$(call mb_colour_text,IYellow,[%s] WARNING): %b"
 mb_printf_error_format_specifier ?= "[%s]$(call mb_colour_text,BRed,[%s] ERROR): %b"
@@ -124,12 +112,6 @@ mb_printf_error_format_specifier ?= "[%s]$(call mb_colour_text,BRed,[%s] ERROR):
 mb_printf_display_ts ?= $(mb_on)
 mb_printf_ts_format ?= +'%F %T'
 mb_printf_use_break_line ?= $(mb_on)
-
-## NOTE: Do not use normalizer on this one, because if we are printing bash code this will mess it up
-## so this one has to be the one that does not normalize
-## EXTRA Note: There seems to be some negative effects when I do
-## $(eval msg := $(strip $1))
-## If I pass bash code in (like I do in the run function) the $ will be evaluated
 
 ## $1 - msg
 ## $2 - format
@@ -148,21 +130,17 @@ $(strip
 )
 endef
 
-
-
 mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
 mb_printf_warn = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
 mb_printf_error = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
 
-### NOTE: Ensure load-data is called before calling
-info-%:
+mb/info-%:
 	$(call mb_printf_info,$(mb_info_msg))
 
-warn-%:
+mb/warn-%:
 	$(call mb_printf_warn,$(mb_warn_msg))
 
-### NOTE: Ensure load-data is called before calling
-error:
+mb/error:
 	$(call mb_printf_error,$(mb_error_msg))
 
 

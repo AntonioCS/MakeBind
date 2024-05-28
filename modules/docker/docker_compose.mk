@@ -35,10 +35,10 @@ dc/restart: dc/stop
 dc/restart: dc/start
 
 dc/build: ## Build all containers
-	$(call dc_invoke,build,--parallel --no-cache
-		--build-arg USER_ID=$(shell id -u)
-		--build-arg USER_NAME=$(shell whoami)
-		--build-arg GROUP_ID=$(shell id -g)
+	$(call dc_invoke,build,--parallel --no-cache \
+		--build-arg USER_ID=$(if $(value mb_dc_build_user_id),$(mb_dc_build_user_id),$(shell id -u)) \
+		--build-arg USER_NAME=$(if $(value mb_dc_build_user_name),$(mb_dc_build_user_name),$(shell whoami)) \
+		--build-arg GROUP_ID=$(if $(value mb_dc_build_group_id),$(mb_dc_build_group_id),$(shell id -g)) \
 	)
 
 dc/rebuild: ## Rebuild all containers
