@@ -46,4 +46,39 @@ dc/rebuild: dc/stop
 dc/rebuild: dc/build
 dc/rebuild: dc/start
 
+dc/remove: ## Remove all stopped containers
+	$(call dc_invoke,rm)
+
+dc/nuke: mb_info_msg := Initiating nuking process
+dc/nuke: mb/info-nuke-project
+dc/nuke: ## Remove all project containers (with volumes)
+	$(eval dc_nuke_msg := Are you sure you want to remove all contaioner of this project? [y/n])
+	$(if $(call mb_user_confirm,$(dc_nuke_msg)),
+		$(call dc_invoke,down,--remove-orphans --volumes --rmi all)
+	,
+		$(call mb_printf_info,Nuking process stoppped)
+	)
+
+dc/nuke-all: ## Remove everything docker related from the system (system prune)
+	$(eval dc_nuke_all_msg := Are you sure you want to remove everything?? [y/n])
+	$(if $(call mb_user_confirm,$(dc_nuke_all_msg)),
+		$(call mb_invoke,docker system prune --all --volumes --force)
+	,
+		$(call mb_print_info,Nuking all process stoppped)
+	)
+
+dc/invoke: ## Run docker compose command with given parameters (params="<command> <service> <parameters>")
+	$(if $(value params),
+		$(eval
+			dc_target_cmd := $(word 1,$(params))
+			dc_target_service := $(word 2,$(params))
+			dc_target_extra := $(wordlist 3,$(words $(params)),$(params))
+		)
+		$(call dc_invoke,$(dc_target_cmd),,$(dc_target_service),$(dc_target_extra))
+	,
+		$(call mb_printf_error, You need to pass the variable params. Ex.: make $@ params="exec app ls -la")
+	)
+
+
+
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE__

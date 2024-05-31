@@ -43,12 +43,13 @@ $(strip
 endef
 
 dc_shellc_default_shell_bin ?= sh
+dc_shellc_default_cmd ?= exec
 
 define dc_shellc
 $(strip
 	$(eval dc_shellc_service := $1)
 	$(eval dc_shellc_selected_shell_bin := $(if $(value 3),$3,$(dc_shellc_default_shell_bin)))
-	$(call dc_invoke,exec,,$(dc_shellc_service),$(dc_shellc_selected_shell_bin) -c "$(call mb_normalizer,$2)")
+	$(call dc_invoke,$(dc_shellc_default_cmd),,$(dc_shellc_service),$(dc_shellc_selected_shell_bin) -c "$(call mb_normalizer,$2)")
 )
 endef
 
