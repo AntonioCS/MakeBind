@@ -9,38 +9,46 @@ ifndef __MB_CORE_FUNCTIONS_MK__
 __MB_CORE_FUNCTIONS_MK__ := 1
 
 include $(mb_core_path)/util.mk
-include $(mb_core_path)/util/colours.mk
-
 
 mb_invoke_print ?= $(mb_on)
 mb_invoke_print_target ?= $(mb_on)
-mb_invoke_no_output ?= $(mb_off)
-mb_invoke_ignore_error ?= $(mb_off)
 mb_invoke_dry_run ?= $(mb_off)
-mb_invoke_in_shell ?= $(mb_off)
 mb_invoke_last_target := $(mb_empty)
-
+mb_invoke_silent ?= $(mb_off)
 
 define mb_invoke
+$(strip
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
-	$(eval mb_invoke_should_print_target := $(and
-			$(call mb_is_on,$(mb_invoke_print_target)),
-			$(call mb_is_neq,$(mb_invoke_last_target),$@)
+	$(if $(call mb_is_off,$(mb_invoke_silent)),
+		$(eval mb_invoke_should_print_target := $(and
+				$(call mb_is_on,$(mb_invoke_print_target)),
+				$(call mb_is_neq,$(mb_invoke_last_target),$@)
+			)
+		)
+		$(if $(mb_invoke_should_print_target),
+			$(eval mb_invoke_last_target := $@)
+			$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@)))
+		)
+		$(if $(call mb_is_on,$(mb_invoke_print)),
+			$(eval mb_invoke_print_normalized := $(call mb_invoke_normalizer,$1))
+			$(call mb_printf_info,Executing: $(mb_invoke_print_normalized))
 		)
 	)
-	$(if $(mb_invoke_should_print_target),
-		$(eval mb_invoke_last_target := $@)
-		$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@)))
-	)
-	$(if $(call mb_is_on,$(mb_invoke_print)),
-		$(call mb_printf_info,Executing:,,$(mb_off))
-		echo " $(subst #,\#,$(subst ",\",$(subst \,,$1)))";
-    )
-
     $(if $(call mb_is_off,$(mb_invoke_dry_run)),
-    	$1
+		$1
     )
+)
 endef # mb_invoke
+
+define mb_invoke_normalizer
+$(strip
+	$(subst \\",",
+	$(subst #,\\#,
+	$(subst ",\\",
+	$(subst \\,,
+		$1))))
+)
+endef
 
 
 ############################################################################################################################
@@ -108,10 +116,17 @@ endef
 mb_printf_info_format_specifier ?= "[%s]$(call mb_colour_text,Green,[%s]) %b"
 mb_printf_warn_format_specifier ?= "[%s]$(call mb_colour_text,IYellow,[%s] WARNING): %b"
 mb_printf_error_format_specifier ?= "[%s]$(call mb_colour_text,BRed,[%s] ERROR): %b"
+mb_printf_debug_format_specifier ?= "[%s]$(call mb_colour_text,BBlue,[%s] DEBUG): %b"
 
 mb_printf_display_ts ?= $(mb_on)
 mb_printf_ts_format ?= +'%F %T'
 mb_printf_use_break_line ?= $(mb_on)
+# This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
+mb_printf_use_shell ?= $(mb_on)
+mb_printf_internal_print_using_info := 1
+mb_printf_internal_print_using_warning := 2
+mb_printf_internal_print_using_error := 3
+mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 
 ## $1 - msg
 ## $2 - format
@@ -123,16 +138,42 @@ $(strip
 	$(eval mb_printf_format := $2)
 	$(eval mb_printf_project_name := $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
 	$(eval mb_printf_breakline := $(if $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),printf "\n";))
-	printf $(mb_printf_format) \
-		"$(if $(call mb_is_on,$(mb_printf_display_ts)),$(shell date $(mb_printf_ts_format)))" \
-		"$(mb_printf_project_name)" \
-		"$(mb_printf_msg)";$(mb_printf_breakline)
+	$(if $(call mb_is_on,$(mb_printf_use_shell)),
+		$(eval mb_printf_result := $(shell $(mb_printf_statement)))
+		$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_info)),
+			$(info $(mb_printf_result)),
+			$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_warning)),
+				$(warning $(mb_printf_result)),
+				$(error $(mb_printf_result))
+			)
+		)
+		,
+		$(mb_printf_statement)
+	)
 )
 endef
 
+define mb_printf_statement
+printf $(mb_printf_format) \
+	"$(if $(call mb_is_on,$(mb_printf_display_ts)),$(shell date $(mb_printf_ts_format)))" \
+	"$(mb_printf_project_name)" \
+	"$(mb_printf_msg)";$(mb_printf_breakline)
+endef
+
+
 mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
-mb_printf_warn = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
-mb_printf_error = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+
+define mb_printf_warn
+$(strip
+$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_warning))
+$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
+endef
+
+define mb_printf_error
+$(strip
+$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))
+$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
+endef
 
 mb/info-%:
 	$(call mb_printf_info,$(mb_info_msg))

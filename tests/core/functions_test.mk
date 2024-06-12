@@ -40,12 +40,15 @@ tests/core/functions/test_mb_printf:
 
 tests/core/functions/test_mb_printf_funcs:
 	$(call mb_printf_info,printf tests passed)
-	$(info Test1223)
 	$(call mb_printf_info,printf tests passed)
 	$(call mb_printf_warn,print tests passed)
 	$(call mb_printf_warn,print tests passed)
 	$(call mb_printf_error,print tests passed)
 	$(call mb_printf_error,print tests passed)
+
+tests/core/functions/test_mb_printf_funcs_shell:
+	$(call mb_printf_info,printf tests passed)
+	$(info Test1223)
 
 ######################################################################################################################
 ######################################################################################################################

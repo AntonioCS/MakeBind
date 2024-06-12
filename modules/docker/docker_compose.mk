@@ -28,7 +28,11 @@ dc/logs: ## Show logs for all containers
 	$(call dc_invoke,logs)
 
 dc/status: ## Show status of all containers
-	$(call dc_invoke,ps)
+	$(call dc_invoke,ps,--no-trunc)
+
+dc/status-all: dc_cmd_options_ps := --all
+dc/status-all: dc/status
+dc/status-all: ## Show status (including stopped containers)
 
 dc/restart: ## Restart all containers
 dc/restart: dc/stop
@@ -67,7 +71,7 @@ dc/nuke-all: ## Remove everything docker related from the system (system prune)
 		$(call mb_print_info,Nuking all process stoppped)
 	)
 
-dc/invoke: ## Run docker compose command with given parameters (params="<command> <service> <parameters>")
+dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <parameters>")
 	$(if $(value params),
 		$(eval
 			dc_target_cmd := $(word 1,$(params))
@@ -78,7 +82,5 @@ dc/invoke: ## Run docker compose command with given parameters (params="<command
 	,
 		$(call mb_printf_error, You need to pass the variable params. Ex.: make $@ params="exec app ls -la")
 	)
-
-
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE__

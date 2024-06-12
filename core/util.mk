@@ -8,6 +8,12 @@
 ifndef __MB_CORE_UTIL_MK__
 __MB_CORE_UTIL_MK__ := 1
 
+include $(mb_core_path)/util/cache.mk
+include $(mb_core_path)/util/colours.mk
+include $(mb_core_path)/util/debug.mk
+include $(mb_core_path)/util/os_detection.mk
+include $(mb_core_path)/util/targets.mk
+
 define mb_shell_tolower
 $(shell echo $1 | tr '[:upper:]' '[:lower:]')
 endef
@@ -44,6 +50,7 @@ mb_is_false = $(call mb_is_empty,$1)
 mb_is_true = $(call mb_is_eq,$1,$(mb_true))
 
 
+# File helpers
 mb_exists = $(if $(wildcard $1),1)
 mb_not_exists = $(if $(call mb_exists,$1),,1)
 
@@ -64,9 +71,62 @@ mb_true := 1
 mb_false := $(mb_empty)
 mb_on := 1
 mb_off := 0
-#define newline :=
-#$(empty)
-#$(empty)
-#endef
+
+# Time helpers in seconds
+mb_time_minute := 60
+mb_time_hour := 3600
+mb_time_day := 86400
+
+
+#$1 - Windows command
+#$2 - Linux command
+#$3 - Mac command, if not present Linux command will be used
+define mb_run_for_os
+$(strip
+	$(call mb_os_detection)
+	$(eval mb_run_for_os_cmd := $(if $(mb_os_is_windows),$1,$(if $(mb_os_is_linux),$2,$(if $(value 3),$3,$2))))
+	$(shell $(mb_run_for_os_cmd))
+)
+endef
+
+define mb_timestamp
+$(call mb_run_for_os,
+	powershell -Command "[math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds)",\
+	date +%s\
+)
+endef
+
+
+define mb_expression
+$(call mb_run_for_os,
+	powershell -Command "$1",\
+	echo $1 | bc\
+)
+endef
+
+mb_add = $(call mb_expression,$1+$2)
+mb_dec = $(call mb_expression,$1-$2)
+mb_mul = $(call mb_expression,$1*$2)
+mb_div = $(call mb_expression,$1/$2)
+
+## Random numbers
+
+# $1: lower limit (default: 1)
+# $2: upper limit (default: 65534)
+define mb_random
+$(strip
+	$(eval
+	mb_random_lo := $(if $(value 1),$1,1)
+	mb_random_hi := $(if $(value 2),$2,65534)
+	)
+	$(call mb_run_for_os,
+    	powershell -Command "Get-Random -Minimum $(mb_random_lo) -Maximum $(mb_random_hi)",\
+    	shuf -i $(mb_random_lo)-$(mb_random_hi) -n 1,\
+    	jot -r 1 $(mb_random_lo) $(mb_random_hi)\
+    )
+)
+endef
+
+mb_remove_spaces = $(subst $(mb_space),$(mb_empty),$1)
 
 endif # __MB_CORE_UTIL_MK__

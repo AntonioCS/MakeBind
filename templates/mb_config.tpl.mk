@@ -10,5 +10,6 @@
 mb_project_name := project-name
 
 ### List of modules to include in the project
-### This can be MakeBind modules or custom modules located in the modules folder in <your_project>/BindHub/modules
+### You can add MakeBind modules or custom modules located in the modules folder in <your_project>/bind-hub/modules
+### Use the variable $(mb_project_bindhub_modules_path) to reference <your_project>/bind-hub/modules
 mb_project_modules := docker/docker_compose.mk
