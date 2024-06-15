@@ -5,10 +5,77 @@
 # Author: AntonioCS
 # License: MIT License
 #####################################################################################
-ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE__
-__MB_MODULES_DOCKER_DOCKER_COMPOSE__ := 1
+ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
+__MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
-include $(mb_modules_path)/docker/docker_compose/functions.mk
+mb_debug_dc_invoke ?= $(mb_debug)
+dc_default_shell_bin ?= /bin/sh
+
+#$1 = command
+#$2 = options
+#$3 = services
+#$4 = extra
+define dc_invoke
+$(strip
+	$(if $(value 1),,$(error ERROR: You must pass a commad))
+	$(eval
+		dc_invoke_bin := $(if $(value dc_bin),$(dc_bin),docker compose)
+		dc_invoke_bin_options := $(if $(value dc_bin_options),$(dc_bin_options))
+		dc_invoke_all_dc_files := $(if $(value dc_files),$(addprefix --file ,$(dc_files)))
+		dc_invoke_all_dc_env_files := $(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files)))
+		dc_invoke_cmd := $1
+		dc_invoke_options := $(if $(value 2),$2)
+		dc_invoke_services := $(if $(value 3),$3)
+		dc_invoke_extra := $(if $(value 4),$4)
+		dc_invoke_cmd_options := $(if $(value dc_cmd_options_$1),$(dc_cmd_options_$1))
+		dc_invoke_cmd_services := $(if $(value dc_cmd_services_$1),$(dc_cmd_services_$1))
+		dc_invoke_cmd_extras := $(if $(value dc_cmd_extras_$1),$(dc_cmd_extras_$1))
+	)
+
+	$(call mb_debug_print, dc_invoke_bin: $(dc_invoke_bin),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_bin_options: $(dc_invoke_bin_options),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_all_dc_files: $(dc_invoke_all_dc_files),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_all_dc_env_files: $(dc_invoke_all_dc_env_files),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_cmd: $(dc_invoke_cmd),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_options: $(dc_invoke_options),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_services: $(dc_invoke_services),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_extra: $(dc_invoke_extra),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_cmd_options: $(dc_invoke_cmd_options),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_cmd_services: $(dc_invoke_cmd_services),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_cmd_extras: $(dc_invoke_cmd_extras),$(mb_debug_dc_invoke))
+
+	$(eval dc_invoke_command := $(strip $(dc_invoke_bin)
+			$(dc_invoke_bin_options)
+			$(dc_invoke_all_dc_files)
+			$(dc_invoke_all_dc_env_files)
+			$(dc_invoke_cmd)
+			$(dc_invoke_options)
+			$(dc_invoke_cmd_options)
+			$(dc_invoke_services)
+			$(dc_invoke_cmd_services)
+			$(dc_invoke_extra)
+			$(dc_invoke_cmd_extras)
+		)
+	)
+	$(call mb_invoke,$(dc_invoke_command))
+)
+endef
+
+dc_shellc_default_shell_bin ?= $(dc_default_shell_bin) # or /bin/bash
+dc_shellc_default_cmd ?= exec # or run
+
+define dc_shellc
+$(strip
+	$(eval dc_shellc_service := $1)
+	$(eval dc_shellc_selected_shell_bin := $(if $(value 3),$3,$(dc_shellc_default_shell_bin)))
+	$(call dc_invoke,$(dc_shellc_default_cmd),,$(dc_shellc_service),$(dc_shellc_selected_shell_bin) -c "$(call mb_normalizer,$2)")
+)
+endef
+
+endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
+#####################################################################################
+ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
+__MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__ := 1
 
 dc/up: mb_info_msg := Starting containers
 dc/up: ## Start all containers
@@ -34,7 +101,7 @@ dc/status-all: dc_cmd_options_ps := --all
 dc/status-all: dc/status
 dc/status-all: ## Show status (including stopped containers)
 
-dc/restart: ## Restart all containers
+dc/restart: ## Restart all containers (calls stop & up)
 dc/restart: dc/stop
 dc/restart: dc/start
 
@@ -83,4 +150,4 @@ dc/invoke: ## Run docker compose command with given parameters (use with: params
 		$(call mb_printf_error, You need to pass the variable params. Ex.: make $@ params="exec app ls -la")
 	)
 
-endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE__
+endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__

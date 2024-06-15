@@ -9,7 +9,7 @@ ifndef __MB_MODULES_DOCKER_PHP__
 __MB_MODULES_DOCKER_PHP__ := 1
 
 dc_service_php ?= $(error ERROR: dc_service_php is not set, please set it to the php docker compose service name in your mb_config.mk file)
-dc_php_default_shell ?= /bin/sh
+dc_php_default_shell ?= $(dc_default_shell_bin)
 
 dc/php/shell: ## Start a shell in the php container
 	$(call dc_invoke,exec,,$(dc_service_php),$(dc_php_default_shell))

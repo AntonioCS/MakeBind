@@ -12,7 +12,6 @@ include $(mb_modules_path)/docker/php.mk
 
 dc_php_symfony_logs_file ?= /var/html/www/dev.log
 
-
 dc/php/sy/logs-cat: ## cat symfony logs file
 	$(call dc_shellc,$(dc_service_php),cat $(php_logs_file))
 

@@ -38,5 +38,7 @@ dc/nginx/tail-dc-logs: ## Tail nginx docker logs
 dc/nginx/shell: ## Start a shell in the nginx container
 	$(call dc_invoke,exec,,$(dc_service_nginx),$(dc_nginx_default_shell))
 
+dc/nginx/restart: dc_cmd_services_stop := $(dc_service_nginx)
+dc/nginx/restart: dc_cmd_services_up := $(dc_service_nginx)
+dc/nginx/restart: dc/restart
 dc/nginx/restart: ## Restart the nginx container service
-	$(call dc_invoke,restart,$(dc_service_nginx))
