@@ -9,18 +9,34 @@
 
 .ONESHELL:
 SHELL = /bin/bash
+mb_debug_tests ?=# Not set to anything
 mb_assert = $(if $1,,$(error TEST FAILURE: $2))
 ## We must remove spaces so that filter doesn't match partially the strings
 define mb_assert_eq
 $(strip
-$(if $(filter $(call mb_remove_spaces,$1),$(call mb_remove_spaces,$2)),
-	$(info TEST "$@" passed),
+$(eval mb_assert_eq_expected := $(strip $(call mb_remove_spaces,$1)))
+$(eval mb_assert_eq_actual := $(strip $(call mb_remove_spaces,$2)))
+$(if $(mb_debug_tests),
+	$(info Expected: $(mb_assert_eq_expected))
+	$(info Actual__: $(mb_assert_eq_actual))
+	$(info Filter: $(filter $(mb_assert_eq_expected),$(mb_assert_eq_actual)))
+)
+$(if $(filter $(mb_assert_eq_expected),$(mb_assert_eq_actual)),
+	$(info TEST PASSED: "$@"),
 	$(error TEST FAILURE: "$@")
 ))
 endef
+define mb_assert_filter
+$(if $(filter $1,$1),
+	$(info TEST PASSED: "$@"),
+	$(error TEST FAILURE: "$@")
+)
+endef
+
 mb_assert_file_exists = $(if $(wildcard $1),$(info TEST SUCCESS: File $1 exists),$(error TEST FAILURE: File $1 does not exist))
 
 mb_test_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+mb_test_mock_project_mk := $(abspath $(mb_test_path)/mock_project/Makefile)
 mb_core_path := $(abspath $(mb_test_path)/../core)
 mb_debug ?= 0
 mb_project_path = $(mb_empty)
@@ -44,19 +60,15 @@ SHELL := $(mb_default_shell)
 #-o pipefail
 
 
-tests:
-	$(info Running tests)
-#	$(MAKE) -s tests/core/util
-#	$(MAKE) -s tests/core/functions
-#	$(MAKE) -s tests/util/colours
+## Helper
+## Note: Was getting a warning of undefined GNUMAKEFLAGS, so I added it to the call
+define mock_prj_call
+$(strip $(MAKE) GNUMAKEFLAGS="" --file=$(mb_test_mock_project_mk) $1)
+endef
+
 
 include $(mb_test_path)/core/util_test.mk
 include $(mb_test_path)/core/util/cache_test.mk
+include $(mb_test_path)/core/util/help_test.mk
 include $(mb_test_path)/core/functions_test.mk
-include $(mb_test_path)/util/colours_test.mk
 include $(mb_test_path)/modules/docker_compose_test.mk
-
-
-#tests/core/util: tests/core/util/mb_is_tests
-#
-#tests/core/functions: tests/core/functions/mb_invoke_test

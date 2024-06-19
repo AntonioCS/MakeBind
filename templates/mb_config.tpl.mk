@@ -8,6 +8,7 @@
 #####################################################################################
 
 mb_project_name := project-name
+mb_project_prefix := project-prefix
 
 ### List of modules to include in the project
 ### You can add MakeBind modules or custom modules located in the modules folder in <your_project>/bind-hub/modules

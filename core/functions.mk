@@ -113,16 +113,19 @@ endef
 #https://stackoverflow.com/a/63626637/8715
 #https://www.computerhope.com/unix/uprintf.htm
 
-mb_printf_info_format_specifier ?= "[%s]$(call mb_colour_text,Green,[%s]) %b"
-mb_printf_warn_format_specifier ?= "[%s]$(call mb_colour_text,IYellow,[%s] WARNING): %b"
-mb_printf_error_format_specifier ?= "[%s]$(call mb_colour_text,BRed,[%s] ERROR): %b"
-mb_printf_debug_format_specifier ?= "[%s]$(call mb_colour_text,BBlue,[%s] DEBUG): %b"
+mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s) %b"
+mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%s WARNING): %b"
+mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
+mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
 
-mb_printf_display_ts ?= $(mb_on)
-mb_printf_ts_format ?= +'%F %T'
-mb_printf_use_break_line ?= $(mb_on)
+mb_printf_display_ts ?= $(mb_on) ## Display timestamp
+mb_printf_display_project_name ?= $(mb_on) ## Display project name
+mb_printf_display_guard_l := [## Display Left guard
+mb_printf_display_guard_r := ]## Right guard
+mb_printf_ts_format ?= +'%F %T' ## Timestamp format
+mb_printf_use_break_line ?= $(mb_on) ## Use break line
 # This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
-mb_printf_use_shell ?= $(mb_on)
+mb_printf_use_shell ?= $(mb_on) ## Use shell command
 mb_printf_internal_print_using_info := 1
 mb_printf_internal_print_using_warning := 2
 mb_printf_internal_print_using_error := 3
@@ -155,9 +158,9 @@ endef
 
 define mb_printf_statement
 printf $(mb_printf_format) \
-	"$(if $(call mb_is_on,$(mb_printf_display_ts)),$(shell date $(mb_printf_ts_format)))" \
-	"$(mb_printf_project_name)" \
-	"$(mb_printf_msg)";$(mb_printf_breakline)
+ "$(if $(call mb_is_on,$(mb_printf_display_ts)),$(mb_printf_display_guard_l)$(shell date $(mb_printf_ts_format))$(mb_printf_display_guard_r))" \
+ "$(if $(call mb_is_on,$(mb_printf_display_project_name)),$(mb_printf_display_guard_l)$(mb_printf_project_name)$(mb_printf_display_guard_r))" \
+ "$(mb_printf_msg)";$(mb_printf_breakline)
 endef
 
 
@@ -174,16 +177,6 @@ $(strip
 $(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))
 $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
 endef
-
-mb/info-%:
-	$(call mb_printf_info,$(mb_info_msg))
-
-mb/warn-%:
-	$(call mb_printf_warn,$(mb_warn_msg))
-
-mb/error:
-	$(call mb_printf_error,$(mb_error_msg))
-
 
 define mb_normalizer
 $(strip
