@@ -8,11 +8,22 @@
 ifndef __MB_CORE_UTIL_MK__
 __MB_CORE_UTIL_MK__ := 1
 
-include $(mb_core_path)/util/cache.mk
-include $(mb_core_path)/util/colours.mk
-include $(mb_core_path)/util/debug.mk
-include $(mb_core_path)/util/os_detection.mk
-include $(mb_core_path)/util/targets.mk
+
+# NOTE: Do not call functions inside this function as the helper functions might not be available (like mb_debug_print)
+define mb_load_utils
+$(eval mb_load_utils_path := $(mb_core_path)/util)
+$(eval mb_load_utils_files := $(wildcard $(mb_load_utils_path)/*.mk))
+$(foreach mb_load_utils_file,$(mb_load_utils_files),
+	$(eval include $(mb_load_utils_file))
+)
+endef
+
+$(call mb_load_utils)
+#include $(mb_core_path)/util/cache.mk
+#include $(mb_core_path)/util/colours.mk
+#include $(mb_core_path)/util/debug.mk
+#include $(mb_core_path)/util/os_detection.mk
+#include $(mb_core_path)/util/targets.mk
 
 define mb_shell_tolower
 $(shell echo $1 | tr '[:upper:]' '[:lower:]')

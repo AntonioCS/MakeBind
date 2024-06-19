@@ -8,9 +8,7 @@
 ifndef __MB_CORE_UTIL_TARGETS_MK__
 __MB_CORE_UTIL_TARGETS_MK__ := 1
 
-## Note: core/functions.mk should have already been loaded
-
-###### https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
+## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
 mb/targets-list:
 	grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(filter-out %config.mk, $(MAKEFILE_LIST)) | \
@@ -21,13 +19,10 @@ mb/targets-list:
 
 ## Note: The % is needed because make will not call the same target twice
 ## so it is important to create different targets that just all call the same thing
-
 mb/info-%:
 	$(call mb_printf_info,$(mb_info_msg))
-
 mb/warn-%:
 	$(call mb_printf_warn,$(mb_warn_msg))
-
 mb/error-%:
 	$(call mb_printf_error,$(mb_error_msg))
 
