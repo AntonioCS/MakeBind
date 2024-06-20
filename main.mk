@@ -36,6 +36,7 @@ SHELL := $(mb_default_shell)
 include $(mb_core_path)/util.mk
 include $(mb_core_path)/functions.mk
 include $(mb_core_path)/modules_manager.mk
+include $(mb_core_path)/targets.mk
 
 MAKEFLAGS := --no-builtin-rules \
 	--no-builtin-variables \
