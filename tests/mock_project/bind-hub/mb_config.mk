@@ -1,3 +1,3 @@
 mb_project_name := mock_project
 mb_project_prefix := mp
-mb_project_modules := #
+mb_project_modules := docker/docker_compose.mk
