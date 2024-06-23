@@ -43,14 +43,14 @@ MAKEFLAGS := --no-builtin-rules \
 	--always-make \
 	--warn-undefined-variables \
 	--no-print-directory \
-	$(if $(call mb_is_off,$(mb_debug_no_silence)),--silent)
+	$(if $(mb_debug_no_silence),--silent)
 
 
 ## Configure shell flags:
 ## '-e' exits the shell if any command exits with a non-zero status.
 ## '-u' treats unset variables and parameters as an error when performing parameter expansion.
 ## '-c' tells the shell that the commands to run are coming from the string argument following this option.
-## '-x' (conditionally included if mb_debug is set) prints each command before execution, useful for debugging.
+## '-x' (conditionally included if mb_debug_show_all_commands is set) prints each command before execution, useful for debugging.
 ## '-o pipefail' ensures the pipeline's return status is the exit code of the last command to exit with a non-zero status.
 .SHELLFLAGS := -euc$(if $(call mb_is_on,$(mb_debug_show_all_commands)),x)o pipefail
 .DEFAULT_GOAL = $(mb_default_target)

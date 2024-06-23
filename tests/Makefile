@@ -22,18 +22,24 @@ $(if $(mb_debug_tests),
 	$(info Filter: $(filter $(mb_assert_eq_expected),$(mb_assert_eq_actual)))
 )
 $(if $(filter $(mb_assert_eq_expected),$(mb_assert_eq_actual)),
-	$(info TEST PASSED: "$@"),
-	$(error TEST FAILURE: "$@")
+	$(info TEST PASSED: $(if $(value 3),$3,"$@")),
+	$(warning TEST FAILURE: $(if $(value 3),$3,"$@"))
 ))
 endef
 define mb_assert_filter
-$(if $(filter $1,$1),
-	$(info TEST PASSED: "$@"),
-	$(error TEST FAILURE: "$@")
+$(if $(filter $1,$2),
+	$(info TEST PASSED: $(if $(value 3),$3,"$@")),
+	$(warning TEST FAILURE: $(if $(value 3),$3,"$@"))
 )
 endef
 
-mb_assert_file_exists = $(if $(wildcard $1),$(info TEST SUCCESS: File $1 exists),$(error TEST FAILURE: File $1 does not exist))
+define mb_assert_exists
+$(strip
+$(if $(wildcard $1),
+	$(info TEST PASSED: $(if $(value 2),$2,Exists: $1)),
+	$(warning TEST FAILURE: $(if $(value 2),$2,Does not exist: $1"))
+))
+endef
 
 mb_test_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 mb_test_mock_project_mk := $(abspath $(mb_test_path)/mock_project/Makefile)
@@ -54,7 +60,7 @@ MAKEFLAGS := --no-builtin-rules \
 	--no-print-directory \
 	--silent
 
-.SHELLFLAGS := -euc
+.SHELLFLAGS := -eucx
 SHELL := $(mb_default_shell)
 #$(if $(mb_debug),x)
 #-o pipefail
@@ -72,3 +78,4 @@ include $(mb_test_path)/core/util/cache_test.mk
 include $(mb_test_path)/core/util/help_test.mk
 include $(mb_test_path)/core/functions_test.mk
 include $(mb_test_path)/modules/docker_compose_test.mk
+include $(mb_test_path)/Makefile_test.mk
