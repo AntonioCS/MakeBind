@@ -1,9 +1,9 @@
 mb_debug_makefile ?= $(if $(value mb_debug),$(mb_debug))## Debug flag for Makefile (set to empty by default)
 mb_project_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))## This projects path
-mb_mb_default_path ?= $(abspath $(mb_project_path)/../../)## This is the default path for MakeBind in your system, change it if needed
+mb_mb_default_path ?= $(abspath $(mb_project_path)/../../../MakeBind)## This is the default path for MakeBind in your system, change it if needed
 mb_main_mk ?= $(mb_mb_default_path)/main.mk## This is the main entry point for MakeBind
 mb_latest_url ?= https://api.github.com/repos/AntonioCS/MakeBind/releases/latest## Github API URL to get the latest release
-mb_auto_install_if_missing ?= 1## If MakeBind is not found in the project, should it be downloaded?
+mb_auto_install_if_missing ?= 0## If MakeBind is not found in the project, should it be downloaded?
 mb_silent_mode ?= 0## Should MakeBind be silent? Useful when in CI/CD
 mb_has_main_mk ?= $(wildcard $(mb_main_mk))## Check if MakeBind is present in system
 
@@ -21,11 +21,14 @@ $(info mb_silent_mode: $(mb_silent_mode))
 $(info mb_has_main_mk: $(mb_has_main_mk))
 endif
 
-## The MakeBind project exists
-ifneq ($(mb_has_main_mk),)
+ifneq ($(mb_has_main_mk),)## The MakeBind project exists
+
 include $(mb_main_mk)
+
 else
-MB_DOWNLOAD_LATEST_MB := 1
+.PHONY: mb_install
+
+__MB_DOWNLOAD_LATEST_MB__ := 1
 $(if $(mb_debug_makefile),$(warning DEBUG: MakeBind is not found in $(mb_mb_default_path)))
 
 ### NOTE: This is a catch all target for when the project is not present in the system and it was called with a target
@@ -45,13 +48,14 @@ endif
 	$(call mb_latest_release_url_generate)
 	$(call mb_download_latest_mb)
 	$(call mb_install)
+	@$(MAKE) -s $(if $(value mb_invoked_with_target),$(mb_invoked_with_target))
 
 endif #($(mb_auto_install_if_missing),1)
 
 endif #($(wildcard $(mb_main_mk)),)
 
 
-ifdef MB_DOWNLOAD_LATEST_MB
+ifdef __MB_DOWNLOAD_LATEST_MB__
 
 mb_os_is_windows := $(if $(and $(value OS),$(findstring Windows_NT,$(OS))),1)## Empty if not windows, 1 if windows
 mb_makefile_debug = $(if $(mb_debug_makefile),$(info DEBUG: $(strip $1)))
@@ -91,16 +95,17 @@ endef
 
 define mb_install
 $(strip
+$(eval mb_top_folder := $(abspath $(dir $(mb_mb_default_path))))
 $(call mb_makefile_run_for_os,
-	powershell -Command "Expand-Archive -Path $(mb_zip_path) -DestinationPath $(mb_mb_default_path)",
-	unzip -nqq $(mb_zip_path) -d $(mb_mb_default_path)
+	powershell -Command "Expand-Archive -Path $(mb_zip_path) -DestinationPath $(mb_top_folder)",
+	unzip -nqq $(mb_zip_path) -d $(mb_top_folder)
 )
 $(call mb_makefile_run_for_os,
-	powershell -Command "$(mb_dollar)extractedDir = Get-ChildItem -Path $(mb_mb_default_path) |
+	powershell -Command "$(mb_dollar)extractedDir = Get-ChildItem -Path $(mb_top_folder) |
 	Where-Object { $(mb_dollar)_.PSIsContainer } | Select-Object -First 1;
 	Rename-Item -Path $(mb_dollar)extractedDir.FullName -NewName 'MakeBind',
-    mv "`find $(mb_mb_default_path) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_mb_default_path)/MakeBind"
+    mv "`find $(mb_top_folder) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_top_folder)/MakeBind"
 ))
 endef
 
-endif # MB_DOWNLOAD_LATEST_MB
+endif # __MB_DOWNLOAD_LATEST_MB__
