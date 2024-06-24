@@ -95,7 +95,14 @@ mb_time_day := 86400
 define mb_run_for_os
 $(strip
 	$(call mb_os_detection)
-	$(eval mb_run_for_os_cmd := $(if $(mb_os_is_windows),$1,$(if $(mb_os_is_linux),$2,$(if $(value 3),$3,$2))))
+	$(eval mb_run_for_os_cmd := $(strip $(if $(mb_os_is_windows),\
+		$1,\
+		$(if $(mb_os_is_linux),\
+			$2,\
+			$(if $(value 3),\
+				$3,\
+				$2 \
+	)))))
 	$(shell $(mb_run_for_os_cmd))
 )
 endef
