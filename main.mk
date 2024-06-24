@@ -43,7 +43,7 @@ MAKEFLAGS := --no-builtin-rules \
 	--always-make \
 	--warn-undefined-variables \
 	--no-print-directory \
-	$(if $(mb_debug_no_silence),--silent)
+	$(if $(call mb_is_off,$(mb_debug_no_silence)),--silent)
 
 
 ## Configure shell flags:
