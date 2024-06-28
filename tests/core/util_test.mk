@@ -1,7 +1,7 @@
 
 
 include $(mb_test_path)/../core/util.mk
-include $(mb_test_path)/core/util/os_detection_text.mk
+include $(mb_test_path)/core/util/os_detection_test.mk
 
 tests/core/util/mb_is_tests:
 	$(call mb_assert,$(call mb_is_eq,1,1),"mb_is_eq failed")
