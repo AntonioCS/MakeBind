@@ -1,6 +1,7 @@
 
 
 include $(mb_test_path)/../core/util.mk
+include $(mb_test_path)/core/util/os_detection_text.mk
 
 tests/core/util/mb_is_tests:
 	$(call mb_assert,$(call mb_is_eq,1,1),"mb_is_eq failed")
@@ -12,8 +13,6 @@ tests/core/util/mb_is_tests:
 	$(call mb_assert,$(call mb_is_true,1),"mb_is_true failed")
 	echo "mb_is tests passed"
 
-tests/core/util/mb_os_detection:
-	$(call mb_os_detection)
 
 tests/core/util/mb_timestamp:
 	$(info Should return timestamp: $(call mb_timestamp))

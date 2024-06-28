@@ -10,7 +10,7 @@
 .ONESHELL:
 SHELL = /bin/bash
 mb_debug_tests ?=# Not set to anything
-mb_assert = $(if $1,,$(error TEST FAILURE: $2))
+mb_assert = $(if $1,$(info TEST PASSED: "$@"),$(error TEST FAILURE: $2))
 ## We must remove spaces so that filter doesn't match partially the strings
 define mb_assert_eq
 $(strip

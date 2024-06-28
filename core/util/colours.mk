@@ -9,98 +9,100 @@ ifndef __MB_CORE_UTIL_COLOURS_MK__
 __MB_CORE_UTIL_COLOURS_MK__ := 1
 
 
+mb_colour_opt_Escape = \033
+
 # Reset
-mb_colour_opt_Reset := \033[0m      	 # Text Reset
+mb_colour_opt_Reset = $(mb_colour_opt_Escape)[0m      	 # Text Reset
 
 # Regular Colors
-mb_colour_opt_Black := \033[0;30m
-mb_colour_opt_Red := \033[0;31m
-mb_colour_opt_Green := \033[0;32m
-mb_colour_opt_Yellow := \033[0;33m
-mb_colour_opt_Blue := \033[0;34m
-mb_colour_opt_Purple := \033[0;35m
-mb_colour_opt_Cyan := \033[0;36m
-mb_colour_opt_White := \033[0;37m
+mb_colour_opt_Black = $(mb_colour_opt_Escape)[0;30m
+mb_colour_opt_Red = $(mb_colour_opt_Escape)[0;31m
+mb_colour_opt_Green = $(mb_colour_opt_Escape)[0;32m
+mb_colour_opt_Yellow = $(mb_colour_opt_Escape)[0;33m
+mb_colour_opt_Blue = $(mb_colour_opt_Escape)[0;34m
+mb_colour_opt_Purple = $(mb_colour_opt_Escape)[0;35m
+mb_colour_opt_Cyan = $(mb_colour_opt_Escape)[0;36m
+mb_colour_opt_White = $(mb_colour_opt_Escape)[0;37m
 
 # Bold
-mb_colour_opt_BBlack := \033[1;30m
-mb_colour_opt_BRed := \033[1;31m
-mb_colour_opt_BGreen := \033[1;32m
-mb_colour_opt_BYellow := \033[1;33m
-mb_colour_opt_BBlue := \033[1;34m
-mb_colour_opt_BPurple := \033[1;35m
-mb_colour_opt_BCyan := \033[1;36m
-mb_colour_opt_BWhite := \033[1;37m
+mb_colour_opt_BBlack = $(mb_colour_opt_Escape)[1;30m
+mb_colour_opt_BRed = $(mb_colour_opt_Escape)[1;31m
+mb_colour_opt_BGreen = $(mb_colour_opt_Escape)[1;32m
+mb_colour_opt_BYellow = $(mb_colour_opt_Escape)[1;33m
+mb_colour_opt_BBlue = $(mb_colour_opt_Escape)[1;34m
+mb_colour_opt_BPurple = $(mb_colour_opt_Escape)[1;35m
+mb_colour_opt_BCyan = $(mb_colour_opt_Escape)[1;36m
+mb_colour_opt_BWhite = $(mb_colour_opt_Escape)[1;37m
 
 # Italic
-mb_colour_opt_IBlack := \033[3;30m
-mb_colour_opt_IRed := \033[3;31m
-mb_colour_opt_IGreen := \033[3;32m
-mb_colour_opt_IYellow := \033[3;33m
-mb_colour_opt_IBlue := \033[3;34m
-mb_colour_opt_IPurple := \033[3;35m
-mb_colour_opt_ICyan := \033[3;36m
-mb_colour_opt_IWhite := \033[3;37m
+mb_colour_opt_IBlack = $(mb_colour_opt_Escape)[3;30m
+mb_colour_opt_IRed = $(mb_colour_opt_Escape)[3;31m
+mb_colour_opt_IGreen = $(mb_colour_opt_Escape)[3;32m
+mb_colour_opt_IYellow = $(mb_colour_opt_Escape)[3;33m
+mb_colour_opt_IBlue = $(mb_colour_opt_Escape)[3;34m
+mb_colour_opt_IPurple = $(mb_colour_opt_Escape)[3;35m
+mb_colour_opt_ICyan = $(mb_colour_opt_Escape)[3;36m
+mb_colour_opt_IWhite = $(mb_colour_opt_Escape)[3;37m
 
 # Underline
-mb_colour_opt_UBlack := \033[4;30m
-mb_colour_opt_URed := \033[4;31m
-mb_colour_opt_UGreen := \033[4;32m
-mb_colour_opt_UYellow := \033[4;33m
-mb_colour_opt_UBlue := \033[4;34m
-mb_colour_opt_UPurple := \033[4;35m
-mb_colour_opt_UCyan := \033[4;36m
-mb_colour_opt_UWhite := \033[4;37m
+mb_colour_opt_UBlack = $(mb_colour_opt_Escape)[4;30m
+mb_colour_opt_URed = $(mb_colour_opt_Escape)[4;31m
+mb_colour_opt_UGreen = $(mb_colour_opt_Escape)[4;32m
+mb_colour_opt_UYellow = $(mb_colour_opt_Escape)[4;33m
+mb_colour_opt_UBlue = $(mb_colour_opt_Escape)[4;34m
+mb_colour_opt_UPurple = $(mb_colour_opt_Escape)[4;35m
+mb_colour_opt_UCyan = $(mb_colour_opt_Escape)[4;36m
+mb_colour_opt_UWhite = $(mb_colour_opt_Escape)[4;37m
 
 # Background
-mb_colour_opt_Bg_Black := \033[40m
-mb_colour_opt_Bg_Red := \033[41m
-mb_colour_opt_Bg_Green := \033[42m
-mb_colour_opt_Bg_Yellow := \033[43m
-mb_colour_opt_Bg_Blue := \033[44m
-mb_colour_opt_Bg_Purple := \033[45m
-mb_colour_opt_Bg_Cyan := \033[46m
-mb_colour_opt_Bg_White := \033[47m
+mb_colour_opt_Bg_Black = $(mb_colour_opt_Escape)[40m
+mb_colour_opt_Bg_Red = $(mb_colour_opt_Escape)[41m
+mb_colour_opt_Bg_Green = $(mb_colour_opt_Escape)[42m
+mb_colour_opt_Bg_Yellow = $(mb_colour_opt_Escape)[43m
+mb_colour_opt_Bg_Blue = $(mb_colour_opt_Escape)[44m
+mb_colour_opt_Bg_Purple = $(mb_colour_opt_Escape)[45m
+mb_colour_opt_Bg_Cyan = $(mb_colour_opt_Escape)[46m
+mb_colour_opt_Bg_White = $(mb_colour_opt_Escape)[47m
 
 # High Intensity
-mb_colour_opt_HI_Black := \033[0;90m
-mb_colour_opt_HI_Red := \033[0;91m
-mb_colour_opt_HI_Green := \033[0;92m
-mb_colour_opt_HI_Yellow := \033[0;93m
-mb_colour_opt_HI_Blue := \033[0;94m
-mb_colour_opt_HI_Purple := \033[0;95m
-mb_colour_opt_HI_Cyan := \033[0;96m
-mb_colour_opt_HI_White := \033[0;97m
+mb_colour_opt_HI_Black = $(mb_colour_opt_Escape)[0;90m
+mb_colour_opt_HI_Red = $(mb_colour_opt_Escape)[0;91m
+mb_colour_opt_HI_Green = $(mb_colour_opt_Escape)[0;92m
+mb_colour_opt_HI_Yellow = $(mb_colour_opt_Escape)[0;93m
+mb_colour_opt_HI_Blue = $(mb_colour_opt_Escape)[0;94m
+mb_colour_opt_HI_Purple = $(mb_colour_opt_Escape)[0;95m
+mb_colour_opt_HI_Cyan = $(mb_colour_opt_Escape)[0;96m
+mb_colour_opt_HI_White = $(mb_colour_opt_Escape)[0;97m
 
 # Bold High Intensity
-mb_colour_opt_HI_BBlack := \033[1;90m      # Black
-mb_colour_opt_HI_BRed := \033[1;91m        # Red
-mb_colour_opt_HI_BGreen := \033[1;92m      # Green
-mb_colour_opt_HI_BYellow := \033[1;93m     # Yellow
-mb_colour_opt_HI_BBlue := \033[1;94m       # Blue
-mb_colour_opt_HI_BPurple := \033[1;95m     # Purple
-mb_colour_opt_HI_BCyan := \033[1;96m       # Cyan
-mb_colour_opt_HI_BWhite := \033[1;97m      # White
+mb_colour_opt_HI_BBlack = $(mb_colour_opt_Escape)[1;90m      # Black
+mb_colour_opt_HI_BRed = $(mb_colour_opt_Escape)[1;91m        # Red
+mb_colour_opt_HI_BGreen = $(mb_colour_opt_Escape)[1;92m      # Green
+mb_colour_opt_HI_BYellow = $(mb_colour_opt_Escape)[1;93m     # Yellow
+mb_colour_opt_HI_BBlue = $(mb_colour_opt_Escape)[1;94m       # Blue
+mb_colour_opt_HI_BPurple = $(mb_colour_opt_Escape)[1;95m     # Purple
+mb_colour_opt_HI_BCyan = $(mb_colour_opt_Escape)[1;96m       # Cyan
+mb_colour_opt_HI_BWhite = $(mb_colour_opt_Escape)[1;97m      # White
 
 # High Intensity backgrounds
-mb_colour_opt_HIBkg_Black := \033[0;100m   # Black
-mb_colour_opt_HIBkg_Red := \033[0;101m     # Red
-mb_colour_opt_HIBkg_Green := \033[0;102m   # Green
-mb_colour_opt_HIBkg_Yellow := \033[0;103m  # Yellow
-mb_colour_opt_HIBkg_Blue := \033[0;104m    # Blue
-mb_colour_opt_HIBkg_Purple := \033[0;105m  # Purple
-mb_colour_opt_HIBkg_Cyan := \033[0;106m    # Cyan
-mb_colour_opt_HIBkg_White := \033[0;107m   # White
+mb_colour_opt_HIBkg_Black = $(mb_colour_opt_Escape)[0;100m   # Black
+mb_colour_opt_HIBkg_Red = $(mb_colour_opt_Escape)[0;101m     # Red
+mb_colour_opt_HIBkg_Green = $(mb_colour_opt_Escape)[0;102m   # Green
+mb_colour_opt_HIBkg_Yellow = $(mb_colour_opt_Escape)[0;103m  # Yellow
+mb_colour_opt_HIBkg_Blue = $(mb_colour_opt_Escape)[0;104m    # Blue
+mb_colour_opt_HIBkg_Purple = $(mb_colour_opt_Escape)[0;105m  # Purple
+mb_colour_opt_HIBkg_Cyan = $(mb_colour_opt_Escape)[0;106m    # Cyan
+mb_colour_opt_HIBkg_White = $(mb_colour_opt_Escape)[0;107m   # White
 
 # Modes
-mb_colour_opt_M_Bold := \033[1m
-mb_colour_opt_M_Dim := \033[2m
-mb_colour_opt_M_Italic := \033[3m
-mb_colour_opt_M_Underline := \033[4m
-mb_colour_opt_M_Blinking := \033[5m
-mb_colour_opt_M_Reverse := \033[7m
-mb_colour_opt_M_Invisible := \033[7m
-mb_colour_opt_M_Strikeout := \033[9m
+mb_colour_opt_M_Bold = $(mb_colour_opt_Escape)[1m
+mb_colour_opt_M_Dim = $(mb_colour_opt_Escape)[2m
+mb_colour_opt_M_Italic = $(mb_colour_opt_Escape)[3m
+mb_colour_opt_M_Underline = $(mb_colour_opt_Escape)[4m
+mb_colour_opt_M_Blinking = $(mb_colour_opt_Escape)[5m
+mb_colour_opt_M_Reverse = $(mb_colour_opt_Escape)[7m
+mb_colour_opt_M_Invisible = $(mb_colour_opt_Escape)[7m
+mb_colour_opt_M_Strikeout = $(mb_colour_opt_Escape)[9m
 
 
 # $1 - colour name (e.g. Red, Green, etc) you can also pass the mode like BRed

@@ -88,36 +88,19 @@ mb_time_minute := 60
 mb_time_hour := 3600
 mb_time_day := 86400
 
-
-#$1 - Windows command
-#$2 - Linux command
-#$3 - Mac command, if not present Linux command will be used
-define mb_run_for_os
-$(strip
-	$(call mb_os_detection)
-	$(eval mb_run_for_os_cmd := $(strip $(if $(mb_os_is_windows),\
-		$1,\
-		$(if $(mb_os_is_linux),\
-			$2,\
-			$(if $(value 3),\
-				$3,\
-				$2 \
-	)))))
-	$(shell $(mb_run_for_os_cmd))
-)
-endef
+# Powershell helper
+mb_powershell = powershell -Command '$(strip $1)'
 
 define mb_timestamp
-$(call mb_run_for_os,
-	powershell -Command "[math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds)",\
+$(call mb_os_call,
+	$(call mb_powershell,[math]::Floor((New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)),\
 	date +%s\
 )
 endef
 
-
 define mb_expression
-$(call mb_run_for_os,
-	powershell -Command "$1",\
+$(call mb_os_call,
+	$(call mb_powershell,$1),\
 	echo $1 | bc\
 )
 endef
@@ -137,8 +120,8 @@ $(strip
 	mb_random_lo := $(if $(value 1),$1,1)
 	mb_random_hi := $(if $(value 2),$2,65534)
 	)
-	$(call mb_run_for_os,
-    	powershell -Command "Get-Random -Minimum $(mb_random_lo) -Maximum $(mb_random_hi)",\
+	$(call mb_os_call,
+    	$(call mb_powershell,Get-Random -Minimum $(mb_random_lo) -Maximum $(mb_random_hi)),\
     	shuf -i $(mb_random_lo)-$(mb_random_hi) -n 1,\
     	jot -r 1 $(mb_random_lo) $(mb_random_hi)\
     )
