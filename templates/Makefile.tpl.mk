@@ -77,7 +77,7 @@ endef
 
 mb_comma := ,## Comma for sed command which is inside a make function
 mb_dollar := __DOLLAR__## Dollar sign for powershell command which is inside a make function
-mb_powershell = powershell -Command '$(strip $1)'
+mb_powershell = powershell -NoProfile -Command '$(strip $1)'
 
 define mb_latest_release_url_generate
 $(strip

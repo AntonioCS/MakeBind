@@ -8,6 +8,11 @@
 ifndef __MB_CORE_UTIL_OS_DETECTION_MK__
 __MB_CORE_UTIL_OS_DETECTION_MK__ := 1
 
+mb_debug_os_detection ?= $(mb_debug)
+ifeq ($(mb_debug_os_detection),0)
+override mb_debug_os_detection :=#Empty
+endif
+
 mb_os_is_linux ?= $(mb_false)
 mb_os_is_osx ?= $(mb_false)
 mb_os_is_windows ?= $(mb_false)
@@ -53,7 +58,8 @@ endef
 #$1 - Windows command
 #$2 - Linux command
 #$3 - Mac command, if not present Linux command will be used
-mb_os_call_use_shell ?= $(mb_true)
+#$4 - Use shell (on/off)
+mb_os_call_use_shell ?= $(mb_on)
 define mb_os_call
 $(strip
 	$(call mb_os_detection)
@@ -65,13 +71,19 @@ $(strip
 				$3,\
 				$2 \
 	)))))
-
-	$(if $(mb_os_call_use_shell),
+	$(eval mb_os_call_use_shell_or_not := $(if $(value 4),$4,$(mb_os_call_use_shell)))
+	$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call_cmd: $(mb_os_call_cmd)))
+	$(if $(call mb_is_on,$(mb_os_call_use_shell_or_not)),
+		$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call using shell))
 		$(shell $(mb_os_call_cmd)),
+		$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call NOT using shell))
 		$(mb_os_call_cmd)
 	)
 )
 endef
 
+define mb_os_assign
+$(strip $(call mb_os_call,$1,$2,$(if $(value 3),$3),$(mb_off)))
+endef
 
 endif # __MB_CORE_UTIL_OS_DETECTION_MK__

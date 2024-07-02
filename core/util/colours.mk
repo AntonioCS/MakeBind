@@ -8,8 +8,10 @@
 ifndef __MB_CORE_UTIL_COLOURS_MK__
 __MB_CORE_UTIL_COLOURS_MK__ := 1
 
-
-mb_colour_opt_Escape = \033
+## https://duffney.io/usingansiescapesequencespowershell/#8-bit-256-color-foreground--background
+## Note: `e is the escape character but is only valid on powershell 7.1 and above
+mb_colour_opt_Escape = $(call mb_os_assign,`e,\033)#
+#mb_colour_opt_Escape = $(call mb_os_assign,$(mb_rep_dollar)$(mb_lparen)char27$(mb_rparen),\033)#
 
 # Reset
 mb_colour_opt_Reset = $(mb_colour_opt_Escape)[0m      	 # Text Reset

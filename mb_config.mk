@@ -13,6 +13,6 @@ mb_project_mb_project_mk_local_file := $(mb_project_bindhub_path)/mb_project.loc
 mb_project_modules := #
 mb_debug ?= $(mb_off)
 # Some functions will not function properly in other shells
-mb_default_shell ?= /bin/bash
+mb_default_shell_not_windows ?= /bin/bash
 mb_default_target ?= mb/targets-list
 mb_auto_include_init_project_if_config_missing ?= $(mb_on)
