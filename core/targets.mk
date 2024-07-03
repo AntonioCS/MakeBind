@@ -14,6 +14,7 @@ mb_debug_targets ?= $(mb_debug)
 ## This will list all the targets in the Makefile with their description
 ## Note: Having ifeq ($(mb_os_is_windows),1) was not working correctly
 mb/targets-list:
+	$(mb_targets_list_get_files)
 ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
 	powershell -Command "Select-String -Path $(subst $(mb_space),$(mb_comma),$(mb_targets_list_get_files_all)) -Pattern '^[\$$\(\)/a-zA-Z0-9_-]+:.*?## .*$$' -ErrorAction SilentlyContinue |\
 		ForEach-Object {\
