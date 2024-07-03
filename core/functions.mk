@@ -113,21 +113,11 @@ $(strip
 )
 endef
 
+
+## NOTE: there is more that can be done to simulate the linux version (timeout and default text) but for now this is enough
 define mb_ask_user_windows
 $(call mb_powershell,Read-Host "$(mb_ask_user_text)")
 endef
-#	$(shell $(call mb_powershell,[Console]::Write('$(mb_ask_user_text) '); \
-#		$$(if [string]::IsNullOrEmpty('$(mb_ask_user_time_out)') -eq $false) { \
-#			$$response = Read-Host $(mb_ask_user_time_out) -Prompt 'Timeout: '; \
-#		} \
-#		elseif ([string]::IsNullOrEmpty('$$(mb_ask_user_default_text)') -eq $false) { \
-#			$response = Read-Host $$(mb_ask_user_default_text); \
-#		} \
-#		else { \
-#			$$response = Read-Host; \
-#		}; \
-#		Write-Output $$response \
-#	))
 
 ############################################################################################################################
 ############################################################################################################################
