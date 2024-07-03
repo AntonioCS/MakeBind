@@ -151,29 +151,23 @@ mb_rreplacer = $(subst ",', $(subst $(mb_rep_dollar),$(mb_value_rep_dollar),$1))
 
 ## SHELL seems to be ignored on windows so I must use this to call powershell directly and not through the SHELL variable
 ## NOTE: -ErrorAction Stop must come after -Command
-## NOTe: Here I can use -Debug and -Verbose
+## NOTe: Here I can use -Debug and -Verbose  - WIP
 define mb_powershell_cmdlets
 
 endef
 
 
-## NOTE: Use try catch to catch errors
+## NOTE: Use try catch to catch errors - WIP
 define mb_powershell_expression
 powershell -NoProfile -Command "try { [math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds) } catch { Write-Error $_.Exception.Message }"
 
 endef
 
-#$(if $(call mb_is_on,$(mb_debug)),$(eval mb_powershell_cmd += -Debug))
-#$(if $(call mb_is_on,$(mb_debug_show_all_commands)),$(eval mb_powershell_cmd += -Verbose))
-## NOTE
 define mb_powershell
 $(strip
 $(eval mb_powershell_cmd = $(strip $(call mb_rreplacer,$1)))
 pwsh.exe -NoProfile -Command "$(mb_powershell_cmd)"
 )
 endef
-
-
-#-ErrorAction Stop)
 
 endif # __MB_CORE_UTIL_MK__

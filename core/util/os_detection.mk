@@ -82,8 +82,6 @@ $(strip
 )
 endef
 
-define mb_os_assign
-$(strip $(call mb_os_call,$1,$2,$(if $(value 3),$3),$(mb_off)))
-endef
+mb_os_assign = $(strip $(call mb_os_call,$1,$2,$(if $(value 3),$3),$(mb_off)))
 
 endif # __MB_CORE_UTIL_OS_DETECTION_MK__

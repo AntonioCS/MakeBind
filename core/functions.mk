@@ -161,7 +161,7 @@ $(strip
 	$(eval mb_printf_msg = $1)
 	$(eval mb_printf_format = $2)
 	$(eval mb_printf_project_name = $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
-	$(eval mb_printf_breakline = $(if $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),1))
+	$(eval mb_printf_breakline = $(if $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),$(mb_true)))
 	$(if $(call mb_is_on,$(mb_printf_use_shell)),
 		$(eval mb_printf_result = $(shell $(mb_printf_statement)))
 		$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_info)),

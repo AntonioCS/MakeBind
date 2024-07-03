@@ -62,12 +62,12 @@ MAKEFLAGS := --no-builtin-rules \
 
 SHELL := /bin/bash
 .SHELLFLAGS := -eucx
-#ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
+ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
 ## Note: Make seem to ignore this
-#SHELL := C:\\Program Files\\PowerShell\\7\\pwsh.exe
-#MAKESHELL := $(SHELL)
-#.SHELLFLAGS := -NoProfile -Command
-#endif
+SHELL := pwsh.exe
+MAKESHELL := $(SHELL)
+.SHELLFLAGS := -NoProfile -Command
+endif
 
 
 

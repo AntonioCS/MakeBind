@@ -46,9 +46,8 @@ MAKEFLAGS := --no-builtin-rules \
 
 ## https://stackoverflow.com/a/63840549/8715
 
-SHELL := $(call mb_os_assign,powershell.exe,$(mb_default_shell_not_windows))
+SHELL := $(call mb_os_assign,pwsh.exe,$(mb_default_shell_not_windows))
 MAKESHELL := $(SHELL)
-#-ErrorAction Stop -NoProfile $(if $(call mb_is_on,$(mb_debug_show_all_commands)),-Verbose) -Command,\
 #https://devblogs.microsoft.com/powershell/erroraction-and-errorvariable/
 .SHELLFLAGS := $(call mb_os_assign,\
 -NoProfile -Command,\

@@ -28,7 +28,6 @@ mb/debug/print-%:
 
 #$1 - msg
 #$2 - debug trigger (defaults to mb_debug if not set)
-#NOTE: Using make warning directly for less dependencies
 define mb_debug_print
 $(strip
 	$(eval mb_debug_trigger := $(if $(value 2),$2,$(mb_debug)))

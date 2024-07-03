@@ -26,33 +26,19 @@ tests/core/functions/test_mb_invoke_info_mgs_multiple_calls: tests/core/function
 tests/core/functions/test_mb_invoke_info_mgs_multiple_calls:
 
 
-#MAKESHELL := powershell.exe
-#SHELL := powershell.exe
-#.SHELLFLAGS := -NoProfile -Command
-#SHELL := C:/Program Files/PowerShell/7/pwsh.exe
-#MAKESHELL := $(SHELL)
-#.SHELLFLAGS := -NoProfile -Command
-test/powershell2:
-#$(eval SHELL := C:/Program Files/PowerShell/7/pwsh.exe)
-#$(eval .SHELLFLAGS := -NoProfile -Command)
+test/powershell2: ## skip
 	$(info Shell: $(SHELL))
 	Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')
 	$(call mb_powershell,Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed'))
 	pwsh.exe -NoProfile -Command "Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
 	pwsh.exe -NoProfile -Command "Write-Host ('{0}$$([char]27)[0;32m{1}$$([char]27)[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
-#$(call mb_powershell,Write-Host ("$(call mb_colour_text,Green,{0})" -f "Hello World"))
 
-test/powershell:
+test/powershell: ## skip
 	$(info $(call mb_os_assign,$(mb_rep_dollar)([char]27),\033))
 	$(eval cmd = $(call mb_powershell,Write-Output ('{0}{1} {2}' -f 'ts'$(mb_comma)'project'$(mb_comma)'printf tests passed'))))
 	$(info cmd: $(cmd))
 	$(eval bla := $(shell $(cmd)))
 	$(info bla: $(bla))
-#& { Write-Output 'Hello World' }
-#Write-Output 'Hello World'
-#$(eval SHELL=C:/windows/System32/WindowsPowerShell/v1.0/powershell.exe)
-#$(info $(SHELL))
-#$(info $(.SHELLFLAGS))
 
 ######################################################################################################################
 ######################################################################################################################
