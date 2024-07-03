@@ -12,13 +12,21 @@ mb_debug_targets ?= $(mb_debug)
 
 ## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
+## Note: Having ifeq ($(mb_os_is_windows),1) was not working correctly
 mb/targets-list:
-	$(call mb_targets_list_get_files)
-	grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(mb_targets_list_get_files_all) | \
-	awk 'BEGIN {FS = ":.*?## "} \
-		{if (NF > 1) printf "\033[36m%-40s\033[0m %s\n", $$1, $$2} \
+ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
+	powershell -Command "Select-String -Path $(subst $(mb_space),$(mb_comma),$(mb_targets_list_get_files_all)) -Pattern '^[\$$\(\)/a-zA-Z0-9_-]+:.*?## .*$$' -ErrorAction SilentlyContinue |\
+		ForEach-Object {\
+			$$parts = $$_.Line -split '##';\
+			$$formattedText = '{0,-40} {1}' -f $$parts[0].Trim().TrimEnd(':'), $$parts[1].Trim();\
+			Write-Host $$formattedText -ForegroundColor Cyan;\
+		}"
+else
+	grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(mb_targets_list_get_files_all) |\
+	awk 'BEGIN {FS = ":.*?## "}\
+		{if (NF > 1) printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}\
 		END {if (NR == 0) print "\033[31mNo targets found\033[0m"}' || true
-
+endif
 
 define mb_targets_list_get_files
 	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) \
@@ -31,7 +39,7 @@ define mb_targets_list_get_files
 	$(call mb_debug_print,mb/targets-list MB modules files: $(mb_get_files_mb_modules),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list Project modules files: $(mb_get_files_project_modules),$(mb_debug_targets))
 
-	$(eval mb_targets_list_get_files_all := $(mb_core_path)/targets.mk $(mb_get_files_project) $(mb_get_files_mb_modules) $(mb_get_files_project_modules))
+	$(eval mb_targets_list_get_files_all := $(strip $(mb_core_path)/targets.mk $(mb_get_files_project) $(mb_get_files_mb_modules) $(mb_get_files_project_modules)))
 	$(call mb_debug_print,mb/targets-list all file: $(mb_targets_list_get_files_all),$(mb_debug_targets))
 endef
 

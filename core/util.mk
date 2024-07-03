@@ -78,10 +78,10 @@ mb_lcurly := {#
 mb_rcurly := }#
 mb_dollar := \$
 mb_dollar_replace := ø#Char 248
-mb_true := 1
+mb_true := 1#
 mb_false := $(mb_empty)
-mb_on := 1
-mb_off := 0
+mb_on := 1#
+mb_off := 0#
 
 # Time helpers in seconds
 mb_time_minute := 60
