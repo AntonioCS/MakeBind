@@ -9,8 +9,6 @@ mb_has_main_mk ?= $(wildcard $(mb_main_mk))## Check if MakeBind is present in sy
 
 ifeq ($(mb_debug_makefile),0)
 override mb_debug_makefile :=## Make it empty for code simplicity
-else
-$(warning DEBUG: Makefile is being run in debug mode)
 endif
 
 ifeq ($(mb_debug_makefile),1)
