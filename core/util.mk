@@ -60,8 +60,8 @@ mb_is_true = $(call mb_is_eq,$1,$(mb_true))
 
 
 # File helpers
-mb_exists = $(if $(wildcard $1),1)
-mb_not_exists = $(if $(call mb_exists,$1),,1)
+mb_exists = $(if $(wildcard $1),$(mb_true))
+mb_not_exists = $(if $(call mb_exists,$1),,$(mb_true))
 
 ## Useful variables
 mb_comma := ,#
@@ -128,12 +128,11 @@ endef
 mb_remove_spaces = $(subst $(mb_space),$(mb_empty),$1)
 
 
-mb_rep_dollar := __DOLLAR__## Dollar sign for powershell command which is inside a make function
+mb_rep_dollar := $(mb_dollar_replace)## Dollar sign for powershell command which is inside a make function
 #mb_value_rep_dollar := $(mb_dollar)
-mb_value_rep_dollar := \\$$$$
 
 
-mb_rreplacer = $(subst ",', $(subst $(mb_rep_dollar),$(mb_value_rep_dollar),$1))
+mb_rreplacer = $(subst ",', $(subst $(mb_dollar_replace),$(mb_dollar),$1))
 
 #define mb_rreplacer
 #$(strip
@@ -163,11 +162,6 @@ powershell -NoProfile -Command "try { [math]::Floor((New-TimeSpan -Start (Get-Da
 
 endef
 
-define mb_powershell
-$(strip
-$(eval mb_powershell_cmd = $(strip $(call mb_rreplacer,$1)))
-pwsh.exe -NoProfile -Command "$(mb_powershell_cmd)"
-)
-endef
+mb_powershell = $(strip pwsh.exe -NoProfile -Command "$(strip $(call mb_rreplacer,$1))")
 
 endif # __MB_CORE_UTIL_MK__

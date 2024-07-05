@@ -36,6 +36,7 @@ include $(mb_core_path)/modules_manager.mk
 include $(mb_core_path)/targets.mk
 
 .ONESHELL:
+.POSIX:
 
 MAKEFLAGS := --no-builtin-rules \
 	--no-builtin-variables \
@@ -45,22 +46,21 @@ MAKEFLAGS := --no-builtin-rules \
 	$(if $(call mb_is_off,$(mb_debug_no_silence)),--silent)
 
 ## https://stackoverflow.com/a/63840549/8715
-
-SHELL := $(call mb_os_assign,pwsh.exe,$(mb_default_shell_not_windows))
-MAKESHELL := $(SHELL)
-#https://devblogs.microsoft.com/powershell/erroraction-and-errorvariable/
-.SHELLFLAGS := $(call mb_os_assign,\
--NoProfile -Command,\
--euc$(if $(call mb_is_on,$(mb_debug_show_all_commands)),x)o pipefail\
-)
+SHELL := $(mb_default_shell_not_windows)
 ## Linux Configure shell flags:
 ## '-e' exits the shell if any command exits with a non-zero status.
 ## '-u' treats unset variables and parameters as an error when performing parameter expansion.
 ## '-c' tells the shell that the commands to run are coming from the string argument following this option.
 ## '-x' (conditionally included if mb_debug_show_all_commands is set) prints each command before execution, useful for debugging.
 ## '-o pipefail' ensures the pipeline's return status is the exit code of the last command to exit with a non-zero status.
+.SHELLFLAGS := -euc$(if $(call mb_is_on,$(mb_debug_show_all_commands)),x)o pipefail
+ifeq ($(OS),Windows_NT)
+## This is not working properly and that is why I'm using mb_powershell
+SHELL := pwsh.exe
+.SHELLFLAGS := -NoProfile -Command
+endif
 
-
+MAKESHELL := $(SHELL)
 .DEFAULT_GOAL = $(mb_default_target)
 
 $(call mb_debug_print, SHELL: $(SHELL))
@@ -83,8 +83,9 @@ $(call mb_debug_print, mb_project_mb_project_mk_local_file: $(mb_project_mb_proj
 $(call mb_debug_print, mb_default_shell_not_windows: $(mb_default_shell_not_windows))
 
 
-ifeq ($(call mb_not_exists,$(mb_project_mb_config_file)),$(mb_true))
+ifeq ($(or $(call mb_not_exists,$(mb_project_mb_config_file)),$(call mb_not_exists,$(mb_project_mb_project_mk_file))),$(mb_true))
 ifeq ($(mb_auto_include_init_project_if_config_missing),$(mb_on))
+$(call mb_debug_print, Including init_project since files are missing)
 include $(mb_core_path)/init_project.mk
 else
 $(call mb_printf_error,Project files are missing)

@@ -115,9 +115,8 @@ endef
 
 
 ## NOTE: there is more that can be done to simulate the linux version (timeout and default text) but for now this is enough
-define mb_ask_user_windows
-$(call mb_powershell,Read-Host "$(mb_ask_user_text)")
-endef
+mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_text)")
+
 
 ############################################################################################################################
 ############################################################################################################################
@@ -129,21 +128,36 @@ endef
 ## No colours for powershell (for now)
 ## There is some info here https://duffney.io/usingansiescapesequencespowershell/#8-bit-256-color-foreground--background
 ## But I was not able to get this work properly via make (works fine directly on the terminal)
-mb_printf_info_format_specifier ?= $(call mb_os_assign,"{0}{1} {2}","%s$(call mb_colour_text,Green,%s) %b")
 #mb_printf_info_format_specifier ?= "{0}{1} {2}"
 #mb_printf_info_format_specifier ?= $(call mb_os_assign,"{0}{1} {2}","%s$(call mb_colour_text,Green,%s) %b")
 #mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%s WARNING): %b"
 #mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
 #mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
-mb_printf_warn_format_specifier ?= $(call mb_os_assign,"{0}{1} WARNING: {2}","%s$(call mb_colour_text,IYellow,%s WARNING): %b")
-mb_printf_error_format_specifier ?= $(call mb_os_assign,"{0}{1} ERROR: {2}","%s$(call mb_colour_text,BRed,%s ERROR): %b")
-mb_printf_debug_format_specifier ?= $(call mb_os_assign,"{0}{1} DEBUG: {2}","%s$(call mb_colour_text,BBlue,%s DEBUG): %b")
 
+## Not working properly
+#mb_printf_info_format_specifier ?= $(call mb_os_assign,"{0}{1} {2}","%s$(call mb_colour_text,Green,%s) %b")
+#mb_printf_warn_format_specifier ?= $(call mb_os_assign,"{0}{1} WARNING: {2}","%s$(call mb_colour_text,IYellow,%s WARNING): %b")
+#mb_printf_error_format_specifier ?= $(call mb_os_assign,"{0}{1} ERROR: {2}","%s$(call mb_colour_text,BRed,%s ERROR): %b")
+#mb_printf_debug_format_specifier ?= $(call mb_os_assign,"{0}{1} DEBUG: {2}","%s$(call mb_colour_text,BBlue,%s DEBUG): %b")
+
+ifeq ($(OS),Windows_NT)
+mb_printf_info_format_specifier ?= "{0}{1} {2}"
+mb_printf_warn_format_specifier ?= "{0}{1} WARNING: {2}"
+mb_printf_error_format_specifier ?= "{0}{1} ERROR: {2}"
+mb_printf_debug_format_specifier ?= "{0}{1} DEBUG: {2}"
+mb_printf_ts_format ?= "yyyy-MM-dd HH:mm:ss"## Timestamp format
+else
+mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s) %b"
+mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%s WARNING): %b"
+mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
+mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
+mb_printf_ts_format ?= +'%F %T'## Timestamp format
+endif
 mb_printf_display_ts ?= $(mb_on) ## Display timestamp
 mb_printf_display_project_name ?= $(mb_on) ## Display project name
 mb_printf_display_guard_l := [## Display Left guard
 mb_printf_display_guard_r := ]## Right guard
-mb_printf_ts_format ?= $(call mb_os_assign,"yyyy-MM-dd HH:mm:ss",+'%F %T') ## Timestamp format
+
 mb_printf_use_break_line ?= $(mb_on) ## Use break line
 # This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
 mb_printf_use_shell ?= $(mb_on) ## Use shell command
@@ -199,7 +213,7 @@ printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_pr
 ))
 endef
 
-mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+mb_printf_info = $(strip $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
 
 define mb_printf_warn
 $(strip

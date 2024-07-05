@@ -9,16 +9,18 @@ mb_has_main_mk ?= $(wildcard $(mb_main_mk))## Check if MakeBind is present in sy
 
 ifeq ($(mb_debug_makefile),0)
 override mb_debug_makefile :=## Make it empty for code simplicity
+else
+$(warning DEBUG: Makefile is being run in debug mode)
 endif
 
 ifeq ($(mb_debug_makefile),1)
-$(info mb_project_path: $(mb_project_path))
-$(info mb_mb_default_path: $(mb_mb_default_path))
-$(info mb_main_mk: $(mb_main_mk))
-$(info mb_latest_url: $(mb_latest_url))
-$(info mb_auto_install_if_missing: $(mb_auto_install_if_missing))
-$(info mb_silent_mode: $(mb_silent_mode))
-$(info mb_has_main_mk: $(mb_has_main_mk))
+$(warning DEBUG: mb_project_path: $(mb_project_path))
+$(warning DEBUG: mb_mb_default_path: $(mb_mb_default_path))
+$(warning DEBUG: mb_main_mk: $(mb_main_mk))
+$(warning DEBUG: mb_latest_url: $(mb_latest_url))
+$(warning DEBUG: mb_auto_install_if_missing: $(mb_auto_install_if_missing))
+$(warning DEBUG: mb_silent_mode: $(mb_silent_mode))
+$(warning DEBUG: mb_has_main_mk: $(mb_has_main_mk))
 endif
 
 ifneq ($(mb_has_main_mk),)## The MakeBind project exists
@@ -59,12 +61,11 @@ ifdef __MB_DOWNLOAD_LATEST_MB__
 
 mb_os_is_windows := $(if $(and $(value OS),$(findstring Windows_NT,$(OS))),1)## Empty if not windows, 1 if windows
 mb_makefile_debug = $(if $(mb_debug_makefile),$(info DEBUG: $(strip $1)))
-
 define mb_makefile_run_for_os
 $(strip
 	$(eval mb_run_for_os_cmd := $(strip $(if $(mb_os_is_windows),$1,$2)))
-	$(call mb_makefile_debug, Running cmd: $(subst $(mb_dollar),$$,$(mb_run_for_os_cmd)))
-	$(shell $(subst $(mb_dollar),$$,$(mb_run_for_os_cmd)))
+	$(call mb_makefile_debug, Running cmd: $(mb_run_for_os_cmd))
+	$(shell $(mb_run_for_os_cmd))
 )
 endef
 
@@ -76,13 +77,11 @@ define mb_zip_path_generate
 endef
 
 mb_comma := ,## Comma for sed command which is inside a make function
-mb_dollar := __DOLLAR__## Dollar sign for powershell command which is inside a make function
-mb_powershell = powershell -NoProfile -Command '$(strip $1)'
-
+mb_dollar := $$## Dollar sign for powershell command which is inside a make function
 define mb_latest_release_url_generate
 $(strip
 	$(eval mb_latest_releate_url := $(call mb_makefile_run_for_os,\
-		$(call mb_powershell,$(mb_dollar)response = Invoke-RestMethod -Uri "$(mb_latest_url)"; Write-Output $(mb_dollar)response.zipball_url), \
+		powershell -Command "$$response = Invoke-RestMethod -Uri '$(mb_latest_url)'; $$url = $$response.zipball_url; Write-Output $$url", \
 		curl -s $(mb_latest_url) | grep '"zipball_url":' | sed -E 's/.*"zipball_url": "(.*)"$(mb_comma)/\1/' \
 	))
 	$(if $(mb_debug_makefile),$(info DEBUG: Latest URL: $(mb_latest_releate_url)))
@@ -91,30 +90,23 @@ endef
 
 define mb_download_latest_mb
 $(call mb_makefile_run_for_os,
-	$(call mb_powershell,Invoke-WebRequest -Uri $(mb_latest_releate_url) -OutFile $(mb_zip_path)),
+	powershell -Command "Invoke-WebRequest -Uri $(mb_latest_releate_url) -OutFile $(mb_zip_path)",
 	curl -s -L -o $(mb_zip_path) $(mb_latest_releate_url)
 )
 endef
 
-
-###NOTE: I need to check for wrong folder structure if on windows with msys2
 define mb_install
 $(strip
-$(eval mb_parent_folder := $(abspath $(dir $(mb_mb_default_path))))
-$(if $(and $(mb_os_is_windows),$(filter /%,$(mb_parent_folder))),
-	$(eval mb_no_leading_slash := $(patsubst /%,%,$(mb_parent_folder)))
-	$(eval mb_drive_letter := $(word 1,$(strip $(subst /, ,$(mb_no_leading_slash)))))
-	$(eval mb_parent_folder := $(mb_drive_letter):/$(patsubst $(mb_drive_letter)/%,%,$(mb_no_leading_slash)))
+$(eval mb_top_folder := $(abspath $(dir $(mb_mb_default_path))))
+$(call mb_makefile_run_for_os,
+	powershell -Command "Expand-Archive -Path $(mb_zip_path) -DestinationPath $(mb_top_folder)",
+	unzip -nqq $(mb_zip_path) -d $(mb_top_folder)
 )
 $(call mb_makefile_run_for_os,
-	$(call mb_powershell,Expand-Archive -Path $(mb_zip_path) -DestinationPath $(mb_parent_folder)),
-	unzip -nqq $(mb_zip_path) -d $(mb_parent_folder)
-)
-
-$(call mb_makefile_run_for_os,
-	$(call mb_powershell,$(mb_dollar)folder = Get-ChildItem -Path "$(mb_parent_folder)" -Depth 1 -Directory -Filter "*-MakeBind-*" | \
-	Select-Object -First 1; if ($(mb_dollar)folder) { Move-Item -Path $(mb_dollar)folder.FullName -Destination "$(mb_parent_folder)/MakeBind" }),
-    mv "`find $(mb_parent_folder) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_parent_folder)/MakeBind"
+	powershell -Command "$(mb_dollar)extractedDir = Get-ChildItem -Path $(mb_top_folder) |
+	Where-Object { $(mb_dollar)_.PSIsContainer } | Select-Object -First 1;
+	Rename-Item -Path $(mb_dollar)extractedDir.FullName -NewName 'MakeBind',
+    mv "`find $(mb_top_folder) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_top_folder)/MakeBind"
 ))
 endef
 

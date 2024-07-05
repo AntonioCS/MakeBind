@@ -74,7 +74,6 @@ $(strip
 	$(eval mb_os_call_use_shell_or_not := $(if $(value 4),$4,$(mb_os_call_use_shell)))
 	$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call_cmd: $(mb_os_call_cmd)))
 	$(if $(call mb_is_on,$(mb_os_call_use_shell_or_not)),
-		$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call using shell))
 		$(shell $(mb_os_call_cmd)),
 		$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call NOT using shell))
 		$(mb_os_call_cmd)

@@ -1,3 +1,6 @@
+### Custom Project targets
 
-project_target_1: ## Target of project
-	echo "Project target 1"
+setup: mb_info_msg := Running setup
+setup: mb/info-setup
+setup: ## Setup project
+	$(call mb_printf_info,Finished setup)

@@ -31,10 +31,11 @@ mb/debug/print-%:
 define mb_debug_print
 $(strip
 	$(eval mb_debug_trigger := $(if $(value 2),$2,$(mb_debug)))
-	$(if $(call mb_is_on,$(mb_debug_trigger)),\
-		$(call mb_printf_warn,$(call mb_normalizer,$1),$(mb_printf_debug_format_specifier))\
-	)
+	$(if $(call mb_is_on,$(mb_debug_trigger)),$(warning DEBUG: $(strip $1)))
 )
 endef
+## This causes problems
+#$(call mb_printf_warn,$(call mb_normalizer,$1),$(mb_printf_debug_format_specifier))\
 
 endif #__MB_CORE_UTIL_DEBUG_MK__
+
