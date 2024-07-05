@@ -11,8 +11,6 @@ tests/core/util/mb_is_tests:
 	$(call mb_assert,$(call mb_is_empty,),"mb_is_empty failed")
 	$(call mb_assert,$(call mb_is_false,),"mb_is_false failed")
 	$(call mb_assert,$(call mb_is_true,1),"mb_is_true failed")
-	echo "mb_is tests passed"
-
 
 tests/core/util/mb_timestamp:
 	$(info Should return ts: $(call mb_timestamp))
@@ -29,5 +27,4 @@ tests/core/util/mb_expression:
 
 
 tests/core/util/mb_add_big_values:
-	$(info $(SHELL))
 	$(call mb_assert_eq,1719841777,$(call mb_add,1719841772,5))
