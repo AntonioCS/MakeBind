@@ -60,6 +60,8 @@ endef
 #$3 - Mac command, if not present Linux command will be used
 #$4 - Use shell (on/off)
 mb_os_call_use_shell ?= $(mb_on)
+
+## NOTE: $(subst $(mb_dollar_replace),$(mb_dollar2),..) must be called at the very last minute
 define mb_os_call
 $(strip
 	$(call mb_os_detection)
@@ -74,8 +76,8 @@ $(strip
 	$(eval mb_os_call_use_shell_or_not := $(if $(value 4),$4,$(mb_os_call_use_shell)))
 	$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call_cmd: $(mb_os_call_cmd)))
 	$(if $(call mb_is_on,$(mb_os_call_use_shell_or_not)),
-		$(shell $(mb_os_call_cmd)),
-		$(mb_os_call_cmd)
+		$(shell $(subst $(mb_dollar_replace),$(mb_dollar2),$(mb_os_call_cmd))),
+		$(subst $(mb_dollar_replace),$(mb_dollar2),$(mb_os_call_cmd))
 	)
 )
 endef

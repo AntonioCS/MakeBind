@@ -10,6 +10,8 @@ __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
 mb_debug_dc_invoke ?= $(mb_debug)
 dc_default_shell_bin ?= /bin/sh
+dc_files ?= $(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
+
 
 #$1 = command
 #$2 = options
@@ -105,6 +107,7 @@ dc/restart: ## Restart all containers (calls stop & up)
 dc/restart: dc/stop
 dc/restart: dc/start
 
+### TODO: Fix this for windows, there is not need to pass any parameters and it will error due to missing id and whoami
 dc/build: ## Build all containers
 	$(call dc_invoke,build,--parallel --no-cache \
 		--build-arg USER_ID=$(if $(value mb_dc_build_user_id),$(mb_dc_build_user_id),$(shell id -u)) \

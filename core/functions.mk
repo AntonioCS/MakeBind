@@ -104,12 +104,12 @@ endef
 
 define mb_ask_user_linux_mac
 $(strip
-	read -e \
-		-p "$(mb_ask_user_text)$(mb_space)" \
-		$(mb_ask_user_time_out) \
-		$(mb_ask_user_default_text) \
-		; \
-		echo $$REPLY \
+read -e \
+	-p "$(mb_ask_user_text)$(mb_space)" \
+	$(mb_ask_user_time_out) \
+	$(mb_ask_user_default_text) \
+	; \
+	echo $(mb_dollar_replace)REPLY \
 )
 endef
 

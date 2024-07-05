@@ -77,6 +77,7 @@ mb_rparen := )#
 mb_lcurly := {#
 mb_rcurly := }#
 mb_dollar := \$
+mb_dollar2 := $$## This seems to work better when replacing $(mb_dollar_replace)
 mb_dollar_replace := ø#Char 248
 mb_true := 1#
 mb_false := $(mb_empty)

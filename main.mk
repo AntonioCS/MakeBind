@@ -22,7 +22,8 @@ ifndef mb_project_path
   $(error ERROR: Please define the variable 'mb_project_path' in your project Makefile)
 endif
 
-mb_main_path ?= $(abspath $(lastword $(MAKEFILE_LIST)))
+## Note: mb_main_path must be set with immediate mode
+mb_main_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 mb_makebind_path ?= $(abspath $(realpath $(dir $(mb_main_path))))
 mb_makebind_config_path ?= $(mb_makebind_path)/mb_config.mk
 mb_makebind_config_local_path ?= $(mb_makebind_path)/mb_config.local.mk
