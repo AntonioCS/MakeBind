@@ -60,10 +60,15 @@ MAKEFLAGS := --no-builtin-rules \
 	--no-print-directory \
 	--silent
 
+SHELL := /bin/bash
 .SHELLFLAGS := -eucx
-SHELL := $(mb_default_shell)
-#$(if $(mb_debug),x)
-#-o pipefail
+ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
+## Note: Make seem to ignore this
+SHELL := pwsh.exe
+MAKESHELL := $(SHELL)
+.SHELLFLAGS := -NoProfile -Command
+endif
+
 
 
 ## Helper

@@ -26,13 +26,24 @@ tests/core/functions/test_mb_invoke_info_mgs_multiple_calls: tests/core/function
 tests/core/functions/test_mb_invoke_info_mgs_multiple_calls:
 
 
+test/powershell2: ## skip
+	$(info Shell: $(SHELL))
+	Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')
+	$(call mb_powershell,Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed'))
+	pwsh.exe -NoProfile -Command "Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
+	pwsh.exe -NoProfile -Command "Write-Host ('{0}$$([char]27)[0;32m{1}$$([char]27)[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
 
-
+test/powershell: ## skip
+	$(info $(call mb_os_assign,$(mb_rep_dollar)([char]27),\033))
+	$(eval cmd = $(call mb_powershell,Write-Output ('{0}{1} {2}' -f 'ts'$(mb_comma)'project'$(mb_comma)'printf tests passed'))))
+	$(info cmd: $(cmd))
+	$(eval bla := $(shell $(cmd)))
+	$(info bla: $(bla))
 
 ######################################################################################################################
 ######################################################################################################################
 
-
+#mb_printf_use_shell := $(mb_off)
 tests/core/functions/test_mb_printf:
 	$(call mb_printf,printf tests passed,$(mb_printf_info_format_specifier))
 	$(call mb_printf,printf tests passed,$(mb_printf_warn_format_specifier))

@@ -12,13 +12,14 @@ override mb_debug_makefile :=## Make it empty for code simplicity
 endif
 
 ifeq ($(mb_debug_makefile),1)
-$(info mb_project_path: $(mb_project_path))
-$(info mb_mb_default_path: $(mb_mb_default_path))
-$(info mb_main_mk: $(mb_main_mk))
-$(info mb_latest_url: $(mb_latest_url))
-$(info mb_auto_install_if_missing: $(mb_auto_install_if_missing))
-$(info mb_silent_mode: $(mb_silent_mode))
-$(info mb_has_main_mk: $(mb_has_main_mk))
+$(warning DEBUG: Makefile is being run in debug mode)
+$(warning DEBUG: mb_project_path: $(mb_project_path))
+$(warning DEBUG: mb_mb_default_path: $(mb_mb_default_path))
+$(warning DEBUG: mb_main_mk: $(mb_main_mk))
+$(warning DEBUG: mb_latest_url: $(mb_latest_url))
+$(warning DEBUG: mb_auto_install_if_missing: $(mb_auto_install_if_missing))
+$(warning DEBUG: mb_silent_mode: $(mb_silent_mode))
+$(warning DEBUG: mb_has_main_mk: $(mb_has_main_mk))
 endif
 
 ifneq ($(mb_has_main_mk),)## The MakeBind project exists

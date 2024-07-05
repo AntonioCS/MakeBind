@@ -10,24 +10,24 @@ __MB_CORE_UTIL_MK__ := 1
 
 
 # NOTE: Do not call functions inside this function as the helper functions might not be available (like mb_debug_print)
-define mb_load_utils
-$(eval mb_load_utils_path := $(mb_core_path)/util)
-$(eval mb_load_utils_files := $(wildcard $(mb_load_utils_path)/*.mk))
-$(foreach mb_load_utils_file,$(mb_load_utils_files),
-	$(eval include $(mb_load_utils_file))
-)
-endef
+#define mb_load_utils
+#$(eval mb_load_utils_path := $(mb_core_path)/util)
+#$(eval mb_load_utils_files := $(wildcard $(mb_load_utils_path)/*.mk))
+#$(foreach mb_load_utils_file,$(mb_load_utils_files),
+#	$(eval include $(mb_load_utils_file))
+#)
+#endef
 
-$(call mb_load_utils)
-#include $(mb_core_path)/util/cache.mk
-#include $(mb_core_path)/util/colours.mk
-#include $(mb_core_path)/util/debug.mk
-#include $(mb_core_path)/util/os_detection.mk
-#include $(mb_core_path)/util/targets.mk
+#$(call mb_load_utils)
 
-define mb_shell_tolower
-$(shell echo $1 | tr '[:upper:]' '[:lower:]')
-endef
+## NOTE: order is important
+include $(mb_core_path)/util/os_detection.mk
+include $(mb_core_path)/util/cache.mk
+include $(mb_core_path)/util/colours.mk
+include $(mb_core_path)/util/debug.mk
+
+mb_tolower_sh = $(strip $(shell echo $1 | tr '[:upper:]' '[:lower:]'))
+
 
 define mb_tolower
 $(subst A,a,$(subst B,b,$(subst C,c,$(subst D,d,$(subst E,e,$(subst F,f,\
@@ -38,9 +38,7 @@ $(subst Y,y,$(subst Z,z,$1))))))))))))))))))))))))))
 endef
 
 
-define mb_shell_toupper
-$(shell echo $(1) | tr '[:lower:]' '[:upper:]')
-endef
+mb_toupper_sh = $(strip $(shell echo $1 | tr '[:lower:]' '[:upper:]'))
 
 define mb_toupper
 $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,\
@@ -62,11 +60,11 @@ mb_is_true = $(call mb_is_eq,$1,$(mb_true))
 
 
 # File helpers
-mb_exists = $(if $(wildcard $1),1)
-mb_not_exists = $(if $(call mb_exists,$1),,1)
+mb_exists = $(if $(wildcard $1),$(mb_true))
+mb_not_exists = $(if $(call mb_exists,$1),,$(mb_true))
 
 ## Useful variables
-mb_comma := ,
+mb_comma := ,#
 mb_empty := #
 mb_space := $(mb_empty) $(mb_empty)#
 mb_warning_triangle := ⚠#
@@ -76,20 +74,19 @@ mb_colon := :#
 mb_equal := =#
 mb_lparen := (#
 mb_rparen := )#
+mb_lcurly := {#
+mb_rcurly := }#
 mb_dollar := \$
 mb_dollar_replace := ø#Char 248
-mb_true := 1
+mb_true := 1#
 mb_false := $(mb_empty)
-mb_on := 1
-mb_off := 0
+mb_on := 1#
+mb_off := 0#
 
 # Time helpers in seconds
 mb_time_minute := 60
 mb_time_hour := 3600
 mb_time_day := 86400
-
-# Powershell helper
-mb_powershell = powershell -Command '$(strip $1)'
 
 define mb_timestamp
 $(call mb_os_call,
@@ -129,5 +126,42 @@ $(strip
 endef
 
 mb_remove_spaces = $(subst $(mb_space),$(mb_empty),$1)
+
+
+mb_rep_dollar := $(mb_dollar_replace)## Dollar sign for powershell command which is inside a make function
+#mb_value_rep_dollar := $(mb_dollar)
+
+
+mb_rreplacer = $(subst ",', $(subst $(mb_dollar_replace),$(mb_dollar),$1))
+
+#define mb_rreplacer
+#$(strip
+#$(eval mb_rreplace_result := $1)
+#$(foreach v,$(filter mb_rep_%,$(.VARIABLES)),\
+#	$(eval mb_possible_var := $(subst mb_,mb_value_,$v))\
+#	$(if $(value $($(mb_possible_var))),
+#		$(eval mb_rreplace_result := $(subst $v,$($(mb_possible_var)),$1))
+#	)
+#)
+#$(mb_rreplace_result)
+#)
+#endef
+
+
+## SHELL seems to be ignored on windows so I must use this to call powershell directly and not through the SHELL variable
+## NOTE: -ErrorAction Stop must come after -Command
+## NOTe: Here I can use -Debug and -Verbose  - WIP
+define mb_powershell_cmdlets
+
+endef
+
+
+## NOTE: Use try catch to catch errors - WIP
+define mb_powershell_expression
+powershell -NoProfile -Command "try { [math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds) } catch { Write-Error $_.Exception.Message }"
+
+endef
+
+mb_powershell = $(strip pwsh.exe -NoProfile -Command "$(strip $(call mb_rreplacer,$1))")
 
 endif # __MB_CORE_UTIL_MK__
