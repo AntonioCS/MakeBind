@@ -31,27 +31,38 @@ $(strip
 	$(eval mb_os_detection_result_file_has_been_included := $(mb_true))
 	$(if $(call mb_is_false,$(mb_os_has_been_set)),
 		$(eval mb_os_has_been_set := $(mb_true))
+		$(eval
+			mb_os_is_windows := $(mb_false)
+			mb_os_is_linux := $(mb_false)
+			mb_os_is_osx := $(mb_false)
+			mb_os_is_linux_or_osx := $(mb_false)
+		)
 		$(if $(call mb_is_eq,$(OS),Windows_NT),
 			$(eval mb_os_is_windows := $(mb_true))
 			,
 			$(eval mb_os_detection_OS := $(shell uname -s))
 			$(if $(call mb_is_eq,$(mb_os_detection_OS),Linux),
 				$(eval mb_os_is_linux := $(mb_true))
-			)
-			$(if $(call mb_is_eq,$(mb_os_detection_OS),Darwin),
-				$(eval mb_os_is_osx := $(mb_true))
+				,
+				$(if $(call mb_is_eq,$(mb_os_detection_OS),Darwin),
+					$(eval mb_os_is_osx := $(mb_true))
+					,
+					$(error ERROR: Unknown OS $(mb_os_detection_OS) detected, please add support for it in core/util/os_detection.mk)
+				)
 			)
 		)
+		$(eval mb_os_is_linux_or_osx := $(if $(or $(mb_os_is_linux),$(mb_os_is_osx)),$(mb_true)))
 		$(file >$(mb_os_detection_result_path),$(mb_os_detection_result_content))
 	)
 )
 endef
 
 define mb_os_detection_result_content
-mb_os_has_been_set := $(mb_os_has_been_set)
-mb_os_is_linux := $(mb_os_is_linux)
-mb_os_is_osx := $(mb_os_is_osx)
-mb_os_is_windows := $(mb_os_is_windows)
+mb_os_has_been_set := $(mb_os_has_been_set)#
+mb_os_is_linux := $(mb_os_is_linux)#
+mb_os_is_osx := $(mb_os_is_osx)#
+mb_os_is_linux_or_osx := $(mb_os_is_linux_or_osx)#
+mb_os_is_windows := $(mb_os_is_windows)#
 endef
 
 

@@ -109,12 +109,13 @@ dc/status-all: dc_cmd_options_ps := --all
 dc/status-all: dc/status
 dc/status-all: ## Show status (including stopped containers)
 
-dc/restart: ## Restart all containers (calls stop & up)
+dc/restart: ## Restart all containers (calls dc/stop & dc/start)
 dc/restart: dc/stop
 dc/restart: dc/start
 
 dc/build: ## Build all containers
-	$(call dc_invoke,build,--parallel --no-cache $(call mb_os_assign,,$(dc_build_args_linux_mac)))
+	$(call mb_os_detection)
+	$(call dc_invoke,build,--parallel --no-cache $(if $(mb_os_is_linux_or_osx),$(dc_build_args_linux_mac)))
 
 dc/rebuild: ## Rebuild all containers
 dc/rebuild: dc/stop
