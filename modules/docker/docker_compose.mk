@@ -74,6 +74,12 @@ $(strip
 )
 endef
 
+define dc_build_args_linux_mac
+--build-arg USER_ID=$(if $(value mb_dc_build_user_id),$(mb_dc_build_user_id),$(shell id -u)) \
+--build-arg USER_NAME=$(if $(value mb_dc_build_user_name),$(mb_dc_build_user_name),$(shell whoami)) \
+--build-arg GROUP_ID=$(if $(value mb_dc_build_group_id),$(mb_dc_build_group_id),$(shell id -g))
+endef
+
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 #####################################################################################
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
@@ -107,13 +113,8 @@ dc/restart: ## Restart all containers (calls stop & up)
 dc/restart: dc/stop
 dc/restart: dc/start
 
-### TODO: Fix this for windows, there is not need to pass any parameters and it will error due to missing id and whoami
 dc/build: ## Build all containers
-	$(call dc_invoke,build,--parallel --no-cache \
-		--build-arg USER_ID=$(if $(value mb_dc_build_user_id),$(mb_dc_build_user_id),$(shell id -u)) \
-		--build-arg USER_NAME=$(if $(value mb_dc_build_user_name),$(mb_dc_build_user_name),$(shell whoami)) \
-		--build-arg GROUP_ID=$(if $(value mb_dc_build_group_id),$(mb_dc_build_group_id),$(shell id -g)) \
-	)
+	$(call dc_invoke,build,--parallel --no-cache $(call mb_os_assign,,$(dc_build_args_linux_mac)))
 
 dc/rebuild: ## Rebuild all containers
 dc/rebuild: dc/stop
