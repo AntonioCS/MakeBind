@@ -14,7 +14,7 @@ mb_debug_show_all_commands ?= $(mb_debug_all)
 
 ifndef CI
 ifeq ($(filter $(mb_make_version_required),$(MAKE_VERSION)),)
-  $(error Incompatible GNU Make version, please upgrade to $(subst %,*,$(mb_make_version_required)) or higher)
+  $(error Incompatible GNU Make version, please upgrade to $(subst %,*,$(mb_make_version_required)) or higher <PUT HERE LINK TO MARKDOWN FOR INSTRUCTIONS ON HOW TO UPDATE>)
 endif
 endif
 
