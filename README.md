@@ -11,6 +11,7 @@ Streamline and manage your Makefile workflows with modular ease and project-spec
 - [Installation](#installation)
 - [Usage](#usage)
 - [Configuration](#configuration)
+- [Upgrading Make](#upgrading-Make)
 
 ## Introduction
 MakeBind is a Makefile project manager designed to simplify and customize your Makefile workflows. It allows you to manage projects and create modular Makefiles with ease.
@@ -29,10 +30,10 @@ MakeBind requires the following tools to be installed on your system:
 
 ## Installation
 
-To install MakeBind, run the appropriate command for your operating system in your terminal:
+To install MakeBind, run the appropriate command for your operating system in your terminal in the root folder of you project:
 
 ### Linux and macOS:
-```bash
+```shell
 curl -s -o ./Makefile https://raw.githubusercontent.com/AntonioCS/MakeBind/main/templates/Makefile.tpl.mk && make
 ```
 
@@ -45,8 +46,8 @@ powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/A
 - This command downloads the Makefile template and creates a Makefile in your current directory.
 - `make` will then automatically execute and check for the existence of the `MakeBind` folder in the path specified by `mb_mb_default_path` (default is `../MakeBind`, meaning it will search in the parent directory).
 - If the `MakeBind` folder does not exist, the latest release will be downloaded.
-- You will be prompted to create missing important files, which are the `mb_config.mk` and `mb_project.mk`. Just say `y` and press `Enter`. A `bind-hub` folder will be created where these files will reside.
-- Afterward, you will see a list of available targets, and you can start using MakeBind.
+- The folder `bind-hub` will be created in the current directory, which contains important configuration files, which are the `mb_config.mk` and `mb_project.mk`.
+- You will then see a list of available targets, and you can start using MakeBind.
 
 ## Usage
 MakeBind is designed to be simple to use and easy to configure. Here are some common commands you can use with MakeBind:
@@ -56,7 +57,79 @@ MakeBind is designed to be simple to use and easy to configure. Here are some co
   Run a specific target.
 
 ## Configuration
-As mentioned, when you run MakeBind for the first time, you will be prompted to create the `mb_config.mk` and `mb_project.mk` files. These files are used to configure MakeBind for your project.
-- In `mb_config.mk`, you can set all variables that are used by MakeBind modules. You can create a local version named `mb_config.local.mk` to override the default values (do not commit this file to your repository).
+As mentioned, when you run MakeBind for the first time, it will create the `mb_config.mk` and `mb_project.mk` files in the folder `bind-hub`. These files are used to configure MakeBind for your project.
+- In `mb_config.mk`, you can set all configuration variables that are used by MakeBind modules or your own modules. You can create a local version named `mb_config.local.mk` to override the default values (do not commit this file to your repository).
 - In `mb_project.mk`, you can add all targets that are specific to your project. You can create a local version named `mb_project.local.mk` to override the default values (do not commit this file to your repository).
 - In the `bind-hub` folder, you can add all your custom modules in `bind-hub/modules`.
+
+## Upgrading Make
+
+### On Linux (Debian)
+
+Many Linux distributions come with `make` versions 4.2.1 or 4.3. We need to upgrade to the latest version.
+The following script will install the latest version (specified in `SELECTED_MAKE_VERSION`):
+
+```shell
+#!/bin/bash
+
+export SELECTED_MAKE_VERSION="4.4.1"
+sudo apt-get update
+sudo apt-get install build-essential 
+cd /tmp
+wget "https://ftp.gnu.org/gnu/make/make-${SELECTED_MAKE_VERSION}.tar.gz"
+tar -xvzf "make-${SELECTED_MAKE_VERSION}.tar.gz"
+cd "make-${SELECTED_MAKE_VERSION}"
+./configure
+make
+sudo make install
+```
+
+The above script will require admin privileges.  
+The script will:
+- Update your package list
+- Install essential build packages for `make` compilation
+- Navigate to the `/tmp` directory
+- Download and extract the specified version of `make`
+- Configure and install the new version
+
+To run this, copy and paste to a file (for example `update_make.sh`), then do:
+```shell
+chmod +x update_make.sh && ./update_make.sh
+```
+
+You can find all available `make` versions at [GNU's FTP site](https://ftp.gnu.org/gnu/make/).  
+If version `4.4.1` is no longer the latest, simply update the `SELECTED_MAKE_VERSION` variable in the script and re-run it.  
+Confirm that everything has been installed by doing `make --version` and checking that the version match the one specified in `SELECTED_MAKE_VERSION`. 
+
+### On Mac
+
+The default installed version of `make` on Mac is 3.81, which is outdated.  
+To upgrade your `make` version, we will use `homebrew`. 
+If you do not have `homebrew`, you can find the installation instructions [here](https://docs.brew.sh/Installation).  
+This is the package page: https://formulae.brew.sh/formula/make  
+If you are not using `Z shell`, replace `~/.zshrc` with the path to the appropriate configuration file for your shell.
+
+To upgrade run the following script:
+```bash
+#!/bin/sh
+
+brew install make
+echo 'export PATH="$HOMEBREW_PREFIX/opt/make/libexec/gnubin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+To run this, copy and paste to a file (for example `update_make.sh`), then do:
+```shell
+chmod +x update_make.sh && ./update_make.sh
+```
+
+This script will:
+- Install `make` using Homebrew.
+- Add the `gnubin` path to your shell configuration file: 
+  - This command adds the new path to the top of your `~/.zshrc` file.
+  - Note: `$HOMEBREW_PREFIX` is an environment variable set during the installation of Homebrew. You can verify it using `echo $HOMEBREW_PREFIX`.
+  - This is needed to ensure that `make` is available as `brew` installs `make` as `gmake`.
+- Reload your shell configuration:
+  
+This process should upgrade `make` to a more recent version.  
+Run `make --version` and confirm that the version is the latest one.

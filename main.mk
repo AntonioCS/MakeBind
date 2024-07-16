@@ -14,7 +14,7 @@ mb_debug_show_all_commands ?= $(mb_debug_all)
 
 ifndef CI
 ifeq ($(filter $(mb_make_version_required),$(MAKE_VERSION)),)
-  $(error Incompatible GNU Make version, please upgrade to $(subst %,*,$(mb_make_version_required)) or higher)
+  $(error ERROR: Incompatible GNU Make version, please upgrade to $(subst %,*,$(mb_make_version_required)) or higher, for instructions on how to upgrade please go to: https://github.com/AntonioCS/MakeBind?tab=readme-ov-file#upgrading-Make)
 endif
 endif
 
