@@ -12,6 +12,9 @@ Streamline and manage your Makefile workflows with modular ease and project-spec
 - [Usage](#usage)
 - [Configuration](#configuration)
 - [Upgrading Make](#upgrading-Make)
+    - [On Linux (Debian)](#on-linux-debian)
+    - [On Mac](#on-mac)
+        - [Autocompletion on Mac](#autocompletion-on-mac)
 
 ## Introduction
 MakeBind is a Makefile project manager designed to simplify and customize your Makefile workflows. It allows you to manage projects and create modular Makefiles with ease.
@@ -133,3 +136,8 @@ This script will:
   
 This process should upgrade `make` to a more recent version.  
 Run `make --version` and confirm that the version is the latest one.
+
+#### Autocompletion on Mac
+
+If you want to enable autocompletion, you can use the extension [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions).
+
