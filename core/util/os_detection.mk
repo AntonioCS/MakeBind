@@ -76,7 +76,7 @@ mb_os_call_use_shell ?= $(mb_on)
 define mb_os_call
 $(strip
 	$(call mb_os_detection)
-	$(eval mb_os_call_cmd := $(strip $(if $(mb_os_is_windows),\
+	$(eval $0_cmd := $(strip $(if $(mb_os_is_windows),\
 		$1,\
 		$(if $(mb_os_is_linux),\
 			$2,\
@@ -84,11 +84,11 @@ $(strip
 				$3,\
 				$2 \
 	)))))
-	$(eval mb_os_call_use_shell_or_not := $(if $(value 4),$4,$(mb_os_call_use_shell)))
-	$(if $(mb_debug_os_detection),$(warning DEBUG: mb_os_call_cmd: $(mb_os_call_cmd)))
-	$(if $(call mb_is_on,$(mb_os_call_use_shell_or_not)),
-		$(shell $(subst $(mb_dollar_replace),$(mb_dollar2),$(mb_os_call_cmd))),
-		$(subst $(mb_dollar_replace),$(mb_dollar2),$(mb_os_call_cmd))
+	$(eval $0_use_shell_or_not := $(if $(value 4),$4,$($0_use_shell)))
+	$(if $(mb_debug_os_detection),$(warning DEBUG: $0_cmd: $($0_cmd)))
+	$(if $(call mb_is_on,$($0_use_shell_or_not)),
+		$(shell $(subst $(mb_dollar_replace),$(mb_dollar2),$($0_cmd))),
+		$(subst $(mb_dollar_replace),$(mb_dollar2),$($0_cmd))
 	)
 )
 endef

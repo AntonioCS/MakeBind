@@ -8,6 +8,7 @@
 ifndef __MB_CORE_UTIL_MK__
 __MB_CORE_UTIL_MK__ := 1
 
+mb_debug_util ?= $(mb_debug)
 
 # NOTE: Do not call functions inside this function as the helper functions might not be available (like mb_debug_print)
 #define mb_load_utils
@@ -25,6 +26,8 @@ include $(mb_core_path)/util/os_detection.mk
 include $(mb_core_path)/util/cache.mk
 include $(mb_core_path)/util/colours.mk
 include $(mb_core_path)/util/debug.mk
+
+include $(mb_core_path)/util/variables.mk
 
 mb_tolower_sh = $(strip $(shell echo $1 | tr '[:upper:]' '[:lower:]'))
 
@@ -58,36 +61,26 @@ mb_is_empty = $(if $1,,1)
 mb_is_false = $(call mb_is_empty,$1)
 mb_is_true = $(call mb_is_eq,$1,$(mb_true))
 
+## Note: Make sure you escape $
+define mb_is_regex_match
+$(strip
+	$(eval $0_text := $(strip $(subst ',\',$1)))
+	$(eval $0_regex := $(strip $2))
+	$(eval $0_shell_cmd := echo '$($0_text)' | grep -P '$($0_regex)' > /dev/null && echo 1)
+	$(call mb_debug_print, Text: $($0_text),$(mb_debug_util))
+	$(call mb_debug_print, Regex: $($0_regex),$(mb_debug_util))
+	$(call mb_debug_print, Shell: $($0_shell_cmd),$(mb_debug_util))
+	$(shell $($0_shell_cmd))
+)
+endef
+# printf ".+?"\s"\[\d{4}-\d{2}-\d{2}\s\d{2}:\d{2}:\d{2}\]"\s"\[MakeBind\]"\s"printf tests passed";printf "\\n";
 
 # File helpers
 mb_exists = $(if $(wildcard $1),$(mb_true))
 mb_not_exists = $(if $(call mb_exists,$1),,$(mb_true))
 
 ## Useful variables
-mb_comma := ,#
-mb_empty := #
-mb_space := $(mb_empty) $(mb_empty)#
-mb_warning_triangle := ⚠#
-mb_hash := \##
-mb_percent := %#
-mb_colon := :#
-mb_equal := =#
-mb_lparen := (#
-mb_rparen := )#
-mb_lcurly := {#
-mb_rcurly := }#
-mb_dollar := \$
-mb_dollar2 := $$## This seems to work better when replacing $(mb_dollar_replace)
-mb_dollar_replace := ø#Char 248
-mb_true := 1#
-mb_false := $(mb_empty)
-mb_on := 1#
-mb_off := 0#
 
-# Time helpers in seconds
-mb_time_minute := 60
-mb_time_hour := 3600
-mb_time_day := 86400
 
 define mb_timestamp
 $(call mb_os_call,
@@ -104,9 +97,13 @@ $(call mb_os_call,
 endef
 
 mb_add = $(call mb_expression,$1+$2)
-mb_dec = $(call mb_expression,$1-$2)
+mb_sub = $(call mb_expression,$1-$2)
 mb_mul = $(call mb_expression,$1*$2)
 mb_div = $(call mb_expression,$1/$2)
+
+## NOTE: This will not return the value, it will change the value of the variable **ONLY**
+mb_inc = $(eval $1 := $(call mb_add,$($1),1))
+mb_dec = $(eval $1 := $(call mb_sub,$($1),1))
 
 ## Random numbers
 
@@ -160,7 +157,6 @@ endef
 ## NOTE: Use try catch to catch errors - WIP
 define mb_powershell_expression
 powershell -NoProfile -Command "try { [math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds) } catch { Write-Error $_.Exception.Message }"
-
 endef
 
 mb_powershell = $(strip pwsh.exe -NoProfile -Command "$(strip $(call mb_rreplacer,$1))")
