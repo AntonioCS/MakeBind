@@ -14,6 +14,7 @@ mb_invoke_print ?= $(mb_on) ## Print the command that is being executed
 mb_invoke_print_target ?= $(mb_on) ## Print the target that is being executed
 mb_invoke_dry_run ?= $(mb_off) ## Do not execute the command
 mb_invoke_last_target := $(mb_empty) ## Last target that was executed
+mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
 mb_invoke_silent ?= $(mb_off) ## Do not print anything
 
 define mb_invoke
@@ -35,6 +36,7 @@ $(strip
 		)
 	)
     $(if $(call mb_is_off,$($0_dry_run)),
+		$(eval mb_invoke_last_cmd := $1)
 		$1
     )
 )

@@ -34,11 +34,13 @@ endef
 define test_core_functions_mb_invoke_mb_invoke_dry_run_on
 	$(eval mb_invoke_last_target := $(mb_empty))
 	$(eval mb_invoke_dry_run := $(mb_on))
+
 	$(call mb_assert_was_called,mb_printf_info,2)
-	$(eval tests_mb_invoke_cmd := echo "mb_invoke tests passed")
-	$(eval result := $(call mb_invoke,$(tests_mb_invoke_cmd)))
+	$(eval $0_cmd := echo "mb_invoke tests passed")
+	$(eval result := $(call mb_invoke,$($0_cmd)))
+	$(call mb_assert_empty,$(strip $(result)))
+
 	$(eval mb_invoke_dry_run := $(mb_off))
-	$(call mb_assert_eq,$(mb_empty),$(strip $(result)))
 endef
 
 

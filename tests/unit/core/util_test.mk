@@ -1,7 +1,5 @@
 
-
 include $(mb_makebind_path)/core/util.mk
-#include $(mb_makebind_path)/core/util/os_detection_test.mk
 
 define test_core_util_mb_is
 	$(call mb_assert,$(call mb_is_eq,1,1),"mb_is_eq failed")
@@ -24,9 +22,9 @@ endef
 define test_core_util_increment_decrement
 	$(eval test_var := 1)
 	$(call mb_inc,test_var)
-	$(call mb_assert_eq,2,$(test_var))
+	$(call mb_assert_eq,2,$(test_var), "mb_inc failed")
 	$(call mb_dec,test_var)
-	$(call mb_assert_eq,1,$(test_var))
+	$(call mb_assert_eq,1,$(test_var), "mb_dec failed")
 endef
 
 define test_core_util_mb_add_big_values

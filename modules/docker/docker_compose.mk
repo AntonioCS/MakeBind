@@ -11,27 +11,39 @@ __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 mb_debug_dc_invoke ?= $(mb_debug)
 dc_default_shell_bin ?= /bin/sh
 dc_files ?= $(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
+dc_bin ?= docker compose
+dc_bin_options ?= $(mb_empty)
 
-
-#$1 = command
-#$2 = options
-#$3 = services
-#$4 = extra
+## Parameters
+# $1 = command
+# $2 = options
+# $3 = services
+# $4 = extras (command [args..]) - See exec documentation of docker composes
+## Variables that will affect the specific command
+# dc_cmd_options_<command> = Command specific options
+# dc_cmd_services_<command> = Command specific service(s)
+# dc_cmd_extras_<command> = Command specific extras
 define dc_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
 	$(eval
-		dc_invoke_bin := $(if $(value dc_bin),$(dc_bin),docker compose)
-		dc_invoke_bin_options := $(if $(value dc_bin_options),$(dc_bin_options))
-		dc_invoke_all_dc_files := $(if $(value dc_files),$(addprefix --file ,$(dc_files)))
-		dc_invoke_all_dc_env_files := $(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files)))
-		dc_invoke_cmd := $1
-		dc_invoke_options := $(if $(value 2),$2)
-		dc_invoke_services := $(if $(value 3),$3)
-		dc_invoke_extra := $(if $(value 4),$4)
-		dc_invoke_cmd_options := $(if $(value dc_cmd_options_$1),$(dc_cmd_options_$1))
-		dc_invoke_cmd_services := $(if $(value dc_cmd_services_$1),$(dc_cmd_services_$1))
-		dc_invoke_cmd_extras := $(if $(value dc_cmd_extras_$1),$(dc_cmd_extras_$1))
+		$0_params_command := $1
+		$0_params_options := $(if $(value 2),$2)
+		$0_params_services := $(if $(value 3),$3)
+		$0_params_extras := $(if $(value 4),$4)
+	)
+	$(eval
+		$0_bin := $(dc_bin)
+		$0_bin_options := $(dc_bin_options)
+		$0_all_dc_files := $(if $(value dc_files),$(addprefix --file ,$(dc_files)))
+		$0_all_dc_env_files := $(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files)))
+		$0_cmd := $($0_params_command)
+		$0_options := $($0_params_options)
+		$0_services := $($0_params_services)
+		$0_extras := $($0_params_extras)
+		$0_cmd_options := $(if $(value dc_cmd_options_$1),$(dc_cmd_options_$1))
+		$0_cmd_services := $(if $(value dc_cmd_services_$1),$(dc_cmd_services_$1))
+		$0_cmd_extras := $(if $(value dc_cmd_extras_$1),$(dc_cmd_extras_$1))
 	)
 
 	$(call mb_debug_print, dc_invoke_bin: $(dc_invoke_bin),$(mb_debug_dc_invoke))
@@ -41,25 +53,25 @@ $(strip
 	$(call mb_debug_print, dc_invoke_cmd: $(dc_invoke_cmd),$(mb_debug_dc_invoke))
 	$(call mb_debug_print, dc_invoke_options: $(dc_invoke_options),$(mb_debug_dc_invoke))
 	$(call mb_debug_print, dc_invoke_services: $(dc_invoke_services),$(mb_debug_dc_invoke))
-	$(call mb_debug_print, dc_invoke_extra: $(dc_invoke_extra),$(mb_debug_dc_invoke))
+	$(call mb_debug_print, dc_invoke_extras: $(dc_invoke_extras),$(mb_debug_dc_invoke))
 	$(call mb_debug_print, dc_invoke_cmd_options: $(dc_invoke_cmd_options),$(mb_debug_dc_invoke))
 	$(call mb_debug_print, dc_invoke_cmd_services: $(dc_invoke_cmd_services),$(mb_debug_dc_invoke))
 	$(call mb_debug_print, dc_invoke_cmd_extras: $(dc_invoke_cmd_extras),$(mb_debug_dc_invoke))
 
-	$(eval dc_invoke_command := $(strip $(dc_invoke_bin)
-			$(dc_invoke_bin_options)
-			$(dc_invoke_all_dc_files)
-			$(dc_invoke_all_dc_env_files)
-			$(dc_invoke_cmd)
-			$(dc_invoke_options)
-			$(dc_invoke_cmd_options)
-			$(dc_invoke_services)
-			$(dc_invoke_cmd_services)
-			$(dc_invoke_extra)
-			$(dc_invoke_cmd_extras)
+	$(eval $0_command := $(strip $($0_bin)
+			$($0_bin_options)
+			$($0_all_dc_files)
+			$($0_all_dc_env_files)
+			$($0_cmd)
+			$($0_options)
+			$($0_cmd_options)
+			$($0_services)
+			$($0_cmd_services)
+			$($0_extras)
+			$($0_cmd_extras)
 		)
 	)
-	$(call mb_invoke,$(dc_invoke_command))
+	$(call mb_invoke,$($0_command))
 )
 endef
 
@@ -143,14 +155,14 @@ dc/nuke-all: ## Remove everything docker related from the system (system prune)
 		$(call mb_print_info,Nuking all process stoppped)
 	)
 
-dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <parameters>")
+dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <extra>")
 	$(if $(value params),
 		$(eval
-			dc_target_cmd := $(word 1,$(params))
-			dc_target_service := $(word 2,$(params))
-			dc_target_extra := $(wordlist 3,$(words $(params)),$(params))
+			$@_cmd := $(word 1,$(params))
+			$@_service := $(word 2,$(params))
+			$@_extra := $(wordlist 3,$(words $(params)),$(params))
 		)
-		$(call dc_invoke,$(dc_target_cmd),,$(dc_target_service),$(dc_target_extra))
+		$(call dc_invoke,$($@_cmd),,$($@_service),$($@_extra))
 	,
 		$(call mb_printf_error, You need to pass the variable params. Ex.: make $@ params="exec app ls -la")
 	)
