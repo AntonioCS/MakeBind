@@ -14,4 +14,4 @@ jobs:
 
       - name: Run Tests
         working-directory: ./tests
-        run: make
+        run: make run_tests
