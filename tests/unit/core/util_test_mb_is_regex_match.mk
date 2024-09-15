@@ -8,7 +8,7 @@ define test_mb_is_regex_match_no_match
 	$(eval text_to_check = hello world)
 	$(eval regex_pattern = ^world)
 	$(eval result = $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
-	$(call mb_assert_fail,$(result))
+	$(call mb_assert_empty,$(result))
 endef
 #
 #
@@ -31,7 +31,7 @@ endef
 # Expect result to have 1 (match)
 define test_mb_is_regex_match_partial_match_end
     $(eval text_to_check = hello world)
-    $(eval regex_pattern = world$$)
+    $(eval regex_pattern = world$(mb_dollar))
     $(eval result = $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
     $(call mb_assert,$(result))
 endef
@@ -49,7 +49,7 @@ define test_mb_is_regex_match_no_match
     $(eval text_to_check = hello world)
     $(eval regex_pattern = ^world)
     $(eval result = $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
-    $(call mb_assert_fail,$(result))
+    $(call mb_assert_empty,$(result))
 endef
 
 # Expect result to have 1 (match)
@@ -65,7 +65,7 @@ define test_mb_is_regex_match_case_sensitive_match
     $(eval text_to_check = Hello World)
     $(eval regex_pattern = ^hello)
     $(eval result = $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
-    $(call mb_assert_fail,$(result))
+    $(call mb_assert_empty,$(result))
 endef
 
 # Expect result to have 1 (match)
@@ -97,5 +97,5 @@ define test_mb_is_regex_match_no_match_empty_string
     $(eval text_to_check = )
     $(eval regex_pattern = ^hello)
     $(eval result = $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
-    $(call mb_assert_fail,$(result))
+    $(call mb_assert_empty,$(result))
 endef

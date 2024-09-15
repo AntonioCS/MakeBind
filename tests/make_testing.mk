@@ -17,8 +17,8 @@ $(shell > $(mb_testing_long_file))
 $(eval $0_all_tests := $(filter test_%,$(.VARIABLES)))
 $(eval $0_test_count := 0)
 $(eval $0_assertions_count := 0)
-$(if $(value filter_test),
-	$(eval $0_all_tests := $(filter $(filter_test),$($0_all_tests)))
+$(if $(value filter),
+	$(eval $0_all_tests := $(filter $(filter),$($0_all_tests)))
 )
 $(info All tests to be executed: $($0_all_tests))
 $(foreach $0_running_test,$($0_all_tests),
@@ -49,7 +49,6 @@ $(eval $1 = $$(call mb_inc,$0_call_counter))
 )
 endef
 
-### TODO: Redo asserts so that I can have more than one assert per test function
 
 ## NOTE: I might need to use \ when calling my own "functions" as  mb_assert_eq not having \ was causing:
 ## Makefile:74: *** recipe commences before first target. Stop.
@@ -65,10 +64,6 @@ $(strip
 	)
 )
 endef
-#	$(intcmp $(mb_assert_fail),0,,
-#		$(info $(shell printf "\e[32m%s\e[0m %s\n" "ASSERTION PASSED:" "$(mb_run_tests_running_test)")),
-#		$(info $(shell printf "\e[31m%s\e[0m %s\n" "ASSERTION FAILURE:" "$(mb_run_tests_running_test) $(if $(mb_assert_msg_fail),- $(mb_assert_msg_fail))"))
-#	)
 
 define mb_test_assert_reset
 $(if $(value mb_assert_was_called_func),
@@ -76,8 +71,8 @@ $(if $(value mb_assert_was_called_func),
 )
 $(eval
 	undefine mb_assert_was_called_func
-	undefine mb_assert_pass
 	undefine mb_assert_fail
+	undefine mb_assert_pass
 	undefine mb_assert_msg_fail
 )
 endef
@@ -94,19 +89,6 @@ $(call mb_assert_log_state)
 )
 endef
 
-define mb_assert_fail
-$(strip
-$(if $(strip $1),
-	$(eval mb_assert_msg_fail := $(if $(value 2), $2, Expected to fail))
-	$(eval mb_assert_fail := 1)
-	,
-	$(eval mb_assert_pass := 1)
-)
-$(call mb_assert_log_state)
-)
-endef
-
-
 ## We must remove spaces so that filter doesn't match partially the strings
 # $1 - Expected
 # $2 - Actual
@@ -115,6 +97,7 @@ define mb_assert_eq
 $(strip
 $(eval $0_param_expected_real := $(strip $1))
 $(eval $0_param_actual_real := $(strip $2))
+$(eval $0_param_msg := $(if $(value 3),$3,Expected '$($0_param_expected_real)' does not match actual '$($0_param_actual_real)'))
 $(eval $0_expected := $(strip $(call mb_remove_spaces,$($0_param_expected_real))))
 $(eval $0_actual := $(strip $(call mb_remove_spaces,$($0_param_actual_real))))
 
@@ -127,7 +110,7 @@ $(if $(mb_debug_tests),
 $(if $($0_filter_result),
 	$(eval mb_assert_pass := 1)
 	,
-	$(eval mb_assert_msg_fail := $(if $(value 3),$3,Expected '$($0_param_expected_real)' does not match actual '$($0_param_actual_real)'))
+	$(eval mb_assert_msg_fail := $($0_param_msg))
 	$(eval mb_assert_fail := 1)
 )
 $(call mb_assert_log_state)
@@ -136,7 +119,7 @@ endef
 
 define mb_assert_empty
 $(strip
-	$(if $1,
+	$(if $(strip $1),
 		$(eval mb_assert_msg_fail := $(if $(value 2),$2,Expected empty got '$1'))
 		$(eval mb_assert_fail := 1)
 	,
