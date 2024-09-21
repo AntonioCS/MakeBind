@@ -8,6 +8,7 @@
 
 
 .ONESHELL:
+.DEFAULT_GOAL := run_tests
 SHELL = /bin/bash
 MAKEFLAGS := --no-builtin-rules \
 	--no-builtin-variables \
