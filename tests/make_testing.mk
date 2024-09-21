@@ -119,12 +119,12 @@ endef
 
 define mb_assert_empty
 $(strip
-	$(if $(strip $1),
-		$(eval mb_assert_msg_fail := $(if $(value 2),$2,Expected empty got '$1'))
-		$(eval mb_assert_fail := 1)
-	,
-		$(eval mb_assert_pass := 1)
-	)
+$(if $(strip $1),
+	$(eval mb_assert_msg_fail := $(if $(value 2),$2,Expected empty got '$1'))
+	$(eval mb_assert_fail := 1)
+,
+	$(eval mb_assert_pass := 1)
+)
 )
 $(call mb_assert_log_state)
 endef
