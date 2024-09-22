@@ -61,66 +61,56 @@ define  __test_printf
 endef
 
 
-
-test/powershell2: ## skip
-	$(info Shell: $(SHELL))
-	Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')
-	$(call mb_powershell,Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed'))
-	pwsh.exe -NoProfile -Command "Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
-	pwsh.exe -NoProfile -Command "Write-Host ('{0}$$([char]27)[0;32m{1}$$([char]27)[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
-
-test/powershell: ## skip
-	$(info $(call mb_os_assign,$(mb_rep_dollar)([char]27),\033))
-	$(eval cmd = $(call mb_powershell,Write-Output ('{0}{1} {2}' -f 'ts'$(mb_comma)'project'$(mb_comma)'printf tests passed'))))
-	$(info cmd: $(cmd))
-	$(eval bla := $(shell $(cmd)))
-	$(info bla: $(bla))
-
-######################################################################################################################
-######################################################################################################################
-
-#mb_printf_use_shell := $(mb_off)
-test/core/functions/test_mb_printf:
-	$(call mb_printf,printf tests passed,$(mb_printf_info_format_specifier))
-	$(call mb_printf,printf tests passed,$(mb_printf_warn_format_specifier))
-	$(call mb_printf,printf tests passed,$(mb_printf_error_format_specifier))
-
-test/core/functions/test_mb_printf_funcs:
-	$(call mb_printf_info,printf tests passed)
-	$(call mb_printf_info,printf tests passed)
-	$(call mb_printf_warn,print tests passed)
-	$(call mb_printf_warn,print tests passed)
-	$(call mb_printf_error,print tests passed)
-	$(call mb_printf_error,print tests passed)
-
-test/core/functions/test_mb_printf_funcs_shell:
-	$(call mb_printf_info,printf tests passed)
-	$(info Test1223)
+#
+#test/powershell2: ## skip
+#	$(info Shell: $(SHELL))
+#	Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')
+#	$(call mb_powershell,Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed'))
+#	pwsh.exe -NoProfile -Command "Write-Host ('{0}`e[0;32m{1}`e[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
+#	pwsh.exe -NoProfile -Command "Write-Host ('{0}$$([char]27)[0;32m{1}$$([char]27)[0m {2}' -f '[2024-07-01 20:24:22]','[mock_project]','printf tests passed')"
+#
+#test/powershell: ## skip
+#	$(info $(call mb_os_assign,$(mb_rep_dollar)([char]27),\033))
+#	$(eval cmd = $(call mb_powershell,Write-Output ('{0}{1} {2}' -f 'ts'$(mb_comma)'project'$(mb_comma)'printf tests passed'))))
+#	$(info cmd: $(cmd))
+#	$(eval bla := $(shell $(cmd)))
+#	$(info bla: $(bla))
 
 ######################################################################################################################
 ######################################################################################################################
 
-test/core/functions/mb_ask_user_test:
-	$(eval data := $(call mb_ask_user,What is your name?))
-	$(info $(data))
 
-test/core/functions/test_mb_ask_user_timeout:
-	$(eval data := $(call mb_ask_user,What is your name?,5))
-	$(info $(data))
+# TODO: Find way to test mb_ask_user and mb_user_confirm
+define __test_core_functions_mb_ask_user
+	$(eval $0_saved_cmd := $(mb_ask_user_linux_mac_cmd))
+	$(eval mb_ask_user_linux_mac_cmd := read)
+	$(info Bla: $(call mb_ask_user,What is your name?))
+	$(info Result: $($0_result))
 
-test/core/functions/test_mb_ask_user_default_text:
-	$(eval data := $(call mb_ask_user,What is your name?,,Manel))
-	$(info $(data))
+	$(eval mb_ask_user_linux_mac_cmd := $($0_saved_cmd))
+endef
+#
+#test/core/functions/mb_ask_user_test:
+#	$(eval data := $(call mb_ask_user,What is your name?))
+#	$(info $(data))
+#
+#test/core/functions/test_mb_ask_user_timeout:
+#	$(eval data := $(call mb_ask_user,What is your name?,5))
+#	$(info $(data))
+#
+#test/core/functions/test_mb_ask_user_default_text:
+#	$(eval data := $(call mb_ask_user,What is your name?,,Manel))
+#	$(info $(data))
 
 
 ######################################################################################################################
 ######################################################################################################################
-
-test/core/functions/test_mb_user_confirm:
-	$(eval value := $(call mb_user_confirm,Are you sure???? [y/n]))
-	$(info $(if $(value),You confirmed,You didnt confirm))
-
-test/core/functions/test_mb_user_confirm_auto_accept:
-	$(eval mb_user_confirm_auto_accept:= 1)
-	$(eval value := $(call mb_user_confirm,Are you sure???? [y/n]))
-	$(info $(if $(value),You confirmed,You didnt confirm))
+#
+#test/core/functions/test_mb_user_confirm:
+#	$(eval value := $(call mb_user_confirm,Are you sure???? [y/n]))
+#	$(info $(if $(value),You confirmed,You didnt confirm))
+#
+#test/core/functions/test_mb_user_confirm_auto_accept:
+#	$(eval mb_user_confirm_auto_accept:= 1)
+#	$(eval value := $(call mb_user_confirm,Are you sure???? [y/n]))
+#	$(info $(if $(value),You confirmed,You didnt confirm))

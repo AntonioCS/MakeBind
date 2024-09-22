@@ -91,23 +91,25 @@ endef
 ############################################################################################################################
 ############################################################################################################################
 
+mb_ask_user_default_question_text ?= Are you sure? [y/n]:
 #https://www.baeldung.com/linux/read-command
-# $1 - text to display (string) optional, Default "Are you sure? [y/n]:"
+# $1 - text to display (string) optional, Default set in mb_ask_user_default_question_text"
 # $2 - timeout (int) optional, Default 0 (Does not work on windows)
 # $3 - default text filled in (string) optional, Default "" (Does not work on windows)
 define mb_ask_user
 $(strip
-	$(eval mb_ask_user_text := $(if $(value 1),$1,Are you sure? [y/n]:))
-	$(eval mb_ask_user_time_out := $(if $(value 2),-t $(strip $2)))
-	$(eval mb_ask_user_default_text := $(if $(value 3),-i "$(strip $3)"))
-	$(call mb_os_call,$(call mb_ask_user_windows),$(call mb_ask_user_linux_mac))
+	$(eval $0_question_text := $(if $(value 1),$1,$($0_default_question_text)))
+	$(eval $0_time_out := $(if $(value 2),-t $(strip $2)))
+	$(eval $0_default_text := $(if $(value 3),-i "$(strip $3)"))
+	$(call mb_os_call,$(call $0_windows),$(call $0_linux_mac))
 )
 endef
 
+mb_ask_user_linux_mac_cmd ?= read -e
 define mb_ask_user_linux_mac
 $(strip
-read -e \
-	-p "$(mb_ask_user_text)$(mb_space)" \
+$(mb_ask_user_linux_mac_cmd) \
+	-p "$(mb_ask_user_question_text)$(mb_space)" \
 	$(mb_ask_user_time_out) \
 	$(mb_ask_user_default_text) \
 	; \
