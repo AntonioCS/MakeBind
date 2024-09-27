@@ -10,31 +10,33 @@ __MB_CORE_FUNCTIONS_MK__ := 1
 
 include $(mb_core_path)/util.mk
 
-mb_invoke_print ?= $(mb_on)
-mb_invoke_print_target ?= $(mb_on)
-mb_invoke_dry_run ?= $(mb_off)
-mb_invoke_last_target := $(mb_empty)
-mb_invoke_silent ?= $(mb_off)
+mb_invoke_print ?= $(mb_on) ## Print the command that is being executed
+mb_invoke_print_target ?= $(mb_on) ## Print the target that is being executed
+mb_invoke_dry_run ?= $(mb_off) ## Do not execute the command
+mb_invoke_last_target := $(mb_empty) ## Last target that was executed
+mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
+mb_invoke_silent ?= $(mb_off) ## Do not print anything
 
 define mb_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
-	$(if $(call mb_is_off,$(mb_invoke_silent)),
-		$(eval mb_invoke_should_print_target := $(and
-				$(call mb_is_on,$(mb_invoke_print_target)),
-				$(call mb_is_neq,$(mb_invoke_last_target),$@)
+	$(if $(call mb_is_off,$($0_silent)),
+		$(eval $0_should_print_target := $(and
+				$(call mb_is_on,$($0_print_target)),
+				$(call mb_is_neq,$($0_last_target),$@)
 			)
 		)
-		$(if $(mb_invoke_should_print_target),
-			$(eval mb_invoke_last_target := $@)
+		$(if $($0_should_print_target),
+			$(eval $0_last_target := $@)
 			$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@)))
 		)
-		$(if $(call mb_is_on,$(mb_invoke_print)),
-			$(eval mb_invoke_print_normalized := $(call mb_invoke_normalizer,$1))
-			$(call mb_printf_info,Executing: $(mb_invoke_print_normalized))
+		$(if $(call mb_is_on,$($0_print)),
+			$(eval $0_print_normalized := $(call $0_normalizer,$1))
+			$(call mb_printf_info,Executing: $($0_print_normalized))
 		)
 	)
-    $(if $(call mb_is_off,$(mb_invoke_dry_run)),
+    $(if $(call mb_is_off,$($0_dry_run)),
+		$(eval mb_invoke_last_cmd := $1)
 		$1
     )
 )
@@ -89,23 +91,25 @@ endef
 ############################################################################################################################
 ############################################################################################################################
 
+mb_ask_user_default_question_text ?= Are you sure? [y/n]:
 #https://www.baeldung.com/linux/read-command
-# $1 - text to display (string) optional, Default "Are you sure? [y/n]:"
+# $1 - text to display (string) optional, Default set in mb_ask_user_default_question_text"
 # $2 - timeout (int) optional, Default 0 (Does not work on windows)
 # $3 - default text filled in (string) optional, Default "" (Does not work on windows)
 define mb_ask_user
 $(strip
-	$(eval mb_ask_user_text := $(if $(value 1),$1,Are you sure? [y/n]:))
-	$(eval mb_ask_user_time_out := $(if $(value 2),-t $(strip $2)))
-	$(eval mb_ask_user_default_text := $(if $(value 3),-i "$(strip $3)"))
-	$(call mb_os_call,$(call mb_ask_user_windows),$(call mb_ask_user_linux_mac))
+	$(eval $0_question_text := $(if $(value 1),$1,$($0_default_question_text)))
+	$(eval $0_time_out := $(if $(value 2),-t $(strip $2)))
+	$(eval $0_default_text := $(if $(value 3),-i "$(strip $3)"))
+	$(call mb_os_call,$(call $0_windows),$(call $0_linux_mac))
 )
 endef
 
+mb_ask_user_linux_mac_cmd ?= read -e
 define mb_ask_user_linux_mac
 $(strip
-read -e \
-	-p "$(mb_ask_user_text)$(mb_space)" \
+$(mb_ask_user_linux_mac_cmd) \
+	-p "$(mb_ask_user_question_text)$(mb_space)" \
 	$(mb_ask_user_time_out) \
 	$(mb_ask_user_default_text) \
 	; \

@@ -1,0 +1,33 @@
+name: Run Tests on Pull Requests to Main
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Install GNU Make 4.4.1
+        run: |
+          export SELECTED_MAKE_VERSION="4.4.1"
+          sudo apt-get update
+          sudo apt-get install -y build-essential wget
+          cd /tmp
+          wget "https://ftp.gnu.org/gnu/make/make-${SELECTED_MAKE_VERSION}.tar.gz"
+          tar -xvzf "make-${SELECTED_MAKE_VERSION}.tar.gz"
+          cd "make-${SELECTED_MAKE_VERSION}"
+          ./configure
+          make
+          sudo make install
+
+      - name: Verify GNU Make Version
+        run: make --version
+
+      - name: Run Tests
+        working-directory: ./tests
+        run: make run_tests

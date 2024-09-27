@@ -1,5 +1,5 @@
 
-tests/core/util/mb_os_detection:
+test/core/util/mb_os_detection:
 	$(call mb_os_detection)
 	$(if $(and $(value OS),$(filter Windows_NT,$(OS))),
 		$(call mb_assert,$(mb_os_is_windows),mb_os_detection failed for windows),
@@ -13,7 +13,7 @@ tests/core/util/mb_os_detection:
 	)
 
 
-tests/core/util/mb_os_call:
+test/core/util/mb_os_call:
 	$(call mb_os_detection)
 	$(eval value := $(call mb_os_call,echo Windows,echo Linux,echo Mac))
 	$(if $(and $(value OS),$(filter Windows_NT,$(OS))),

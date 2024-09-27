@@ -39,6 +39,7 @@ include $(mb_core_path)/targets.mk
 .ONESHELL:
 .POSIX:
 
+#https://www.gnu.org/software/make/manual/html_node/Options-Summary.html
 MAKEFLAGS := --no-builtin-rules \
 	--no-builtin-variables \
 	--always-make \
@@ -84,7 +85,7 @@ $(call mb_debug_print, mb_project_mb_project_mk_local_file: $(mb_project_mb_proj
 $(call mb_debug_print, mb_default_shell_not_windows: $(mb_default_shell_not_windows))
 
 
-ifeq ($(or $(call mb_not_exists,$(mb_project_mb_config_file)),$(call mb_not_exists,$(mb_project_mb_project_mk_file))),$(mb_true))
+ifeq ($(and $(mb_check_missing_project_files),$(or $(call mb_not_exists,$(mb_project_mb_config_file)),$(call mb_not_exists,$(mb_project_mb_project_mk_file)))),$(mb_true))
 ifeq ($(mb_auto_include_init_project_if_config_missing),$(mb_on))
 $(call mb_debug_print, Including init_project since files are missing)
 include $(mb_core_path)/init_project.mk

@@ -1,5 +1,3 @@
-include $(mb_makebind_path)/mb_config.mk
+mb_project_name := tests
+mb_project_prefix := ts
 
-## Override variables here
-
-mb_check_missing_project_files := $(mb_off)
