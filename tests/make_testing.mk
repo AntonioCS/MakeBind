@@ -11,6 +11,9 @@ mb_run_tests_assertions_count_success := 0
 mb_run_tests_assertions_count_fail := 0
 mb_debug_tests ?=#
 
+## Env vars to be used to alter the behavior of the test runner
+## filter=<test> - Filter tests to be executed
+## exclude=<test> - Exclude tests from being executed
 define mb_run_tests
 $(strip
 $(shell > $(mb_testing_long_file))
@@ -20,7 +23,12 @@ $(eval $0_assertions_count := 0)
 $(if $(value filter),
 	$(eval $0_all_tests := $(filter $(filter),$($0_all_tests)))
 )
+$(if $(value exclude),
+	$(eval $0_all_tests := $(filter-out $(exclude),$($0_all_tests)))
+)
+
 $(info All tests to be executed: $($0_all_tests))
+
 $(foreach $0_running_test,$($0_all_tests),
 	$(call mb_test_assert_reset)
 	$(eval $0_result := $(strip $(call $($0_running_test))))

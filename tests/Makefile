@@ -20,6 +20,7 @@ MAKEFLAGS := --no-builtin-rules \
 mb_debug_tests ?=# Not set to anything
 
 mb_test_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
+mb_test_path_data := $(mb_test_path)/data
 mb_test_path_unit := $(mb_test_path)/unit
 mb_test_main_path := $(abspath $(mb_test_path)/../main.mk)
 mb_test_mock_project_mk := $(abspath $(mb_test_path)/mock_project/Makefile)
