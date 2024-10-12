@@ -180,7 +180,10 @@ $(strip
 	$(eval $0_msg = $1)
 	$(eval $0_format = $2)
 	$(eval $0_project_name = $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
-	$(eval $0_breakline = $(if $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),$(mb_true)))
+	$(eval $0_breakline = $(if \
+		$(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),\
+		$(mb_true))\
+	)
 	$(if $(call mb_is_on,$(mb_printf_opt_use_shell)),
 		$(eval mb_printf_result = $(shell $(mb_printf_statement)))
 		$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_info)),
