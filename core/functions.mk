@@ -164,7 +164,8 @@ mb_printf_display_guard_r := ]## Right guard
 
 mb_printf_use_break_line ?= $(mb_on) ## Use break line
 # This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
-mb_printf_use_shell ?= $(mb_on) ## Use shell command
+mb_printf_opt_use_shell ?= $(mb_on) ## Use shell command
+
 mb_printf_internal_print_using_info := 1
 mb_printf_internal_print_using_warning := 2
 mb_printf_internal_print_using_error := 3
@@ -176,16 +177,21 @@ mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 ## $4 - use break line (defaults to on)
 define mb_printf
 $(strip
-	$(eval mb_printf_msg = $1)
-	$(eval mb_printf_format = $2)
-	$(eval mb_printf_project_name = $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
-	$(eval mb_printf_breakline = $(if $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),$(mb_true)))
-	$(if $(call mb_is_on,$(mb_printf_use_shell)),
+	$(eval $0_msg = $1)
+	$(eval $0_format = $2)
+	$(eval $0_project_name = $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
+	$(eval $0_breakline = $(if \
+		$(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),\
+		$(mb_true))\
+	)
+	$(if $(call mb_is_on,$(mb_printf_opt_use_shell)),
 		$(eval mb_printf_result = $(shell $(mb_printf_statement)))
 		$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_info)),
-			$(info $(mb_printf_result)),
+			$(info $(mb_printf_result))
+			,
 			$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_warning)),
-				$(warning $(mb_printf_result)),
+				$(warning $(mb_printf_result))
+				,
 				$(error $(mb_printf_result))
 			)
 		)
@@ -217,7 +223,17 @@ printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_pr
 ))
 endef
 
-mb_printf_info = $(strip $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
+
+## NOTE: Seems to require the slashes at the end (unlike the other functions)
+define mb_printf_info
+$(strip \
+	$(call mb_printf, \
+		$(call mb_normalizer,$1), \
+		$(mb_printf_info_format_specifier), \
+		$(if $(value 2),$2), \
+		$(if $(value 3),$3) \
+	))
+endef
 
 define mb_printf_warn
 $(strip

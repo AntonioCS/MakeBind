@@ -90,8 +90,14 @@ endef
 #	)
 
 
+
+### Remove the timestamp, project name and the word Executing: from output given
+docker_test_helper_normalize_output = $(wordlist 4,$(words $(strip $1)),$(strip $1))
+docker_test_help_fetch_line = $(call docker_test_helper_normalize_output,$(shell sed -n '$1{p;q}' $2))
+
 ## Note: Need to add GNUMAKEFLAGS to the cli_vars because I get an error if I don't
 define test_modules_docker_compose_targets
+
 	$(eval $0_dc_file := docker_compose_file.yml)
 	$(eval $0_cli_vars := mb_invoke_print_target=$(mb_off) \
 			mb_invoke_dry_run=$(mb_on) \
@@ -100,23 +106,44 @@ define test_modules_docker_compose_targets
 	)
 	$(eval $0_expected_start := docker compose --file $($0_dc_file))
 
-	$(eval $0_all_targets := dc/up dc/stop dc/down dc/status dc/status-all dc/build)
+	$(eval $0_single_targets := dc/up dc/stop dc/down dc/status dc/status-all dc/build dc/stats)
+	### $($0_expected_start) must be added to the expected output
 	$(eval
-		$0_expected_dc/up := $($0_expected_start) up --remove-orphans -d --wait
-		$0_expected_dc/stop := $($0_expected_start) stop
-		$0_expected_dc/down := $($0_expected_start) down
-		$0_expected_dc/status := $($0_expected_start) ps --no-trunc
-		$0_expected_dc/status-all := $($0_expected_start) ps --no-trunc --all
-		$0_expected_dc/build := $($0_expected_start) build --parallel --no-cache $(dc_build_args_linux_mac)
+		$0_expected_dc/up := up --remove-orphans -d --wait
+		$0_expected_dc/stop := stop
+		$0_expected_dc/down := down
+		$0_expected_dc/status := ps --no-trunc
+		$0_expected_dc/status-all := ps --no-trunc --all
+		$0_expected_dc/build := build --parallel $(dc_build_args_linux_mac)
+		$0_expected_dc/stats := stats)
 	)
 
 	### We must process the output to remove the timestamp, project name and the word Executing:
-	$(foreach $0_running_target,$($0_all_targets),
+	$(foreach $0_running_target,$($0_single_targets),
 		$(if $(mb_debug_tests),$(info Running target: $($0_running_target)))
 		$(eval $0_expected := $($0_expected_$($0_running_target)))
 		$(eval $0_output := $(shell $(MAKE) $($0_running_target) $($0_cli_vars)))
 		$(if $(mb_debug_tests),$(info Ouput: $($0_output)))
-		$(eval $0_result := $(wordlist 4,$(words $($0_output)),$($0_output)))
-		$(call mb_assert_eq,$($0_expected),$($0_result))
+		$(eval $0_result := $(call docker_test_helper_normalize_output, $($0_output)))
+		$(call mb_assert_eq,$($0_expected_start) $($0_expected),$($0_result))
 	)
+
+	### Compount targets
+	$(eval $0_output_file := /tmp/mb_test_output)
+
+	$(shell $(MAKE) dc/rebuild $($0_cli_vars) > $($0_output_file))
+	### Expect 3 lines
+	$(eval $0_output_0 := $(call docker_test_help_fetch_line,1,$($0_output_file)))
+	$(eval $0_output_1 := $(call docker_test_help_fetch_line,2,$($0_output_file)))
+	$(eval $0_output_2 := $(call docker_test_help_fetch_line,3,$($0_output_file)))
+	$(call mb_assert_eq,$($0_expected_start) $($0_expected_dc/stop), $($0_output_0))
+	$(call mb_assert_eq,$($0_expected_start) $($0_expected_dc/build) --no-cache, $($0_output_1))
+	$(call mb_assert_eq,$($0_expected_start) $($0_expected_dc/up), $($0_output_2))
+
+	$(shell $(MAKE) dc/restart $($0_cli_vars) > $($0_output_file))
+	### Expect 2 lines
+	$(eval $0_output_0 := $(call docker_test_help_fetch_line,1,$($0_output_file)))
+	$(eval $0_output_1 := $(call docker_test_help_fetch_line,2,$($0_output_file)))
+	$(call mb_assert_eq,$($0_expected_start) $($0_expected_dc/stop), $($0_output_0))
+    $(call mb_assert_eq,$($0_expected_start) $($0_expected_dc/up), $($0_output_1))
 endef

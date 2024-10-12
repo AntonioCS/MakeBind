@@ -15,19 +15,18 @@ dc_bin ?= docker compose
 dc_bin_options ?= $(mb_empty)
 
 ## Parameters
-# $1 = command
-# $2 = options
-# $3 = services
-# $4 = extras (command [args..]) - See exec documentation of docker composes
+# $1 = command (required)
+# $2 = options (optional)
+# $3 = services (optional)
+# $4 = extras (command [args..]) - See exec documentation of docker composes (optional)
 ## Variables that will affect the specific command
 # dc_cmd_options_<command> = Command specific options
 # dc_cmd_services_<command> = Command specific service(s)
 # dc_cmd_extras_<command> = Command specific extras
 define dc_invoke
 $(strip
-	$(if $(value 1),,$(error ERROR: You must pass a commad))
 	$(eval
-		$0_params_command := $1
+		$0_params_command := $(if $(value 1),$1,$(error ERROR: You must pass a commad))
 		$0_params_options := $(if $(value 2),$2)
 		$0_params_services := $(if $(value 3),$3)
 		$0_params_extras := $(if $(value 4),$4)
@@ -127,10 +126,11 @@ dc/restart: dc/start
 
 dc/build: ## Build all containers
 	$(call mb_os_detection)
-	$(call dc_invoke,build,--parallel --no-cache $(if $(mb_os_is_linux_or_osx),$(dc_build_args_linux_mac)))
+	$(call dc_invoke,build,--parallel $(if $(mb_os_is_linux_or_osx),$(dc_build_args_linux_mac)))
 
-dc/rebuild: ## Rebuild all containers
+dc/rebuild: ## Rebuild all containers (calls dc/stop & dc/build with --no-cache & dc/start)
 dc/rebuild: dc/stop
+dc/rebuild: dc_cmd_options_build := --no-cache
 dc/rebuild: dc/build
 dc/rebuild: dc/start
 
@@ -166,5 +166,8 @@ dc/invoke: ## Run docker compose command with given parameters (use with: params
 	,
 		$(call mb_printf_error, You need to pass the variable params. Ex.: make $@ params="exec app ls -la")
 	)
+
+dc/stats: ## Show stats of containers
+	$(call dc_invoke,stats)
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__

@@ -37,8 +37,8 @@ define test_core_functions_mb_invoke_mb_invoke_dry_run_on
 
 	$(call mb_assert_was_called,mb_printf_info,2)
 	$(eval $0_cmd := echo "mb_invoke tests passed")
-	$(eval result := $(call mb_invoke,$($0_cmd)))
-	$(call mb_assert_empty,$(strip $(result)))
+	$(eval $0_result := $(call mb_invoke,$($0_cmd)))
+	$(call mb_assert_empty,$(strip $($0_result)))
 
 	$(eval mb_invoke_dry_run := $(mb_off))
 endef

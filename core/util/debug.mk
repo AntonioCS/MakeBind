@@ -37,5 +37,31 @@ endef
 ## This causes problems
 #$(call mb_printf_warn,$(call mb_normalizer,$1),$(mb_printf_debug_format_specifier))\
 
+#https://www.gnu.org/software/make/manual/html_node/Automatic-Variables.html
+define mb_debug_automatic_variables_print
+	$(info $$@ : $@)
+	$(info $$% : $%)
+	$(info $$< : $<)
+	$(info $$? : $?)
+	$(info $$^ : $^)
+	$(info $$+ : $+)
+	$(info $$| : $|)
+	$(info $$* : $*)
+	$(info $$(@D) : $(@D))
+	$(info $$(@F) : $(@F))
+	$(info $$(*D) : $(*D))
+	$(info $$(*F) : $(*F))
+	$(info $$(%D) : $(%D))
+	$(info $$(%F) : $(%F))
+	$(info $$(<D) : $(<D))
+	$(info $$(<F) : $(<F))
+	$(info $$(^D) : $(^D))
+	$(info $$(^F) : $(^F))
+	$(info $$(+D) : $(+D))
+	$(info $$(+F) : $(+F))
+	$(info $$(?D) : $(?D))
+	$(info $$(?F) : $(?F))
+endef
+
 endif #__MB_CORE_UTIL_DEBUG_MK__
 

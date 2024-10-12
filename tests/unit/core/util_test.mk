@@ -31,6 +31,13 @@ define test_core_util_mb_add_big_values
 	$(call mb_assert_eq,1719841777,$(call mb_add,1719841772,5))
 endef
 
+# WIP
+define _test_core_util_mb_array_from_file
+	$(eval $0_test_file := $(mb_test_path_data)/test_core_util_mb_array_from_file.txt)
+	$(info Test file: $($0_test_file))
+	$(eval test_array := $(call mb_array_from_file,$($0_test_file),$0_array))
+endef
+
 
 
 

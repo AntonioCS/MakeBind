@@ -161,4 +161,22 @@ endef
 
 mb_powershell = $(strip pwsh.exe -NoProfile -Command "$(strip $(call mb_rreplacer,$1))")
 
+## WIP
+define ___mb_array_from_file
+$(strip
+	$(eval $0_file := $(strip $1))
+	$(eval $0_var_name := $(strip $2))
+	$(eval $0_total_lines := $(shell grep -c "" $($0_file)))
+	$(info Var name: $($0_var_name))
+	$(info File: $($0_file))
+	$(info Total lines: $($0_total_lines))
+	$(eval $0_list := $(shell seq 0 $$\(\($($0_total_lines)-1\)\) ) )
+	$(info Total lines: $($0_total_lines))
+	$(info List: $($0_list))
+)
+endef
+#	$(foreach $0_i,$($0_list),
+#		$(eval $($0_var_name)_$($0_i) := $(shell sed -n '$$($($0_i)+1){p;q}' $($0_file)))
+#	)
+
 endif # __MB_CORE_UTIL_MK__
