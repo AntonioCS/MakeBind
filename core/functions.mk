@@ -225,15 +225,14 @@ printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_pr
 endef
 
 
-## NOTE: Seems to require the slashes at the end (unlike the other functions)
+## NOTE: Seems to require the slashes at the end (unlike the other functions), might be because of the $(call
 define mb_printf_info
 $(strip \
-	$(call mb_printf, \
+	$(call mb_printf,\
 		$(call mb_normalizer,$1),\
 		$(mb_printf_info_format_specifier),\
-		$(if $(value 2),$2),
-		$(if $(value 3),$3),
-
+		$(if $(value 2),$2),\
+		$(if $(value 3),$3),\
 	))
 endef
 
