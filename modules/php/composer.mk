@@ -34,17 +34,17 @@ php/composer/run/%:
 php/composer/install: mb_info_msg := Running composer install
 php/composer/install: mb/info-composer-install
 php/composer/install: php/composer/run/install
-php/composer/install: ## Run composer install in container. Use variable cargs to pass extra parameters
+php/composer/install: ## Run composer install. Use variable cargs to pass extra parameters
 
 php/composer/update: mb_info_msg := Running composer update
 php/composer/update: mb/info-composer-update
 php/composer/update: php/composer/run/update
-php/composer/update: ## Run composer install in container. Use variable cargs to pass extra parameters
+php/composer/update: ## Run composer install. Use variable cargs to pass extra parameters
 
 php/composer/require: mb_info_msg := Running composer require
 php/composer/require: mb/info-composer-require
 php/composer/require: php/composer/run/require
-php/composer/require: ## Run composer require in container. Use variable cargs to pass extra parameters
+php/composer/require: ## Run composer require. Use variable cargs to pass extra parameters
 
 
 

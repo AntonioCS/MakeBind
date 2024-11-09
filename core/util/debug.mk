@@ -8,6 +8,9 @@
 ifndef __MB_CORE_UTIL_DEBUG_MK__
 __MB_CORE_UTIL_DEBUG_MK__ := 1
 
+mb_debug_to_file ?= $(mb_true)
+mb_debug_file ?= $(mb_makebind_path)/mb_debug.log
+
 ## Note: Calling $(call mb_debug_print here will cause a segmentation fault as this is called in mb/debug/print
 ## which prints all the variables and this will cause an infinite loop
 define mb_debug_helper
@@ -31,7 +34,13 @@ mb/debug/print-%:
 define mb_debug_print
 $(strip
 	$(eval mb_debug_trigger := $(if $(value 2),$2,$(mb_debug)))
-	$(if $(call mb_is_on,$(mb_debug_trigger)),$(warning DEBUG: $(strip $1)))
+	$(if $(call mb_is_on,$(mb_debug_trigger)),
+		$(if $(mb_debug_to_file),
+			$(file >> $(mb_debug_file),$(shell $(mb_date_now)) DEBUG: $(strip $1))
+			,
+			$(warning DEBUG: $(strip $1))
+		)
+	)
 )
 endef
 ## This causes problems

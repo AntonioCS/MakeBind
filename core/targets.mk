@@ -9,6 +9,8 @@ ifndef __MB_CORE_TARGETS_MK__
 __MB_CORE_TARGETS_MK__ := 1
 
 mb_debug_targets ?= $(mb_debug)
+mb_targets_all_make_targets_file ?= $(mb_makebind_tmp_path)/mk_targets
+mb_targets_all_targets_with_desc_file ?= $(mb_makebind_tmp_path)/mk_targets_desc
 
 ## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
@@ -23,16 +25,21 @@ ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
 			Write-Host $$formattedText -ForegroundColor Cyan;\
 		}"
 else
-	grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(mb_targets_list_get_files_all) |\
+## Explanation:
+## 1. Get all targets from the files that have ## in them using grep -h -E..
+## 2. Get all the valid targets from the makefile using make -pRrq, which prints out make database and then use awk to get only the targets
+## 3. Use awk -F':'...  to get the targets that are in both lists
+## 4. Use awk to print the targets in a nice format
+	awk -F':' 'NR==FNR { targets[$$1]; next } $$1 in targets' \
+		<(GNUMAKEFLAGS="" make -pRrq | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u) \
+		<(grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(mb_targets_list_get_files_all)) | \
 	awk 'BEGIN {FS = ":.*?## "}\
 		{if (NF > 1) printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}\
 		END {if (NR == 0) print "\033[31mNo targets found\033[0m"}' || true
 endif
 
 define mb_targets_list_get_files
-	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) \
-                                            $(mb_project_mb_project_mk_local_file), \
-				$(MAKEFILE_LIST)))
+	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file), $(MAKEFILE_LIST)))
 	$(eval mb_get_files_mb_modules := $(filter $(mb_modules_path)/%,$(MAKEFILE_LIST)))
 	$(eval mb_get_files_project_modules := $(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST)))
 

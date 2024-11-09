@@ -6,21 +6,17 @@
 # License: MIT License
 #####################################################################################
 
-#dc_include_before_error_msg := ERROR: You must include docker_compose.mk module before including nginx.mk
-#ifndef dc_shellc
-#$(error $(dc_include_before_error_msg))
-#endif
-#
-#ifndef dc_invoke
-#$(error $(dc_include_before_error_msg))
-#endif
+ifndef __MB_MODULES_NGINX_FUNCTIONS__
+__MB_MODULES_NGINX_FUNCTIONS__ := 1
 
 mb_debug_nginx ?= $(mb_debug)
 nginx_use_docker ?= $(if $(value dc_invoke),$(mb_true),$(mb_false))
-nginx_dc_service ?= $(if $(nginx_use_docker),$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file))
+nginx_dc_service ?=# not defined
+#$(if $(nginx_use_docker),$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file))
 nginx_dc_default_shell ?= sh
 nginx_error_log ?= /var/log/nginx/error.log
 nginx_access_log ?= /var/log/nginx/access.log
+nginx_cmd_restart ?= service nginx restart
 
 $(call mb_debug_print, nginx_dc_service: $(nginx_dc_service),$(mb_debug_nginx))
 $(call mb_debug_print, nginx_error_log: $(nginx_error_log),$(mb_debug_nginx))
@@ -30,12 +26,20 @@ $(call mb_debug_print, nginx_dc_default_shell: $(nginx_dc_default_shell),$(mb_de
 define nginx_tail_logs
 	$(eval $0_cmd := tail -f $1)
 	$(if $(nginx_use_docker),
-		$(call dc_shellc,$(nginx_dc_service),$($0_cmd))
+		$(if $(value nginx_dc_service),
+			$(call dc_shellc,$(nginx_dc_service),$($0_cmd))
+			,
+			$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file)
+		)
 		,
 		$($0_cmd)
 	)
 endef
 
+endif # __MB_MODULES_NGINX_FUNCTIONS__
+
+ifndef __MB_MODULES_NGINX_TARGETS__
+__MB_MODULES_NGINX_TARGETS__ := 1
 
 nginx/logs/tail/error: ## Tail the error log
 	$(call nginx_tail_logs,$(nginx_error_log))
@@ -45,36 +49,28 @@ nginx/logs/tail/access: ## Tail the access log
 
 ifeq ($(nginx_use_docker),$(mb_true))
 
+nginx/dc/check_service:
+	$(if $(value nginx_dc_service),,$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file))
+
+nginx/dc/logs: nginx/dc/check_service
 nginx/dc/logs: ## Tail nginx docker logs
 	$(call dc_invoke,logs,-f,$(nginx_dc_service))
 
+nginx/dc/shell: nginx/dc/check_service
 nginx/dc/shell: ## Start a shell in the nginx container
 	$(call dc_invoke,exec,,$(nginx_dc_service),$(nginx_dc_default_shell))
 
-endif
+nginx/dc/restart: nginx/dc/check_service
+nginx/dc/restart: dc_cmd_services_stop := $(nginx_dc_service)
+nginx/dc/restart: dc_cmd_services_up := $(nginx_dc_service)
+nginx/dc/restart: dc/restart
+nginx/dc/restart: ## Restart the nginx container service
 
-ifdef dc_invoke
-nginx/restart: dc_cmd_services_stop := $(nginx_dc_service)
-nginx/restart: dc_cmd_services_up := $(nginx_dc_service)
-nginx/restart: dc/restart
-nginx/restart: ## Restart the nginx container service
-
-nginx_error_log ?= /var/log/nginx/error.log
-nginx_access_log ?= /var/log/nginx/access.log
-
-define nginx_invoke
-$(strip
-	$(if $(value 1),,$(error ERROR: You must pass a commad))
-	$(call mb_invoke, $1)
-)
-endef
-
-
-nginx/tail-error-log: ## Tail the error log
-	$(call nginx_invoke,tail -f $(nginx_error_log))
-
-nginx/tail-access-log: ## Tail the access log
-	$(call nginx_invoke,-f $(nginx_access_log))
+else
 
 nginx/restart: ## Restart the nginx service
-	$(call nginx_invoke,service nginx restart)
+	$(call mb_invoke,$(nginx_cmd_restart))
+
+endif # nginx_use_docker
+
+endif # __MB_MODULES_NGINX_TARGETS__

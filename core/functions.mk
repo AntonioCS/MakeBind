@@ -22,6 +22,7 @@ mb_invoke_silent ?= $(mb_off) ## Do not print anything
 define mb_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
+	$(eval $0_prm_cmd := $(value 1))
 	$(if $(call mb_is_off,$($0_silent)),
 		$(eval $0_should_print_target := $(and
 				$(call mb_is_on,$($0_print_target)),
@@ -37,8 +38,8 @@ $(strip
 		)
 	)
     $(if $(call mb_is_off,$($0_dry_run)),
-		$(eval mb_invoke_last_cmd := $1)
-		$1
+		$(eval mb_invoke_last_cmd := $(value 1))
+		$($0_prm_cmd)
     )
 )
 endef # mb_invoke
