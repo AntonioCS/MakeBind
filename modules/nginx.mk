@@ -12,7 +12,6 @@ __MB_MODULES_NGINX_FUNCTIONS__ := 1
 mb_debug_nginx ?= $(mb_debug)
 nginx_use_docker ?= $(if $(value dc_invoke),$(mb_true),$(mb_false))
 nginx_dc_service ?=# not defined
-#$(if $(nginx_use_docker),$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file))
 nginx_dc_default_shell ?= sh
 nginx_error_log ?= /var/log/nginx/error.log
 nginx_access_log ?= /var/log/nginx/access.log

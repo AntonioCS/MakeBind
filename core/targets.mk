@@ -9,15 +9,15 @@ ifndef __MB_CORE_TARGETS_MK__
 __MB_CORE_TARGETS_MK__ := 1
 
 mb_debug_targets ?= $(mb_debug)
-mb_targets_all_make_targets_file ?= $(mb_makebind_tmp_path)/mk_targets
-mb_targets_all_targets_with_desc_file ?= $(mb_makebind_tmp_path)/mk_targets_desc
+mb_targets_valid ?= $(mb_makebind_tmp_path)/mk_targets_valid
+mb_targets_desc ?= $(mb_makebind_tmp_path)/mk_targets_desc
+mb_targets_filtered ?= $(mb_makebind_tmp_path)/mk_targets_filtered
 
 ## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
 ## Note: Having ifeq ($(mb_os_is_windows),1) was not working correctly
-mb/targets-list:
-	$(mb_targets_list_get_files)
 ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
+mb/targets-list:
 	powershell -Command "Select-String -Path $(subst $(mb_space),$(mb_comma),$(mb_targets_list_get_files_all)) -Pattern '^[\$$\(\)/a-zA-Z0-9_-]+:.*?## .*$$' -ErrorAction SilentlyContinue |\
 		ForEach-Object {\
 			$$parts = $$_.Line -split '##';\
@@ -25,18 +25,48 @@ ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
 			Write-Host $$formattedText -ForegroundColor Cyan;\
 		}"
 else
-## Explanation:
-## 1. Get all targets from the files that have ## in them using grep -h -E..
-## 2. Get all the valid targets from the makefile using make -pRrq, which prints out make database and then use awk to get only the targets
-## 3. Use awk -F':'...  to get the targets that are in both lists
-## 4. Use awk to print the targets in a nice format
-	awk -F':' 'NR==FNR { targets[$$1]; next } $$1 in targets' \
-		<(GNUMAKEFLAGS="" make -pRrq | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u) \
-		<(grep -h -E '^[$$()/a-zA-Z0-9_-]+:.*?## .*$$' $(mb_targets_list_get_files_all)) | \
-	awk 'BEGIN {FS = ":.*?## "}\
-		{if (NF > 1) printf "\033[36m%-40s\033[0m %s\n", $$1, $$2}\
-		END {if (NR == 0) print "\033[31mNo targets found\033[0m"}' || true
-endif
+ifndef MB_TARGETS_SKIP
+
+mb/targets-list: mb/targets-filtered
+mb/targets-list:
+	awk 'BEGIN {FS = ":.*## "}; { \
+		target = $$1; \
+		description = $$2; \
+		placeholder = "<param>"; \
+		if (match(description, /<([^>]+)>/, arr)) { \
+			placeholder = "<" arr[1] ">"; \
+		} \
+		gsub(/%/, placeholder, target); \
+		printf "\033[36m%-30s\033[0m %s\n", target, description; \
+	}' "$(mb_targets_filtered)"
+	$(if $(call mb_is_off,$(mb_debug_targets)),
+		rm -f "$(mb_targets_valid)" "$(mb_targets_desc)" "$(mb_targets_filtered)"
+	)
+
+## Note: Even with -q it still seems to process mb/target-list which is why MB_TARGETS_SKIP is needed
+## Also, the $(shell) is needed because this forces make to run this during parsing phase and not during the execution phase which caused "Error 2"
+mb/targets-all-valid:
+	$(shell MB_TARGETS_SKIP=1 MAKECMDGOALS="" GNUMAKEFLAGS="" MAKEFLAGS="" MFLAGS="" make -pRrq | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u > "$(mb_targets_valid)")
+
+mb/targets-all-desc:
+	$(mb_targets_list_get_files)
+	grep -h -E '^[$$()/a-zA-Z0-9_%/\-]+:.*?## .*$$' $(mb_targets_list_get_files_all) > "$(mb_targets_desc)"
+
+mb/targets-filtered: mb/targets-all-valid
+mb/targets-filtered: mb/targets-all-desc
+mb/targets-filtered:
+	awk -F':' 'NR==FNR { targets[$$1]; next } $$1 in targets' "$(mb_targets_valid)" "$(mb_targets_desc)" > "$(mb_targets_filtered)"
+
+else
+## To avoid infinite loop
+mb/targets-list:
+	;
+
+endif # MB_TARGETS_SKIP
+endif # Windows_NT
+
+
+
 
 define mb_targets_list_get_files
 	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file), $(MAKEFILE_LIST)))
