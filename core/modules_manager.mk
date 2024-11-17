@@ -1,7 +1,7 @@
 #####################################################################################
 # Project: MakeBind
 # File: main.mk
-# Description: Main entry point for MakeBind
+# Description: Module loader for MakeBind
 # Author: AntonioCS
 # License: MIT License
 #####################################################################################

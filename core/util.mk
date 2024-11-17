@@ -89,6 +89,8 @@ $(call mb_os_call,
 )
 endef
 
+mb_date_now = date "+%Y-%m-%d %H:%M"
+
 define mb_expression
 $(call mb_os_call,
 	$(call mb_powershell,$1),\

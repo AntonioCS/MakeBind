@@ -17,9 +17,12 @@ mb_invoke_last_target := $(mb_empty) ## Last target that was executed
 mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
 mb_invoke_silent ?= $(mb_off) ## Do not print anything
 
+
+## $1 - command (Note: Don't put $1 variable to avoid evaluation issues)
 define mb_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a commad))
+	$(eval $0_prm_cmd := $(value 1))
 	$(if $(call mb_is_off,$($0_silent)),
 		$(eval $0_should_print_target := $(and
 				$(call mb_is_on,$($0_print_target)),
@@ -31,13 +34,12 @@ $(strip
 			$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@)))
 		)
 		$(if $(call mb_is_on,$($0_print)),
-			$(eval $0_print_normalized := $(call $0_normalizer,$1))
-			$(call mb_printf_info,Executing: $($0_print_normalized))
+			$(call mb_printf_info,Executing: $(call $0_normalizer,$1))
 		)
 	)
     $(if $(call mb_is_off,$($0_dry_run)),
-		$(eval mb_invoke_last_cmd := $1)
-		$1
+		$(eval mb_invoke_last_cmd := $(value 1))
+		$($0_prm_cmd)
     )
 )
 endef # mb_invoke
@@ -157,10 +159,10 @@ mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
 mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
 mb_printf_ts_format ?= +'%F %T'## Timestamp format
 endif
-mb_printf_display_ts ?= $(mb_on) ## Display timestamp
-mb_printf_display_project_name ?= $(mb_on) ## Display project name
-mb_printf_display_guard_l := [## Display Left guard
-mb_printf_display_guard_r := ]## Right guard
+mb_printf_opt_display_ts ?= $(mb_on) ## Display timestamp
+mb_printf_opt_display_project_name ?= $(mb_on) ## Display project name
+mb_printf_opt_display_guard_l ?= [## Display Left guard
+mb_printf_opt_display_guard_r ?= ]## Right guard
 
 mb_printf_use_break_line ?= $(mb_on) ## Use break line
 # This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
@@ -177,9 +179,9 @@ mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 ## $4 - use break line (defaults to on)
 define mb_printf
 $(strip
-	$(eval $0_msg = $1)
-	$(eval $0_format = $2)
-	$(eval $0_project_name = $(if $(value 3),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
+	$(eval $0_msg = $(strip $1))
+	$(eval $0_format = $(strip $2))
+	$(eval $0_project_name = $(if $(strip $(value 3)),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
 	$(eval $0_breakline = $(if \
 		$(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),\
 		$(mb_true))\
@@ -202,49 +204,51 @@ $(strip
 endef
 
 
-mb_printf_statement_display_guard = $(mb_printf_display_guard_l)$1$(mb_printf_display_guard_r)## Prevent spaces
+mb_printf_statement_display_guard = $(mb_printf_opt_display_guard_l)$1$(mb_printf_opt_display_guard_r)## Prevent spaces
 
 ## NOTE: mb_os_assign not working so well for this
 define mb_printf_statement
 $(strip
-$(eval mb_printf_statement_project_name := $(strip $(if $(call mb_is_on,$(mb_printf_display_project_name)),\
+$(eval mb_printf_statement_project_name := $(strip $(if $(call mb_is_on,$(mb_printf_opt_display_project_name)),\
 	$(call mb_printf_statement_display_guard,$(mb_printf_project_name)))\
 ))
 
 $(if $(mb_os_is_windows),
-$(eval mb_printf_statement_ts := $(strip $(if $(call mb_is_on,$(mb_printf_display_ts)),\
+$(eval mb_printf_statement_ts := $(strip $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),\
 	$(call mb_printf_statement_display_guard,$(shell $(call mb_powershell,Get-Date -Format $(mb_printf_ts_format)))))\
 ))
 $(call mb_powershell,Write-Host ($(mb_printf_format) -f "$(mb_printf_statement_ts)"$(mb_comma)"$(mb_printf_statement_project_name)"$(mb_comma)"$(mb_printf_msg)"\
 $(if $(mb_printf_breakline),,-NoNewline))),
 
-$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format)))))
+$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format)))))
 printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_project_name)" "$(mb_printf_msg)"$(if $(mb_printf_breakline),;printf "\n";)
 ))
 endef
 
 
-## NOTE: Seems to require the slashes at the end (unlike the other functions)
+## NOTE: Seems to require the slashes at the end (unlike the other functions), might be because of the $(call
 define mb_printf_info
 $(strip \
-	$(call mb_printf, \
-		$(call mb_normalizer,$1), \
-		$(mb_printf_info_format_specifier), \
-		$(if $(value 2),$2), \
-		$(if $(value 3),$3) \
+	$(call mb_printf,\
+		$(call mb_normalizer,$1),\
+		$(mb_printf_info_format_specifier),\
+		$(if $(value 2),$2),\
+		$(if $(value 3),$3),\
 	))
 endef
 
 define mb_printf_warn
 $(strip
 $(eval mb_printf_internal_print := $(mb_printf_internal_print_using_warning))
-$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
+$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+)
 endef
 
 define mb_printf_error
 $(strip
 $(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))
-$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3)))
+$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+)
 endef
 
 define mb_normalizer
@@ -255,5 +259,6 @@ $(strip
 	)
 )
 endef
+
 
 endif # __MB_CORE_FUNCTIONS_MK__
