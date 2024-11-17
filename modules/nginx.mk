@@ -11,7 +11,7 @@ __MB_MODULES_NGINX_FUNCTIONS__ := 1
 
 mb_debug_nginx ?= $(mb_debug)
 nginx_use_docker ?= $(if $(value dc_invoke),$(mb_true),$(mb_false))
-nginx_dc_service ?=# not defined
+nginx_dc_service ?=# set to nothing
 nginx_dc_default_shell ?= sh
 nginx_error_log ?= /var/log/nginx/error.log
 nginx_access_log ?= /var/log/nginx/access.log
