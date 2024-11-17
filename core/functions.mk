@@ -261,8 +261,4 @@ $(strip
 endef
 
 
-#mb/internal/mb_printf_test:
-#	$(call mb_printf_info,This is a test)
-#	$(call mb_printf_warn,This is a test)
-#	$(call mb_printf_error,This is a test)
 endif # __MB_CORE_FUNCTIONS_MK__
