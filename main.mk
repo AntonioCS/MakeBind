@@ -102,5 +102,7 @@ $(call mb_debug_print, Including project target files)
 include $(mb_project_mb_project_mk_file)
 -include $(mb_project_mb_project_mk_local_file)
 
-$(call mb_load_modules)
+$(call mb_modules_build_db)
+
+#$(call mb_load_modules)
 
