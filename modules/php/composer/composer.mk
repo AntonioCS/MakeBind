@@ -1,14 +1,3 @@
-#####################################################################################
-# Project: MakeBind
-# File: modules/php/php.mk
-# Description: PHP composer module for MakeBind
-# Author: AntonioCS
-# License: MIT License
-#####################################################################################
-ifndef __MB_MODULES_PHP_COMPOSER__
-__MB_MODULES_PHP_COMPOSER__ := 1
-
-
 ifndef __MB_MODULES_PHP_COMPOSER_FUNCTIONS__
 __MB_MODULES_PHP_COMPOSER_FUNCTIONS__ := 1
 

@@ -1,3 +1,11 @@
+#####################################################################################
+# Project: MakeBind
+# Description: Entry point for internal calls to MakeBind .mk files.
+#              **WARNING: This file is NOT intended for direct usage by users.**
+#              Users should use bind-hub/project.mk instead for interacting with MakeBind.
+# Author: AntonioCS
+# License: MIT License
+#####################################################################################
 mb_debug_makefile ?= $(if $(value mb_debug),$(mb_debug))## Debug flag for Makefile (set to empty by default)
 mb_project_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))## This projects path
 mb_mb_default_path ?= $(abspath $(mb_project_path)/../MakeBind)## This is the default path for MakeBind in your system, change it if needed
