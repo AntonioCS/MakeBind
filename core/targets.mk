@@ -45,8 +45,14 @@ mb/targets-list:
 
 ## Note: Even with -q it still seems to process mb/target-list which is why MB_TARGETS_SKIP is needed
 ## Also, the $(shell) is needed because this forces make to run this during parsing phase and not during the execution phase which caused "Error 2"
+## NOTE: This is also causing another issue. If we have a $(info) (or any of the other print function) they will trigger twice, with mb_debug=1 this will fill up the logs twice
+### that is why I'm adding mb_debug=0 to the call
+#-p prints out the database of variables and rules.
+#-r disables built-in rules.
+#-R disables built-in variables.
+#-n dry run
 mb/targets-all-valid:
-	$(shell MB_TARGETS_SKIP=1 MAKECMDGOALS="" GNUMAKEFLAGS="" MAKEFLAGS="" MFLAGS="" make -pRrq | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u > "$(mb_targets_valid)")
+	$(shell MB_TARGETS_SKIP=1 MAKECMDGOALS="" GNUMAKEFLAGS="" MAKEFLAGS="" MFLAGS="" mb_debug=0 $(MAKE) -pRrn | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u > "$(mb_targets_valid)")
 
 mb/targets-all-desc:
 	$(mb_targets_list_get_files)
@@ -66,10 +72,9 @@ endif # MB_TARGETS_SKIP
 endif # Windows_NT
 
 
-
-
+## Get the files to generate the list of make targets from
 define mb_targets_list_get_files
-	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file), $(MAKEFILE_LIST)))
+	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file),$(MAKEFILE_LIST)))
 	$(eval mb_get_files_mb_modules := $(filter $(mb_modules_path)/%,$(MAKEFILE_LIST)))
 	$(eval mb_get_files_project_modules := $(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST)))
 
@@ -77,7 +82,13 @@ define mb_targets_list_get_files
 	$(call mb_debug_print,mb/targets-list MB modules files: $(mb_get_files_mb_modules),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list Project modules files: $(mb_get_files_project_modules),$(mb_debug_targets))
 
-	$(eval mb_targets_list_get_files_all := $(strip $(mb_core_path)/targets.mk $(mb_get_files_project) $(mb_get_files_mb_modules) $(mb_get_files_project_modules)))
+	$(eval mb_targets_list_get_files_all := $(strip \
+		$(mb_core_path)/targets.mk \
+		$(mb_core_path)/modules_manager.mk \
+		$(mb_get_files_project) \
+		$(mb_get_files_mb_modules) \
+		$(mb_get_files_project_modules) \
+	))
 	$(call mb_debug_print,mb/targets-list all file: $(mb_targets_list_get_files_all),$(mb_debug_targets))
 endef
 

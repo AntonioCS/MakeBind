@@ -9,7 +9,9 @@ ifndef __MB_CORE_UTIL_DEBUG_MK__
 __MB_CORE_UTIL_DEBUG_MK__ := 1
 
 mb_debug_to_file ?= $(mb_true)
-mb_debug_file ?= $(mb_makebind_path)/mb_debug.log
+## To where the debug file will be written
+## Better to write to the project that is using MakeBind and not to the MakeBind directory
+mb_debug_file ?= $(mb_project_bindhub_path)/mb_debug.log
 
 ## Note: Calling $(call mb_debug_print here will cause a segmentation fault as this is called in mb/debug/print
 ## which prints all the variables and this will cause an infinite loop

@@ -177,10 +177,13 @@ mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 ## $2 - format
 ## $3 - project name (defaults to variable mb_project_name or just MakeBind
 ## $4 - use break line (defaults to on)
+ifdef MB_TARGETS_SKIP
+mb_printf =#
+else
 define mb_printf
 $(strip
-	$(eval $0_msg = $(strip $1))
-	$(eval $0_format = $(strip $2))
+	$(eval $0_msg = $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a message to print)))
+	$(eval $0_format = $(if $(value 2),$(strip $2),$(error ERROR: $0 - You must pass a format specifier)))
 	$(eval $0_project_name = $(if $(strip $(value 3)),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
 	$(eval $0_breakline = $(if \
 		$(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),\
@@ -202,7 +205,7 @@ $(strip
 	)
 )
 endef
-
+endif # MB_TARGETS_SKIP
 
 mb_printf_statement_display_guard = $(mb_printf_opt_display_guard_l)$1$(mb_printf_opt_display_guard_r)## Prevent spaces
 

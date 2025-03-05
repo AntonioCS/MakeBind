@@ -1,8 +1,8 @@
 #####################################################################################
 # Project: MakeBind
 # Description: Entry point for internal calls to MakeBind .mk files.
-#              **WARNING: This file is NOT intended for direct usage by users.**
-#              Users should use bind-hub/project.mk instead for interacting with MakeBind.
+#              **WARNING: This file is NOT intended for direct editing by users.**
+#              Users should use bind-hub/project.mk or bind-hub/project.local.mk instead for interacting with MakeBind.
 # Author: AntonioCS
 # License: MIT License
 #####################################################################################

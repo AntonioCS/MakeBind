@@ -5,7 +5,6 @@
 # Author: AntonioCS
 # License: MIT License
 #####################################################################################
-
 mb_make_version_required ?= 4.4%
 mb_debug_all ?= 0
 mb_debug ?= $(mb_debug_all)
@@ -103,6 +102,5 @@ include $(mb_project_mb_project_mk_file)
 -include $(mb_project_mb_project_mk_local_file)
 
 $(call mb_modules_build_db)
-
-#$(call mb_load_modules)
+$(call mb_load_modules)
 
