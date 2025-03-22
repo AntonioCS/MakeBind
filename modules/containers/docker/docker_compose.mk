@@ -10,7 +10,8 @@ __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
 mb_debug_dc_invoke ?= $(mb_debug)
 dc_default_shell_bin ?= /bin/sh
-dc_files ?= $(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
+dc_files ?= $(mb_empty)
+#$(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
 dc_bin ?= docker compose
 dc_bin_options ?= $(mb_empty)
 

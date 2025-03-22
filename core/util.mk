@@ -48,7 +48,7 @@ $(subst a,A,$(subst b,B,$(subst c,C,$(subst d,D,$(subst e,E,$(subst f,F,\
 $(subst g,G,$(subst h,H,$(subst i,I,$(subst j,J,$(subst k,K,$(subst l,L,\
 $(subst m,M,$(subst n,N,$(subst o,O,$(subst p,P,$(subst q,Q,$(subst r,R,\
 $(subst s,S,$(subst t,T,$(subst u,U,$(subst v,V,$(subst w,W,$(subst x,X,\
-$(subst y,Y,$(subst z,Z,$1)))))))))))))))))))))))))
+$(subst y,Y,$(subst z,Z,$1))))))))))))))))))))))))))
 endef
 
 
@@ -111,11 +111,13 @@ mb_dec = $(eval $1 := $(call mb_sub,$($1),1))
 
 # $1: lower limit (default: 1)
 # $2: upper limit (default: 65534)
+mb_random_lower_bound := 1
+mb_random_upper_bound := 65534
 define mb_random
 $(strip
 	$(eval
-	mb_random_lo := $(if $(value 1),$1,1)
-	mb_random_hi := $(if $(value 2),$2,65534)
+	mb_random_lo := $(if $(value 1),$1,$(mb_random_lower_bound))
+	mb_random_hi := $(if $(value 2),$2,$(mb_random_upper_bound))
 	)
 	$(call mb_os_call,
     	$(call mb_powershell,Get-Random -Minimum $(mb_random_lo) -Maximum $(mb_random_hi)),\

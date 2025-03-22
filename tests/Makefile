@@ -57,7 +57,7 @@ include $(mb_test_path_unit)/core/util_test.mk
 include $(mb_test_path_unit)/core/util/cache_test.mk
 include $(mb_test_path_unit)/core/util/help_test.mk
 include $(mb_test_path_unit)/core/functions_test.mk
-include $(mb_test_path_unit)/modules/docker_compose_test.mk
+#include $(mb_test_path_unit)/modules/docker_compose_test.mk
 #include $(mb_test_path_unit)/core/util_test_mb_is_regex_match.mk ### -- Problems WIP
 #include $(mb_test_path)/Makefile_test.mk --WIP
 

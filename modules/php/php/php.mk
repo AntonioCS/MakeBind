@@ -18,33 +18,38 @@ php_dc_default_shell ?= $(if $(value dc_default_shell_bin),$(dc_default_shell_bi
 php_bin ?= /usr/local/bin/php
 php_composer_bin ?= composer
 
+php_xdebug_check_listener := $(mb_on)
+php_xdebug_listener_host ?= 127.0.0.1
+php_xdebug_listener_port ?= 9003
+
+# Check if something is listening on the xdebug port
+define php_xdebug_is_listener_on
+$(strip
+$(shell nc -z -w "1" "$(php_xdebug_listener_host)" "$(php_xdebug_listener_port)" > /dev/null 2>&1 && echo $(mb_true))
+)
+endef
+
+## Invoke a php command
+## $1 string: Command to run
 define php_invoke
 $(strip
-	$(eval $0_parms_cmd := $(if $(value 1),$1,$(error ERROR: You must pass a commad)))
-	$(eval $0_php_cmd := $(strip $(php_bin) $($0_parms_cmd)))
+	$(eval $0_prm_cmd := $(if $(value 1),$1,$(error ERROR: $0 - You must pass a commad)))
+	$(eval $0_php_cmd := $(strip $(php_bin) $($0_prm_cmd)))
+	$(eval $0_php_cmd_flags := $(mb_empty))
+	$(if $(and $(call mb_is_on,$(php_xdebug_check_listener)),$(call mb_is_false,$(call php_xdebug_is_listener_on))),
+		$(eval $0_php_cmd_flags += -dxdebug.mode=off)
+	)
+	$(eval $0_php_cmd_call := $($0_php_cmd) $($0_php_cmd_flags))
 	$(if $(php_use_docker),
-		$(call dc_shellc,$(php_dc_service),$($0_php_cmd),$(php_dc_default_shell))
+		$(call dc_shellc,$(php_dc_service),$($0_php_cmd_call),$(php_dc_default_shell))
 		,
-		$(call mb_invoke,$($0_php_cmd))
+		$(call mb_invoke,$($0_php_cmd_call))
 	)
 )
 endef
 
 
 endif # __MB_MODULES_PHP__FUNCTIONS__
-
-
-#define php_composer_invoke
-#$(strip
-#	$(if $(value 1),,$(error ERROR: You must pass a commad))
-#	$(eval
-#		php_composer_invoke_bin := $(if $(value php_composer_bin),$(php_composer_bin),composer)
-#		php_composer_invoke_cmd := $(if $(value 1),$1)
-#	)
-#	$(strip $(php_invoke_bin) $(php_invoke_cmd)))
-#)
-#endef
-
 
 ifndef __MB_MODULES_PHP_TARGETS__
 __MB_MODULES_PHP_TARGETS__ := 1
@@ -55,9 +60,13 @@ php/inis: ## List all php ini files
 php/version: ## Show php version
 	$(call php_invoke,--version)
 
-php/dc/shell: ## Start a shell in the php docker compose container
-	$(if $(value dc_invoke),,$(error ERROR: dc_invoke is not defined, please include docker module))
+
+ifeq ($(php_use_docker),$(mb_true))
+
+php/dc/shell: ## Start a shell in the php container
 	$(call dc_invoke,exec,,$(php_dc_service),$(php_dc_default_shell))
+
+endif
 
 endif # __MB_MODULES_PHP_TARGETS__
 
