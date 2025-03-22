@@ -5,10 +5,6 @@
 # Author: AntonioCS
 # License: MIT License
 #####################################################################################
-ifdef __MB_MODULES_DESCRIPTION__
-
-
-else
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
@@ -176,4 +172,3 @@ dc/stats: ## Show stats of containers
 	$(call dc_invoke,stats)
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
-endif # __MB_MODULES_DESCRIPTION__
