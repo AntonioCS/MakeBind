@@ -153,7 +153,7 @@ dc/nuke-all: ## Remove everything docker related from the system (system prune)
 	$(if $(call mb_user_confirm,$(dc_nuke_all_msg)),
 		$(call mb_invoke,docker system prune --all --volumes --force)
 	,
-		$(call mb_print_info,Nuking all process stoppped)
+		$(call mb_printf_info,Nuking all process stoppped)
 	)
 
 dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <extra>")

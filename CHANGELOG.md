@@ -1,3 +1,9 @@
+## [2.0.1] - 2025-04-13
+
+### Fixed
+- undefined variable 'mb_ask_user_text'
+- calling wrong function mb_print_info (missing f in print, should be printf)
+
 ## [2.0.0] - 2025-03-22
 
 ### Changed

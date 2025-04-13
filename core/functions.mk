@@ -121,7 +121,7 @@ endef
 
 
 ## NOTE: there is more that can be done to simulate the linux version (timeout and default text) but for now this is enough
-mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_text)")
+mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_default_question_text)")
 
 
 ############################################################################################################################
