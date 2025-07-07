@@ -183,4 +183,33 @@ endef
 #		$(eval $($0_var_name)_$($0_i) := $(shell sed -n '$$($($0_i)+1){p;q}' $($0_file)))
 #	)
 
+
+# $1: URL to download
+# $2: Output file name
+define mb_downloader
+$(strip
+	$(eval $0_url := $(strip $1))
+	$(eval $0_output := $(strip $2))
+	$(call mb_os_call,\
+		curl -sS -L -o $($0_output) $($0_url),\
+		wget -q -O $($0_output) $($0_url),\
+		curl -sS -L -o $($0_output) $($0_url)
+	)
+)
+endef
+
+
+# $1: Input file (zip file)
+# $2: Output directory
+define mb_unzip
+$(strip
+	$(eval $0_input := $(strip $1))
+	$(eval $0_output := $(strip $2))
+	$(call mb_os_call,\
+		powershell -Command "Expand-Archive -Path '$($0_input)' -DestinationPath '$($0_output)'",\
+		unzip -qq $($0_input) -d $($0_output)\
+	)
+)
+endef
+
 endif # __MB_CORE_UTIL_MK__

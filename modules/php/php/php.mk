@@ -16,7 +16,6 @@ php_dc_service ?= $(error ERROR: php_dc_service_php is not set, please set it to
 php_dc_default_shell ?= $(if $(value dc_default_shell_bin),$(dc_default_shell_bin))
 
 php_bin ?= /usr/local/bin/php
-php_composer_bin ?= composer
 
 php_xdebug_check_listener := $(mb_on)
 php_xdebug_listener_host ?= 127.0.0.1
@@ -34,12 +33,12 @@ endef
 define php_invoke
 $(strip
 	$(eval $0_prm_cmd := $(if $(value 1),$1,$(error ERROR: $0 - You must pass a commad)))
-	$(eval $0_php_cmd := $(strip $(php_bin) $($0_prm_cmd)))
+	$(eval $0_php_cmd := $(strip $(php_bin)))
 	$(eval $0_php_cmd_flags := $(mb_empty))
 	$(if $(and $(call mb_is_on,$(php_xdebug_check_listener)),$(call mb_is_false,$(call php_xdebug_is_listener_on))),
 		$(eval $0_php_cmd_flags += -dxdebug.mode=off)
 	)
-	$(eval $0_php_cmd_call := $($0_php_cmd) $($0_php_cmd_flags))
+	$(eval $0_php_cmd_call := $(strip $($0_php_cmd) $($0_php_cmd_flags) $($0_prm_cmd)))
 	$(if $(php_use_docker),
 		$(call dc_shellc,$(php_dc_service),$($0_php_cmd_call),$(php_dc_default_shell))
 		,

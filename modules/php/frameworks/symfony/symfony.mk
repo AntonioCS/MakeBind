@@ -23,8 +23,12 @@ php/sy/logs/tail/all: ## tail all symfony logs files
 		tail -f $(php_sy_logs_path)/*.log\
 	,\
 		$(call mb_printf_error, No log files found in $(php_sy_logs_path))\
-	)\
+	)
 
+#WIP
+#php/sy/controller/create/healthcheck: ## Add a health check controller
+#	$(call php_sy_bin_console,make:controller HealthCheckController)
 
+#$(call php_sy_bin_console,cache:clear)
 
 endif # __MB_MODULES_DOCKER_PHP_SYMFONY__
