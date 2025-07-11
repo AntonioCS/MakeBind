@@ -55,15 +55,16 @@ __MB_MODULES_$($0_mod_name_caps)__ := 1
 endif # __MB_MODULES_$($0_mod_name_caps)__
 endef
 
+
+## NOTE: This must be called after the creation of the bind-hub folder
+## This was causing problems on fresh projects that had no bind folder
 define mb_modules_build_mod_file
 $(file > $(mb_project_bindhub_modules_file),$(mb_modules_header))
 $(file >> $(mb_project_bindhub_modules_file),mb_project_modules_loaded :=$(if $(value mb_project_modules_loaded), $(mb_project_modules_loaded),## No modules added))
 endef
 
-## Create the mb_modules.mk if it doesn't exist
-$(if $(wildcard $(mb_project_bindhub_modules_file)),,\
-	$(call mb_modules_build_mod_file)\
-)
+
+
 
 ## Find all info files
 ## $1: Path to search
@@ -79,6 +80,9 @@ endef
 ## Build the database of modules
 define mb_modules_build_db
 $(strip
+	$(if $(wildcard $(mb_project_bindhub_modules_file)),,
+		$(call mb_modules_build_mod_file)
+	)
 	$(eval $0_all_modules_info_path := $(call mb_modules_find_info, $(mb_modules_path)/))
 	$(if $(wildcard $(mb_project_bindhub_modules_path)/*),
 		$(eval $0_all_modules_info_path += $(call mb_modules_find_info, $(mb_project_bindhub_modules_path)/))
@@ -217,7 +221,7 @@ mb/modules/list: ## List all modules available
 		$(info - $($@_mod) ($(mb_modules_db_version_$($@_mod))): $($@_is_loaded)$(mb_modules_db_description_$($@_mod)) $(if $(mb_modules_db_depends_$($@_mod)),(Depends on: $(mb_modules_db_depends_$($@_mod))))) \
 	)
 
-mb/modules/add/%: ## Add one ore more modules. Pass <mod>
+mb/modules/add/%: ## Add one or more modules. Pass <mod>
 	$(eval $@_mods_to_add = $(subst /, ,$(strip $*)))
 	$(foreach $@_mod_name,$($@_mods_to_add),\
 		$(call mb_module_add,$($@_mod_name))\

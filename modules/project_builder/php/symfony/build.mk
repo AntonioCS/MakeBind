@@ -1,6 +1,7 @@
 
 
 mb_pb_php_symfony_run_script ?= $(mb_modules_path)/project-builder/php/symfony/build.sh
+mb_pb_php_symfony_version := ^7.3
 
 mb_pb_php_symfony_composer_packages ?= symfony/orm-pack \
   doctrine/doctrine-migrations-bundle \
@@ -56,7 +57,7 @@ docker run --rm \
   sh -c "wget https://getcomposer.org/download/latest-stable/composer.phar -O /tmp/composer && \
          chmod +x /tmp/composer && \
          export COMPOSER_HOME=/tmp/.composer && \
-         /tmp/composer create-project symfony/website-skeleton \"$($0_project_path)\" --no-interaction --prefer-dist --no-install && \
+         /tmp/composer create-project symfony/website-skeleton:"$(mb_pb_php_symfony_version)" \"$($0_project_path)\" --no-interaction --prefer-dist --no-install && \
          cd \"$($0_project_path)\" && \
          /tmp/composer require --no-update $(mb_pb_php_symfony_composer_packages) && \
          /tmp/composer require --no-update --dev $(mb_pb_php_symfony_composer_dev_packages)"

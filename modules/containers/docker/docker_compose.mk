@@ -13,7 +13,9 @@ dc_default_shell_bin ?= /bin/sh
 dc_files ?= $(mb_empty)
 #$(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
 dc_bin ?= docker compose
-dc_bin_options ?= $(mb_empty)
+dc_bin_options ?= $(if $(value mb_project_name),-p $(mb_project_name),$(mb_empty))
+dc_use_bake ?= $(mb_true)# Use bake for on build
+#$(if $(dc_use_bake),COMPOSE_BAKE=true) # Where to put this..
 
 ## Parameters
 # $1 = command (required)
