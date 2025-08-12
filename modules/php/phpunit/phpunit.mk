@@ -9,12 +9,26 @@ ifndef __MB_MODULES_PHP_PHPUNIT__
 __MB_MODULES_PHP_PHPUNIT__ := 1
 
 phpunit_bin ?= vendor/bin/phpunit
+phpunit_remove_max_execution_time ?= $(mb_true)
+phpunit_stop_on_failure ?= $(mb_true) # Stop when an assertion fails
+phpunit_stop_on_error ?= $(mb_true) # Stop when an error occurs (e.g. fatal error, exception, etc.)
 
-php/phpunit: ## Run phpunit tests (user filter to filter for specific tests, args to pass extra arguments)
+php/phpunit:: ## Run phpunit tests (user filter to filter for specific tests, args to pass extra arguments)
 	$(if $(value php_invoke),,$(error ERROR: php_invoke is not defined, please include php.mk module))
 	$(eval $@_args := $(if $(value args),$(strip $(args))))
-	$(eval $@_filter := $(if $(value filter),'$(filter)'))
+	$(eval $@_filter := $(if $(value filter),--filter '$(filter)'))
+	$(eval $@_group := $(if $(value group),--group $(group)))
 	$(eval $@_verbose :=  $(if $(and $(value verbose),$(findstring 1,$(verbose))),-vvv))
-	$(call php_invoke, $(phpunit_bin) $($@_args) $($@_filter) $($@_verbose))
+
+	$(call php_invoke, $(phpunit_bin) \
+		$($@_args) \
+		$($@_filter) \
+		$($@_verbose) \
+		$($@_group) \
+		$(if $(call mb_is_true,$(phpunit_stop_on_failure)),--stop-on-failure,) \
+		$(if $(call mb_is_true,$(phpunit_stop_on_error)),--stop-on-error,) \
+		, \
+		$(if $(call mb_is_true,$(phpunit_remove_max_execution_time)),-d max_execution_time=0,) \
+	)
 
 endif # __MB_MODULES_PHP_PHPUNIT__

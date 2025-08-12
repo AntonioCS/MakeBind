@@ -54,6 +54,40 @@ $(strip
 )
 endef
 
+## Possible alternative, needs to be tested
+# mb_invoke_capture <command> <exit_var> <log_var>
+# - Runs <command> (unless dry-run)
+# - Stores exit code in <exit_var>, combined output in <log_var>
+# - Prints nicely (respects your $0_* flags) and fails unless $0_allow_fail=on
+#define mb_invoke_capture
+#$(strip
+#	$(if $(value 1),,$(error ERROR: You must pass a command))
+#	$(eval $0_cmd := $(value 1))
+#
+#	$(if $(call mb_is_off,$($0_silent)),
+#		$(eval $0_should_print_target := $(and \
+#			$(call mb_is_on,$($0_print_target)), \
+#			$(call mb_is_neq,$($0_last_target),$@)))
+#		$(if $($0_should_print_target),
+#			$(eval $0_last_target := $@)
+#			$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@))))
+#		$(if $(call mb_is_on,$($0_print)),
+#			$(call mb_printf_info,Executing: $(call $0_normalizer,$($0_cmd)))))
+#	)
+#
+#	$(if $(call mb_is_off,$($0_dry_run)),
+#		$(call mb_run_capture,$($0_cmd),$(2),$(3))
+#		$(if $(filter-out 0,$($(2))),
+#			$(if $(call mb_is_on,$($0_allow_fail)),
+#				$(call mb_printf_warn,Command failed ($(2)=$($(2)))$(mb_colon) $(newline)$($(3))),
+#				$(error Command failed ($(2)=$($(2)))$(mb_colon) $(newline)$($(3))))
+#			),
+#			$(if $(call mb_is_on,$($0_print)),
+#				$(call mb_printf_info,OK)))
+#	)
+#)
+#endef
+
 
 ############################################################################################################################
 ############################################################################################################################

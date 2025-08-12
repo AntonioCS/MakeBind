@@ -212,4 +212,21 @@ $(strip
 )
 endef
 
+
+### TODO: Maybe merge this into mb_invoke
+# $(call run_capture,<command>,<exit_var>,<log_var>)
+# $1: Runs <command> in /bin/sh
+# $2: Sets <exit_var> to the numeric exit code
+# $3: Sets <log_var>  to the combined stdout+stderr
+# Note: pass the actual name of the variables not $(var) but just var.
+define mb_run_capture
+	$(eval $0_mk_tmp := $(shell mktemp -t mkout.XXXXXX))
+	$(eval $0_mk_ec  := $(shell sh -c '$1 > "$($0_mk_tmp)" 2>&1; printf "%s" $$?'))
+	$(eval $2 := $($0_mk_ec))
+$(eval define $3
+		$(file < $($0_mk_tmp))
+endef)
+	$(eval $(shell rm -f "$($0_mk_tmp)"))
+endef
+
 endif # __MB_CORE_UTIL_MK__

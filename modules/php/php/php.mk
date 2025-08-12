@@ -30,15 +30,16 @@ endef
 
 ## Invoke a php command
 ## $1 string: Command to run
+## $2 string: Flags to pass to the php command
 define php_invoke
 $(strip
-	$(eval $0_prm_cmd := $(if $(value 1),$1,$(error ERROR: $0 - You must pass a commad)))
-	$(eval $0_php_cmd := $(strip $(php_bin)))
-	$(eval $0_php_cmd_flags := $(mb_empty))
+	$(eval $0_php_cmd := $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a commad)))
+	$(eval $0_php_bin := $(strip $(php_bin)))
+	$(eval $0_php_cmd_flags := $(if $(value 2),$(strip $2),$(mb_empty)))
 	$(if $(and $(call mb_is_on,$(php_xdebug_check_listener)),$(call mb_is_false,$(call php_xdebug_is_listener_on))),
-		$(eval $0_php_cmd_flags += -dxdebug.mode=off)
+		$(eval $0_php_cmd_flags += -d xdebug.mode=off)
 	)
-	$(eval $0_php_cmd_call := $(strip $($0_php_cmd) $($0_php_cmd_flags) $($0_prm_cmd)))
+	$(eval $0_php_cmd_call := $(strip $($0_php_bin) $($0_php_cmd_flags) $($0_php_cmd)))
 	$(if $(php_use_docker),
 		$(call dc_shellc,$(php_dc_service),$($0_php_cmd_call),$(php_dc_default_shell))
 		,
