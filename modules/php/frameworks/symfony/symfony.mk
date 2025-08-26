@@ -26,6 +26,15 @@ php/sy/logs/tail/all: ## tail all symfony logs files
 	)
 
 
+php/sy/doctrine/db/create: ## Create the database using doctrine
+	$(call php_sy_bin_console,doctrine:database:create --if-not-exists)
+
+php/sy/doctrine/db/drop: ## Drop the database using doctrine
+	$(call php_sy_bin_console,doctrine:database:drop --force --if-exists)
+
+php/sy/doctrine/db/migrate: ## Run doctrine migrations
+	$(call php_sy_bin_console,doctrine:migrations:migrate --no-interaction)
+
 #php/sy/make/%: ## Call the maker bundle with the given command
 #	$(if $(value 1),\
 #		$(call php_sy_bin_console,make:$*),\
