@@ -56,6 +56,7 @@ endif
 	$(call mb_latest_release_url_generate)
 	$(call mb_download_latest_mb)
 	$(call mb_install)
+	@$(MAKE) -s mb/modules/add/project_builder
 	@$(MAKE) -s $(if $(value mb_invoked_with_target),$(mb_invoked_with_target))
 
 endif #($(mb_auto_install_if_missing),1)

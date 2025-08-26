@@ -13,7 +13,12 @@ dc_default_shell_bin ?= /bin/sh
 dc_files ?= $(mb_empty)
 #$(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
 dc_bin ?= docker compose
-dc_bin_options ?= $(mb_empty)
+dc_bin_options ?= $(if $(value mb_project_name),-p $(mb_project_name),$(mb_empty))
+dc_use_bake ?= $(mb_true)# Use bake on build (Work in progress)
+dc_ensure_default_network_is_created ?= $(mb_false) # Ensure that the default network is created if not empty
+dc_default_network_name ?=# Empty
+
+#$(if $(dc_use_bake),COMPOSE_BAKE=true) # Where to put this..
 
 ## Parameters
 # $1 = command (required)
@@ -27,7 +32,7 @@ dc_bin_options ?= $(mb_empty)
 define dc_invoke
 $(strip
 	$(eval
-		$0_params_command := $(if $(value 1),$1,$(error ERROR: You must pass a commad))
+		$0_params_command := $(if $(value 1),$1,$(error ERROR: You must pass a command))
 		$0_params_options := $(if $(value 2),$2)
 		$0_params_services := $(if $(value 3),$3)
 		$0_params_extras := $(if $(value 4),$4)
@@ -92,11 +97,63 @@ define dc_build_args_linux_mac
 --build-arg GROUP_ID=$(if $(value mb_dc_build_group_id),$(mb_dc_build_group_id),$(shell id -g))
 endef
 
+# $1 = service names (can put multiple services separated by space)
+# Returns true if any of the services is running, false otherwise
+## NEEDS TO USE dc_invoke but also suppress all the stuff from mb_invoke
+define dc_is_service_running
+$(strip
+	$(eval $0_service_names := $(strip $(subst ,|,$1)))
+	$(if $(strip $(shell docker compose ps --services --filter "status=running" | grep -E '^\($(strip $0_service_names)\)$$',
+		$(mb_true)
+	,
+		$(mb_false)
+	)
+)
+endef
+
+## Chatgpt alternative implementation
+## The grep is improved and it's pulling logic in that is already present in the dc_invoke function, so it will probably be simpler to just use dc_invoke.
+## note that the grep has been improved but we need to be careful with $$
+define __dc_is_service_running
+$(strip
+	$(eval $0_service_names := $(strip $(subst ,|,$1)))
+	$(eval $0_bin := $(dc_bin))
+	$(eval $0_bin_options := $(dc_bin_options))
+	$(eval $0_all_dc_files := $(if $(value dc_files),$(addprefix --file ,$(dc_files))))
+	$(eval $0_all_dc_env_files := $(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files))))
+
+	$(if $(strip $(shell $($0_bin) $($0_bin_options) $($0_all_dc_files) $($0_all_dc_env_files) \
+		ps --services --filter "status=running" \
+		| grep -E '^\($(strip $0_service_names)\)$$' \
+	)),
+		$(mb_true),
+		$(mb_false)
+	)
+)
+endef
+
+
+# $1 = network name
+# Returns $(mb_true) if exists, $(mb_false) if not
+define dc_network_exists
+$(strip
+	$(eval $0_network := $(if $(value 1),$(strip $1),$(error ERROR: You must pass a command)))
+	$(if $(shell docker network inspect $($0_network) >/dev/null 2>&1 && echo yes),
+		$(mb_true),
+		$(mb_false)
+	)
+)
+endef
+
+
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 #####################################################################################
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
 __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__ := 1
 
+ifeq ($(dc_ensure_default_network_is_created),$(mb_true))
+dc/up: dc/network-default-ensure
+endif
 dc/up: mb_info_msg := Starting containers
 dc/up: ## Start all containers
 	$(eval dc_cmd_options_up ?= -d --wait)
@@ -113,6 +170,9 @@ dc/down: ## Stop and remove all containers
 
 dc/logs: ## Show logs for all containers
 	$(call dc_invoke,logs)
+
+dc/logs-follow: ## Show logs for all containers (follow mode)
+	$(call dc_invoke,logs,--follow --timestamps --tail 1000)
 
 dc/status: ## Show status of all containers
 	$(call dc_invoke,ps,--no-trunc)
@@ -141,11 +201,11 @@ dc/remove: ## Remove all stopped containers
 dc/nuke: mb_info_msg := Initiating nuking process
 dc/nuke: mb/info-nuke-project
 dc/nuke: ## Remove all project containers (with volumes)
-	$(eval dc_nuke_msg := Are you sure you want to remove all contaioner of this project? [y/n])
+	$(eval dc_nuke_msg := Are you sure you want to remove all container of this project? [y/n])
 	$(if $(call mb_user_confirm,$(dc_nuke_msg)),
 		$(call dc_invoke,down,--remove-orphans --volumes --rmi all)
 	,
-		$(call mb_printf_info,Nuking process stoppped)
+		$(call mb_printf_info,Nuking process stopped)
 	)
 
 dc/nuke-all: ## Remove everything docker related from the system (system prune)
@@ -153,7 +213,7 @@ dc/nuke-all: ## Remove everything docker related from the system (system prune)
 	$(if $(call mb_user_confirm,$(dc_nuke_all_msg)),
 		$(call mb_invoke,docker system prune --all --volumes --force)
 	,
-		$(call mb_printf_info,Nuking all process stoppped)
+		$(call mb_printf_info,Nuking all process stopped)
 	)
 
 dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <extra>")
@@ -170,5 +230,21 @@ dc/invoke: ## Run docker compose command with given parameters (use with: params
 
 dc/stats: ## Show stats of containers
 	$(call dc_invoke,stats)
+
+dc/config: ## Show docker compose configuration
+	$(call dc_invoke,config)
+
+.PHONY: dc/network-ensure
+
+dc/network-default-ensure: ## Ensure that the default network is created
+	$(if $(value dc_default_network_name),\
+		$(if $(call dc_network_exists,$(dc_default_network_name)),\
+			$(call mb_printf_info,Network $(dc_default_network_name) already exists),\
+			$(call mb_printf_info,Network $(dc_default_network_name) not found$(mb_comma) creating...) \
+			$(call mb_invoke,docker network create $(dc_default_network_name))\
+		),\
+		$(call mb_printf_warn,dc_default_network_name empty$(mb_comma) skipping ensure)\
+	)
+
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__

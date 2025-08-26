@@ -55,11 +55,11 @@ SHELL := $(mb_default_shell_not_windows)
 ## '-x' (conditionally included if mb_debug_show_all_commands is set) prints each command before execution, useful for debugging.
 ## '-o pipefail' ensures the pipeline's return status is the exit code of the last command to exit with a non-zero status.
 .SHELLFLAGS := -euc$(if $(call mb_is_on,$(mb_debug_show_all_commands)),x)o pipefail
-ifeq ($(OS),Windows_NT)
-## This is not working properly and that is why I'm using mb_powershell
-SHELL := pwsh.exe
-.SHELLFLAGS := -NoProfile -Command
-endif
+#ifeq ($(OS),Windows_NT)
+### This is not working properly and that is why I'm using mb_powershell
+#SHELL := pwsh.exe
+#.SHELLFLAGS := -NoProfile -Command
+#endif
 
 MAKESHELL := $(SHELL)
 .DEFAULT_GOAL = $(mb_default_target)

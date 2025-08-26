@@ -15,6 +15,7 @@ mb_warning_triangle := ⚠#
 mb_hash := \##
 mb_percent := %#
 mb_colon := :#
+mb_scolon := ;#
 mb_equal := =#
 mb_lparen := (#
 mb_rparen := )#
