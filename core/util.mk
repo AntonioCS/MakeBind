@@ -53,13 +53,13 @@ endef
 
 
 ## If helper functions
-mb_is_eq = $(if $(filter $1,$2),1)
-mb_is_neq = $(if $(call mb_is_eq,$1,$2),,1)
-mb_is_on = $(call mb_is_eq,$1,1)
-mb_is_off = $(call mb_is_eq,$1,0)
-mb_is_empty = $(if $1,,1)
-mb_is_false = $(call mb_is_empty,$1)
-mb_is_true = $(call mb_is_eq,$1,$(mb_true))
+mb_is_eq = $(if $(filter $1,$2),$(mb_true))
+mb_is_neq = $(if $(call mb_is_eq,$1,$2),,$(mb_true))
+mb_is_on = $(call mb_is_eq,$(strip $1),$(mb_on))
+mb_is_off = $(call mb_is_eq,$(strip $1),$(mb_off))
+mb_is_empty = $(if $(strip $1),,$(mb_true))
+mb_is_false = $(call mb_is_empty,$(strip $1))
+mb_is_true = $(call mb_is_eq,$(strip $1),$1)
 
 ## Note: Make sure you escape $
 define mb_is_regex_match
@@ -212,21 +212,24 @@ $(strip
 )
 endef
 
+mb_cmd_exists = $(strip $(if $(shell command -v $1 >/dev/null 2>&1 && echo yes), $(mb_true), $(mb_false)))
 
-### TODO: Maybe merge this into mb_invoke
-# $(call run_capture,<command>,<exit_var>,<log_var>)
-# $1: Runs <command> in /bin/sh
-# $2: Sets <exit_var> to the numeric exit code
-# $3: Sets <log_var>  to the combined stdout+stderr
-# Note: pass the actual name of the variables not $(var) but just var.
-define mb_run_capture
-	$(eval $0_mk_tmp := $(shell mktemp -t mkout.XXXXXX))
-	$(eval $0_mk_ec  := $(shell sh -c '$1 > "$($0_mk_tmp)" 2>&1; printf "%s" $$?'))
-	$(eval $2 := $($0_mk_ec))
-$(eval define $3
-		$(file < $($0_mk_tmp))
-endef)
-	$(eval $(shell rm -f "$($0_mk_tmp)"))
+
+
+# Useful for checking required env vars.----------
+# Return the value of VAR (by name) or error with "Missing VAR=HINT".
+# Usage: $(call mb_require_value,var_name,[hint value])
+mb_require_value = $(strip $(if $(strip $(value $1)),$(value $1),$(call mb_printf_error,Missing $1$(if $(value 2),=$2))))
+
+# Usage: $(call mb_require_into,<local dest var>,<env src var>,<hint>)
+# Example: $(call mb_require_into,$@_aws_bucket,aws_bucket,<bucket[/prefix]>)
+define mb_require_into
+$(strip
+	$(if $(value 1),,$(call mb_printf_error,$0: missing parameter 1 (dest var)))
+	$(if $(value 2),,$(call mb_printf_error,$0: missing parameter 2 (src var)))
+	$(if $(value 3),,$(call mb_printf_error,$0: missing parameter 3 (hint)))
+	$(eval $1 := $(call mb_require_value,$2,$3))
+)
 endef
 
 endif # __MB_CORE_UTIL_MK__

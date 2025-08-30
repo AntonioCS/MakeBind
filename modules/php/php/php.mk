@@ -68,6 +68,9 @@ php/dc/shell: ## Start a shell in the php container
 
 endif
 
+
+.PHONY: php/inis php/version php/dc/shell
+
 endif # __MB_MODULES_PHP_TARGETS__
 
 endif # __MB_MODULES_PHP__

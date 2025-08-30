@@ -47,6 +47,8 @@ php/lv/ar/tinker: php/lv/ar/run/tinker
 php/lv/ar/tinker: ## Run tinker
 
 
+.PHONY: php/lv/ar/run/% php/lv/ar/help/% php/lv/ar/list php/lv/ar/list/% php/lv/ar/tinker
+
 endif # __MB_MODULES_PHP_FRAMEWORKS_LARAVEL_TARGETS__
 
 endif # __MB_MODULES_PHP_FRAMEWORKS_LARAVEL__

@@ -43,6 +43,22 @@ define test_core_functions_mb_invoke_mb_invoke_dry_run_on
 	$(eval mb_invoke_dry_run := $(mb_off))
 endef
 
+define test_core_functions_mb_invoke_mb_invoke_shell
+	$(eval mb_invoke_last_target := $(mb_empty))
+	$(eval mb_invoke_dry_run := $(mb_off))
+	$(eval mb_invoke_run_in_shell := $(mb_on))
+
+
+	$(call mb_assert_was_called,mb_printf_info,2)
+	$(eval $0_cmd := echo "mb_invoke tests passed")
+	$(eval $0_result := $(call mb_invoke,$($0_cmd)))
+	$(call mb_assert_empty,$(strip $($0_result)))
+	$(call mb_assert_eq,0,$(mb_invoke_shell_exit_code))
+	$(call mb_assert_eq,mb_invoke tests passed,$(strip $(mb_invoke_shell_output)))
+
+	$(eval mb_invoke_dry_run := $(mb_off))
+endef
+
 
 define ___test_mb_is_regex_match_printf_command
 	$(eval mb_printf_use_shell := $(mb_off))

@@ -16,13 +16,19 @@ mb_invoke_dry_run ?= $(mb_off) ## Do not execute the command
 mb_invoke_last_target := $(mb_empty) ## Last target that was executed
 mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
 mb_invoke_silent ?= $(mb_off) ## Do not print anything
+mb_invoke_run_in_shell ?= $(mb_off) ## Run the command in a shell
+mb_invoke_shell_exit_code :=#
+mb_invoke_shell_output :=#
 
 
 ## $1 - command (Note: Don't put $1 variable to avoid evaluation issues)
 define mb_invoke
 $(strip
-	$(if $(value 1),,$(error ERROR: You must pass a commad))
-	$(eval $0_prm_cmd := $(value 1))
+	$(if $(value 1),,$(error ERROR: You must pass a command))
+	$(eval $0_shell_exit_code :=#)
+	$(eval $0_shell_output :=#)
+
+	$(eval $0_cmd := $(value 1))
 	$(if $(call mb_is_off,$($0_silent)),
 		$(eval $0_should_print_target := $(and
 				$(call mb_is_on,$($0_print_target)),
@@ -39,7 +45,11 @@ $(strip
 	)
     $(if $(call mb_is_off,$($0_dry_run)),
 		$(eval mb_invoke_last_cmd := $(value 1))
-		$($0_prm_cmd)
+		$(if $(call mb_is_on,$($0_run_in_shell)),
+			$(call mb_shell_capture,$($0_cmd),$0_shell_exit_code,$0_shell_output)
+		,
+			$($0_cmd)
+		)
     )
 )
 endef # mb_invoke
@@ -54,43 +64,67 @@ $(strip
 )
 endef
 
-## Possible alternative, needs to be tested
-# mb_invoke_capture <command> <exit_var> <log_var>
-# - Runs <command> (unless dry-run)
-# - Stores exit code in <exit_var>, combined output in <log_var>
-# - Prints nicely (respects your $0_* flags) and fails unless $0_allow_fail=on
-#define mb_invoke_capture
-#$(strip
-#	$(if $(value 1),,$(error ERROR: You must pass a command))
-#	$(eval $0_cmd := $(value 1))
-#
-#	$(if $(call mb_is_off,$($0_silent)),
-#		$(eval $0_should_print_target := $(and \
-#			$(call mb_is_on,$($0_print_target)), \
-#			$(call mb_is_neq,$($0_last_target),$@)))
-#		$(if $($0_should_print_target),
-#			$(eval $0_last_target := $@)
-#			$(call mb_printf_info,Target: $@ $(if $*, - Original: $(subst $*,%,$@))))
-#		$(if $(call mb_is_on,$($0_print)),
-#			$(call mb_printf_info,Executing: $(call $0_normalizer,$($0_cmd)))))
-#	)
-#
-#	$(if $(call mb_is_off,$($0_dry_run)),
-#		$(call mb_run_capture,$($0_cmd),$(2),$(3))
-#		$(if $(filter-out 0,$($(2))),
-#			$(if $(call mb_is_on,$($0_allow_fail)),
-#				$(call mb_printf_warn,Command failed ($(2)=$($(2)))$(mb_colon) $(newline)$($(3))),
-#				$(error Command failed ($(2)=$($(2)))$(mb_colon) $(newline)$($(3))))
-#			),
-#			$(if $(call mb_is_on,$($0_print)),
-#				$(call mb_printf_info,OK)))
-#	)
-#)
-#endef
-
+# $(call mb_shell_capture,<command>,<exit_var>,<log_var>)
+# $1: Runs <command> in /bin/sh
+# $2: Sets <exit_var> to the numeric exit code
+# $3: Sets <log_var>  to the combined stdout+stderr
+# Note: pass the actual name of the variables not $(var) but just var.
+# Example: $(call mb_shell_capture,ls dir,exit_code_var,log_var)
+define mb_shell_capture
+	$(eval $0_mk_tmp := $(shell mktemp -t mkout.XXXXXX))
+	$(eval $0_mk_ec  := $(shell sh -c '$1 > "$($0_mk_tmp)" 2>&1; printf "%s" $$?'))
+	$(eval $2 := $($0_mk_ec))
+$(eval define $3
+$(file < $($0_mk_tmp))
+endef)
+	$(eval $(shell rm -f "$($0_mk_tmp)"))
+endef
 
 ############################################################################################################################
 ############################################################################################################################
+
+
+# =============================================================================
+# mb_user_confirm — Ask the user to confirm an action (with timeout & defaults)
+#
+# Purpose:
+#   Prompt the user before performing a potentially destructive or sensitive
+#   action. Works non-interactively when auto-accept is enabled.
+#
+# Signature:
+#   $(call mb_user_confirm[,<message>[,<accepted value>]])
+#
+# Params:
+#   $1 (optional) : Confirmation message shown to the user.
+#                   Defaults to $(mb_user_confirm_default_msg)
+#                   (e.g., "Are you sure? [y/n]").
+#   $2 (optional) : The answer that will be considered acceptance (compared
+#                   case-insensitively). Defaults to
+#                   $(mb_user_confirm_default_accepted_value) (e.g., "y").
+#
+# Behavior:
+#   - If $(mb_user_confirm_auto_accept) is ON, returns $(mb_true) immediately.
+#   - Otherwise, prompts the user (with an optional timeout of
+#     $(mb_user_confirm_timeout) seconds if non-zero).
+#   - Returns $(mb_true) if the reply equals the accepted value (case-insensitive),
+#     else returns $(mb_false).
+#
+# Config (overridable in mb_config):
+#   mb_user_confirm_default_msg              ?= Are you sure? [y/n]
+#   mb_user_confirm_default_accepted_value   ?= y
+#   mb_user_confirm_auto_accept              ?= $(mb_off)   # ON to auto-accept
+#   mb_user_confirm_timeout                  ?= 15          # 0 disables timeout
+#
+# Example:
+#   $(if $(call mb_user_confirm,Delete bucket s3://my-bucket?),,\
+#       $(call mb_printf_warn,Aborted by user); exit 1)
+#
+# Notes:
+#   - Relies on existing helpers: mb_is_on, mb_tolower, mb_ask_user,
+#     mb_is_eq, mb_true/mb_false, mb_space, mb_warning_triangle.
+#   - Use inside a recipe line so that "exit 1" stops the shell if declined.
+# =============================================================================
+
 
 mb_user_confirm_default_msg ?= Are you sure? [y/n]
 mb_user_confirm_default_accepted_value ?= y

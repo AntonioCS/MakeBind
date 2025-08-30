@@ -31,4 +31,6 @@ php/phpunit:: ## Run phpunit tests (user filter to filter for specific tests, ar
 		$(if $(call mb_is_true,$(phpunit_remove_max_execution_time)),-d max_execution_time=0,) \
 	)
 
+.PHONY: php/phpunit
+
 endif # __MB_MODULES_PHP_PHPUNIT__

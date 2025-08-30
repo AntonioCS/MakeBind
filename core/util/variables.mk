@@ -12,6 +12,8 @@ mb_comma := ,#
 mb_empty := #
 mb_space := $(mb_empty) $(mb_empty)#
 mb_warning_triangle := ⚠#
+mb_check_mark := ✓#
+mb_cross_mark := ✗#
 mb_hash := \##
 mb_percent := %#
 mb_colon := :#
@@ -25,7 +27,7 @@ mb_dollar := \$
 mb_dollar2 := $$## This seems to work better when replacing $(mb_dollar_replace)
 mb_dollar_replace := ø#Char 248
 mb_true := 1#
-mb_false := $(mb_empty)
+mb_false := $(mb_empty)#
 mb_on := 1#
 mb_off := 0#
 

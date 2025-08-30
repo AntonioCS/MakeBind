@@ -46,4 +46,6 @@ php/sy/doctrine/db/migrate: ## Run doctrine migrations
 
 #$(call php_sy_bin_console,cache:clear)
 
+.PHONY: php/sy/logs/tail/all php/sy/doctrine/db/create php/sy/doctrine/db/drop php/sy/doctrine/db/migrate
+
 endif # __MB_MODULES_DOCKER_PHP_SYMFONY__

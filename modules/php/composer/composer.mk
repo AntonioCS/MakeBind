@@ -34,6 +34,7 @@ php/composer/require: php/composer/run/require
 php/composer/require: ## Run composer require. Use variable cargs to pass extra parameters
 
 
+.PHONY: php/composer/run/% php/composer/install php/composer/update php/composer/require
 
 endif # __MB_MODULES_PHP_COMPOSER_TARGETS__
 
