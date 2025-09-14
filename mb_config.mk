@@ -18,3 +18,4 @@ mb_default_shell_not_windows ?= /bin/bash
 mb_default_target ?= mb/targets-list
 mb_auto_include_init_project_if_config_missing ?= $(mb_on)
 mb_check_missing_project_files ?= $(mb_true)
+mb_target_spacing ?= 40

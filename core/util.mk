@@ -53,13 +53,14 @@ endef
 
 
 ## If helper functions
-mb_is_eq = $(if $(filter $1,$2),$(mb_true))
-mb_is_neq = $(if $(call mb_is_eq,$1,$2),,$(mb_true))
+mb_is_eq = $(if $(filter $1,$2),$(mb_true),$(mb_false))
+mb_is_neq = $(if $(call mb_is_eq,$1,$2),$(mb_false),$(mb_true))
 mb_is_on = $(call mb_is_eq,$(strip $1),$(mb_on))
 mb_is_off = $(call mb_is_eq,$(strip $1),$(mb_off))
-mb_is_empty = $(if $(strip $1),,$(mb_true))
+mb_is_empty = $(if $(strip $1),$(mb_false),$(mb_true))
 mb_is_false = $(call mb_is_empty,$(strip $1))
 mb_is_true = $(call mb_is_eq,$(strip $1),$1)
+mb_is_url = $(strip $(if $(filter http://% https://%,$(strip $1)),$(mb_true),$(mb_false)))#
 
 ## Note: Make sure you escape $
 define mb_is_regex_match
@@ -212,11 +213,13 @@ $(strip
 )
 endef
 
+# $1: Command to check
+# returns mb_true/mb_false
 mb_cmd_exists = $(strip $(if $(shell command -v $1 >/dev/null 2>&1 && echo yes), $(mb_true), $(mb_false)))
 
 
 
-# Useful for checking required env vars.----------
+# Useful for checking required env vars.
 # Return the value of VAR (by name) or error with "Missing VAR=HINT".
 # Usage: $(call mb_require_value,var_name,[hint value])
 mb_require_value = $(strip $(if $(strip $(value $1)),$(value $1),$(call mb_printf_error,Missing $1$(if $(value 2),=$2))))

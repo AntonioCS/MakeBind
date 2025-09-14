@@ -30,13 +30,16 @@ mb_makebind_config_local_path ?= $(mb_makebind_path)/mb_config.local.mk
 include $(mb_makebind_config_path)
 -include $(mb_makebind_config_local_path)
 
+.ONESHELL:
+.POSIX:
+.SECONDEXPANSION: # This is useful for using $@ in places where it was not possible before you just have to
+# use $$@ instead of $@, for example in target prerequisites: target: $$(some_function $$@)
+
 include $(mb_core_path)/util.mk
 include $(mb_core_path)/functions.mk
 include $(mb_core_path)/modules_manager.mk
 include $(mb_core_path)/targets.mk
 
-.ONESHELL:
-.POSIX:
 
 #https://www.gnu.org/software/make/manual/html_node/Options-Summary.html
 MAKEFLAGS := --no-builtin-rules \
@@ -97,10 +100,17 @@ endif
 $(call mb_debug_print, Including project config files)
 include $(mb_project_mb_config_file)
 -include $(mb_project_mb_config_local_file)
-$(call mb_debug_print, Including project target files)
-include $(mb_project_mb_project_mk_file)
--include $(mb_project_mb_project_mk_local_file)
 
 $(call mb_modules_build_db)
 $(call mb_load_modules)
+
+## It's important that the modules are loaded before including the project target files
+## So that if the user has a duplicate, for example, a target that is define in the modules, this way it runs in the correct order
+## The pre hook runs first
+## Then the original module target
+## Then the target that the user has created in either mb_project.mk or the modules
+
+$(call mb_debug_print, Including project target files)
+include $(mb_project_mb_project_mk_file)
+-include $(mb_project_mb_project_mk_local_file)
 

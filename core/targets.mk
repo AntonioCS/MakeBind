@@ -37,7 +37,7 @@ mb/targets-list:
 			placeholder = "<" arr[1] ">"; \
 		} \
 		gsub(/%/, placeholder, target); \
-		printf "\033[36m%-30s\033[0m %s\n", target, description; \
+		printf "\033[36m%-$(mb_target_spacing)s\033[0m %s\n", target, description; \
 	}' "$(mb_targets_filtered)"
 	$(if $(call mb_is_off,$(mb_debug_targets)),
 		rm -f "$(mb_targets_valid)" "$(mb_targets_desc)" "$(mb_targets_filtered)"

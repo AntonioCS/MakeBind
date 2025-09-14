@@ -27,7 +27,7 @@ mb/debug/print:
 		) \
 	)
 
-mb/debug/print-%:
+mb/debug/print/%:
 	$(call mb_debug_helper,$*)
 
 mb/debug/vars:

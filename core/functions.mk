@@ -17,11 +17,20 @@ mb_invoke_last_target := $(mb_empty) ## Last target that was executed
 mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
 mb_invoke_silent ?= $(mb_off) ## Do not print anything
 mb_invoke_run_in_shell ?= $(mb_off) ## Run the command in a shell
-mb_invoke_shell_exit_code :=#
-mb_invoke_shell_output :=#
+mb_invoke_shell_exit_code :=## The exit code of the last command run in shell (set by mb_invoke)
+mb_invoke_shell_output :=## The output of the last command run in shell (set by mb_invoke)
+
+## Note: We need to add a separator if multiple commands are passed if mb_invoke is used in a loop and the command is not run in a shell
+mb_invoke_cmd_autosep ?= $(mb_true)## default: auto-terminate
+mb_invoke_cmd_sep ?= $(mb_scolon)## default: semicolon
 
 
-## $1 - command (Note: Don't put $1 variable to avoid evaluation issues)
+# Predicates bound to the last mb_invoke run-in-shell exit code
+mb_is_last_rc_ok   = $(call mb_is_eq,$(strip $(mb_invoke_shell_exit_code)),0)
+mb_is_last_rc_fail = $(call mb_is_neq,$(strip $(mb_invoke_shell_exit_code)),0)
+
+
+## $1 - command (Note: Don't put $1 in $0_cmd to avoid evaluation issues)
 define mb_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a command))
@@ -44,11 +53,11 @@ $(strip
 		)
 	)
     $(if $(call mb_is_off,$($0_dry_run)),
-		$(eval mb_invoke_last_cmd := $(value 1))
+		$(eval $0_last_cmd := $(value 1))
 		$(if $(call mb_is_on,$($0_run_in_shell)),
 			$(call mb_shell_capture,$($0_cmd),$0_shell_exit_code,$0_shell_output)
 		,
-			$($0_cmd)
+			$($0_cmd)$(if $($0_cmd_autosep),$($0_cmd_sep))
 		)
     )
 )
