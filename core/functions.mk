@@ -208,21 +208,6 @@ mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_default_ques
 #https://www.computerhope.com/unix/uprintf.htm
 
 
-## No colours for powershell (for now)
-## There is some info here https://duffney.io/usingansiescapesequencespowershell/#8-bit-256-color-foreground--background
-## But I was not able to get this work properly via make (works fine directly on the terminal)
-#mb_printf_info_format_specifier ?= "{0}{1} {2}"
-#mb_printf_info_format_specifier ?= $(call mb_os_assign,"{0}{1} {2}","%s$(call mb_colour_text,Green,%s) %b")
-#mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%s WARNING): %b"
-#mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
-#mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
-
-## Not working properly
-#mb_printf_info_format_specifier ?= $(call mb_os_assign,"{0}{1} {2}","%s$(call mb_colour_text,Green,%s) %b")
-#mb_printf_warn_format_specifier ?= $(call mb_os_assign,"{0}{1} WARNING: {2}","%s$(call mb_colour_text,IYellow,%s WARNING): %b")
-#mb_printf_error_format_specifier ?= $(call mb_os_assign,"{0}{1} ERROR: {2}","%s$(call mb_colour_text,BRed,%s ERROR): %b")
-#mb_printf_debug_format_specifier ?= $(call mb_os_assign,"{0}{1} DEBUG: {2}","%s$(call mb_colour_text,BBlue,%s DEBUG): %b")
-
 ifeq ($(OS),Windows_NT)
 mb_printf_info_format_specifier ?= "{0}{1} {2}"
 mb_printf_warn_format_specifier ?= "{0}{1} WARNING: {2}"
@@ -230,20 +215,23 @@ mb_printf_error_format_specifier ?= "{0}{1} ERROR: {2}"
 mb_printf_debug_format_specifier ?= "{0}{1} DEBUG: {2}"
 mb_printf_ts_format ?= "yyyy-MM-dd HH:mm:ss"## Timestamp format
 else
-mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s) %b"
-mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%s WARNING): %b"
-mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%s ERROR): %b"
-mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%s DEBUG): %b"
+##NOTE: Things need to be close to the seconds %s as a spaces seems to be getting in
+## From printf manual
+# %b     ARGUMENT as a string with '\' escapes interpreted, except that octal escapes are of the form \0 or \0NNN
+mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s)%b"
+mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%sWARNING): %b"
+mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%sERROR): %b"
+mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%sDEBUG): %b"
 mb_printf_ts_format ?= +'%F %T'## Timestamp format
 endif
-mb_printf_opt_display_ts ?= $(mb_on) ## Display timestamp
-mb_printf_opt_display_project_name ?= $(mb_on) ## Display project name
+mb_printf_opt_display_ts ?= $(mb_on)## Display timestamp
+mb_printf_opt_display_project_name ?= $(mb_on)## Display project name
 mb_printf_opt_display_guard_l ?= [## Display Left guard
 mb_printf_opt_display_guard_r ?= ]## Right guard
 
-mb_printf_use_break_line ?= $(mb_on) ## Use break line
+mb_printf_use_break_line ?= $(mb_on)## Use break line
 # This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
-mb_printf_opt_use_shell ?= $(mb_on) ## Use shell command
+mb_printf_opt_use_shell ?= $(mb_on)## Use shell command
 
 mb_printf_internal_print_using_info := 1
 mb_printf_internal_print_using_warning := 2
@@ -253,20 +241,23 @@ mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 ## $1 - msg
 ## $2 - format
 ## $3 - project name (defaults to variable mb_project_name or just MakeBind
-## $4 - use break line (defaults to on)
+## $4 - use break line on/off  (defaults to on)
+## $5 - use shell on/off (defaults to value set on mb_printf_opt_use_shell)
+### NOTE: $(add $(value 4),$(strip $4)) <-- this is important to detect if the value is empty or not because it might have spaces
+## This might be because of how mb_printf_info etc are done.
 ifdef MB_TARGETS_SKIP
 mb_printf =#
 else
 define mb_printf
 $(strip
-	$(eval $0_msg = $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a message to print)))
-	$(eval $0_format = $(if $(value 2),$(strip $2),$(error ERROR: $0 - You must pass a format specifier)))
-	$(eval $0_project_name = $(if $(strip $(value 3)),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
-	$(eval $0_breakline = $(if \
-		$(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line))),\
-		$(mb_true))\
+	$(eval
+		$0_msg = $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a message to print))
+		$0_format = $(if $(value 2),$(strip $2),$(error ERROR: $0 - You must pass a format specifier))
+		$0_project_name = $(strip $(if $(strip $(value 3)),$3,$(if $(value mb_project_name),$(mb_project_name),MakeBind)))
+		$0_breakline = $(call mb_is_on,$(if $(value 4),$4,$(mb_printf_use_break_line)))
+		$0_use_shell = $(call mb_is_on,$(if $(value 5),$5,$(mb_printf_opt_use_shell)))
 	)
-	$(if $(call mb_is_on,$(mb_printf_opt_use_shell)),
+	$(if $($0_use_shell),
 		$(eval mb_printf_result = $(shell $(mb_printf_statement)))
 		$(if $(call mb_is_eq,$(mb_printf_internal_print),$(mb_printf_internal_print_using_info)),
 			$(info $(mb_printf_result))
@@ -284,61 +275,53 @@ $(strip
 endef
 endif # MB_TARGETS_SKIP
 
-mb_printf_statement_display_guard = $(mb_printf_opt_display_guard_l)$1$(mb_printf_opt_display_guard_r)## Prevent spaces
+mb_printf_statement_display_guard = $(strip $(mb_printf_opt_display_guard_l)$1$(mb_printf_opt_display_guard_r))## Prevent spaces
 
 ## NOTE: mb_os_assign not working so well for this
 define mb_printf_statement
-$(strip
-$(eval mb_printf_statement_project_name := $(strip $(if $(call mb_is_on,$(mb_printf_opt_display_project_name)),\
-	$(call mb_printf_statement_display_guard,$(mb_printf_project_name)))\
-))
-
-$(if $(mb_os_is_windows),
-$(eval mb_printf_statement_ts := $(strip $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),\
-	$(call mb_printf_statement_display_guard,$(shell $(call mb_powershell,Get-Date -Format $(mb_printf_ts_format)))))\
-))
-$(call mb_powershell,Write-Host ($(mb_printf_format) -f "$(mb_printf_statement_ts)"$(mb_comma)"$(mb_printf_statement_project_name)"$(mb_comma)"$(mb_printf_msg)"\
-$(if $(mb_printf_breakline),,-NoNewline))),
-
-$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format)))))
-printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_project_name)" "$(mb_printf_msg)"$(if $(mb_printf_breakline),;printf "\n";)
-))
-endef
-
-
-## NOTE: Seems to require the slashes at the end (unlike the other functions), might be because of the $(call
-define mb_printf_info
 $(strip \
-	$(call mb_printf,\
-		$(call mb_normalizer,$1),\
-		$(mb_printf_info_format_specifier),\
-		$(if $(value 2),$2),\
-		$(if $(value 3),$3),\
-	))
+	$(eval \
+		mb_printf_statement_project_name := $(strip $(if $(call mb_is_on,$(mb_printf_opt_display_project_name)),\
+				$(call mb_printf_statement_display_guard,$(mb_printf_project_name)) \
+			)\
+		)\
+	) \
+	$(if $(mb_os_is_windows), \
+		$(eval mb_printf_statement_ts := $(strip \
+				$(if $(call mb_is_on,$(mb_printf_opt_display_ts)),\
+					$(call mb_printf_statement_display_guard,$(shell $(call mb_powershell,Get-Date -Format $(mb_printf_ts_format))))\
+				) \
+			) \
+		) \
+		$(call mb_powershell,Write-Host ($(mb_printf_format) -f "$(mb_printf_statement_ts)"$(mb_comma)"$(mb_printf_statement_project_name)"$(mb_comma)"$(mb_printf_msg)"\
+		$(if $(mb_printf_breakline),,-NoNewline))) \
+	, \
+		$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format))))) \
+		printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_project_name)" "$(mb_printf_msg)"$(if $(mb_printf_breakline),;printf "\n") \
+	) \
+)
 endef
+
+
+## NOTE: Seems to require the slashes at the end (unlike the other functions), might be because of the $(call. This is only required if I do this in multiline mode
+mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3),$(if $(value 4),$4))## Let this be on one line
+
 
 define mb_printf_warn
-$(strip
-$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_warning))
-$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+$(strip \
+	$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_warning))\
+	$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_warn_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3),$(if $(value 4),$4))\
 )
 endef
 
 define mb_printf_error
-$(strip
-$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))
-$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3))
+$(strip \
+	$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))\
+	$(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_error_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3),$(if $(value 4),$4))\
 )
 endef
 
-define mb_normalizer
-$(strip
-	$(subst
-		`,\`,
-		$(subst ",\",$1)
-	)
-)
-endef
+mb_normalizer = $(strip $(subst	`,\`, $(subst ",\",$1)))
 
 
 endif # __MB_CORE_FUNCTIONS_MK__

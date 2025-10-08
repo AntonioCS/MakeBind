@@ -137,18 +137,11 @@ mb_rep_dollar := $(mb_dollar_replace)## Dollar sign for powershell command which
 
 mb_rreplacer = $(subst ",', $(subst $(mb_dollar_replace),$(mb_dollar),$1))
 
-#define mb_rreplacer
-#$(strip
-#$(eval mb_rreplace_result := $1)
-#$(foreach v,$(filter mb_rep_%,$(.VARIABLES)),\
-#	$(eval mb_possible_var := $(subst mb_,mb_value_,$v))\
-#	$(if $(value $($(mb_possible_var))),
-#		$(eval mb_rreplace_result := $(subst $v,$($(mb_possible_var)),$1))
-#	)
-#)
-#$(mb_rreplace_result)
-#)
-#endef
+
+
+mb_space_guard_word := __SPACE__#
+mb_space_guard = $(subst $(mb_space),$(mb_space_guard_word),$(strip $1))#
+mb_space_unguard = $(subst $(mb_space_guard_word),$(mb_space),$(strip $1))#
 
 
 ## SHELL seems to be ignored on windows so I must use this to call powershell directly and not through the SHELL variable

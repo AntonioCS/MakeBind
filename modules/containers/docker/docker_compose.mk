@@ -10,12 +10,12 @@ __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
 mb_debug_dc_invoke ?= $(mb_debug)
 dc_default_shell_bin ?= /bin/sh
-dc_files ?= $(mb_empty)
+dc_files ?= $(mb_empty)#
+dc_env_files ?= $(mb_empty)#
 #$(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
 dc_bin ?= docker compose
 dc_bin_options ?= $(if $(value mb_project_name),-p $(mb_project_name),$(mb_empty))
 dc_use_bake ?= $(mb_true)# Use bake on build (Work in progress)
-dc_ensure_default_network_is_created ?= $(mb_false) # Ensure that the default network is created if not empty
 dc_default_network_name ?=# Empty
 
 #$(if $(dc_use_bake),COMPOSE_BAKE=true) # Where to put this..
@@ -32,7 +32,7 @@ dc_default_network_name ?=# Empty
 define dc_invoke
 $(strip
 	$(eval
-		$0_params_command := $(if $(value 1),$1,$(error ERROR: You must pass a command))
+		$0_params_command := $(if $(value 1),$1,$(call mb_printf_error, You must pass a command))
 		$0_params_options := $(if $(value 2),$2)
 		$0_params_services := $(if $(value 3),$3)
 		$0_params_extras := $(if $(value 4),$4)
@@ -40,8 +40,8 @@ $(strip
 	$(eval
 		$0_bin := $(dc_bin)
 		$0_bin_options := $(dc_bin_options)
-		$0_all_dc_files := $(if $(value dc_files),$(addprefix --file ,$(dc_files)))
-		$0_all_dc_env_files := $(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files)))
+		$0_all_dc_files := $(call mb_space_unguard,$(if $(value dc_files),$(addprefix --file ,$(dc_files))))
+		$0_all_dc_env_files := $(call mb_space_unguard,$(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files))))
 		$0_cmd := $($0_params_command)
 		$0_options := $($0_params_options)
 		$0_services := $($0_params_services)
@@ -80,14 +80,24 @@ $(strip
 )
 endef
 
+
+
 dc_shellc_default_shell_bin ?= $(dc_default_shell_bin) # or /bin/bash
 dc_shellc_default_cmd ?= exec # or run
 
+# $1 = service
+# $2 = commands to run inside the container (quotes will be added automatically)
+# $3 = shell (optional, default: dc_default_shell_bin)
+# $4 = docker compose command (optional, default: dc_shellc_default_cmd)
+
 define dc_shellc
 $(strip
-	$(eval dc_shellc_service := $1)
-	$(eval dc_shellc_selected_shell_bin := $(if $(value 3),$3,$(dc_shellc_default_shell_bin)))
-	$(call dc_invoke,$(dc_shellc_default_cmd),,$(dc_shellc_service),$(dc_shellc_selected_shell_bin) -c "$(call mb_normalizer,$2)")
+	$(eval $0_service := $(if $(value 1),$1,$(call mb_printf_error, $0 requires a service)))
+	$(eval $0_command := $(if $(value 2),$2,$(call mb_printf_error, $0 requires a command)))
+	$(eval $0_selected_shell_bin := $(strip $(if $(value 3),$3,$(dc_shellc_default_shell_bin))))
+	$(eval $0_selected_dc_cmd := $(strip $(if $(value 4),$4,$(dc_shellc_default_cmd))))
+
+	$(call dc_invoke,$($0_selected_dc_cmd),,$($0_service),$($0_selected_shell_bin) -c "$(call mb_normalizer,$($0_command))")
 )
 endef
 
@@ -103,7 +113,7 @@ endef
 define dc_is_service_running
 $(strip
 	$(eval $0_service_names := $(strip $(subst ,|,$1)))
-	$(if $(strip $(shell docker compose ps --services --filter "status=running" | grep -E '^\($(strip $0_service_names)\)$$',
+	$(if $(strip $(shell docker compose ps --services --filter "status=running" | grep -E '^\($(strip $0_service_names)\)$$')),
 		$(mb_true)
 	,
 		$(mb_false)
@@ -135,7 +145,7 @@ endef
 
 # $1 = network name
 # Returns $(mb_true) if exists, $(mb_false) if not
-define dc_network_exists
+define docker_network_exists
 $(strip
 	$(eval $0_network := $(if $(value 1),$(strip $1),$(error ERROR: You must pass a command)))
 	$(if $(shell docker network inspect $($0_network) >/dev/null 2>&1 && echo yes),
@@ -151,21 +161,48 @@ endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
 __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__ := 1
 
-ifeq ($(dc_ensure_default_network_is_created),$(mb_true))
-dc/up: dc/network-default-ensure
-endif
-dc/up: mb_info_msg := Starting containers
-dc/up: ## Start all containers
+
+## $1 - Target block
+## $2 - verbs
+define mb_pre_hook_adder
+$(strip
+	$(eval $0_target_start_block := $(if $(value 1),$1,$(call mb_printf_error, You must pass a target block)))
+	$(eval $0_verbs := $(if $(value 2),$2,$(call mb_printf_error, You must pass verbs separated by space)))
+	$(foreach $0_v,$($0_verbs),
+		$(strip $(eval $($0_target_start_block)/$($0_v):: $($0_target_start_block)/pre/$($0_v); @:))
+	)
+)
+endef
+
+# Pre hooks for verbs
+#$(foreach v,$(dc_pre_hook_verb_targets), \
+#$(eval dc/$(v):: dc/pre/$(v) ; @:) \
+#)
+
+dc_pre_hook_verb_targets ?= up stop down build
+
+$(call mb_pre_hook_adder,dc,$(dc_pre_hook_verb_targets))
+
+dc/pre/%:: ; # Placeholder for pre targets
+
+dc/pre/up:: mb/info-$$@
+
+dc/up:: mb_info_msg := Starting containers
+dc/up:: ## Start all containers
 	$(eval dc_cmd_options_up ?= -d --wait)
 	$(call dc_invoke,up,--remove-orphans)
 
 dc/start: dc/up
 dc/start: ## Start all containers (alias for dc/up)
 
-dc/stop: ## Stop all containers
+dc/stop:: mb_info_msg := Stopping containers
+dc/stop:: ## Stop all containers
 	$(call dc_invoke,stop)
 
-dc/down: ## Stop and remove all containers
+dc/pre/down:: mb/info-$$@
+
+dc/down:: mb_info_msg := Stopping all containers and removing them
+dc/down:: ## Stop and remove all containers
 	$(call dc_invoke,down)
 
 dc/logs: ## Show logs for all containers
@@ -185,7 +222,8 @@ dc/restart: ## Restart all containers (calls dc/stop & dc/start)
 dc/restart: dc/stop
 dc/restart: dc/start
 
-dc/build: ## Build all containers
+dc/build:: mb_info_msg := Building all containers
+dc/build:: ## Build all containers
 	$(call mb_os_detection)
 	$(call dc_invoke,build,--parallel $(if $(mb_os_is_linux_or_osx),$(dc_build_args_linux_mac)))
 
@@ -208,13 +246,6 @@ dc/nuke: ## Remove all project containers (with volumes)
 		$(call mb_printf_info,Nuking process stopped)
 	)
 
-dc/nuke-all: ## Remove everything docker related from the system (system prune)
-	$(eval dc_nuke_all_msg := Are you sure you want to remove everything?? [y/n])
-	$(if $(call mb_user_confirm,$(dc_nuke_all_msg)),
-		$(call mb_invoke,docker system prune --all --volumes --force)
-	,
-		$(call mb_printf_info,Nuking all process stopped)
-	)
 
 dc/invoke: ## Run docker compose command with given parameters (use with: params="<command> <service> <extra>")
 	$(if $(value params),
@@ -234,17 +265,40 @@ dc/stats: ## Show stats of containers
 dc/config: ## Show docker compose configuration
 	$(call dc_invoke,config)
 
-.PHONY: dc/network-ensure
-
 dc/network-default-ensure: ## Ensure that the default network is created
 	$(if $(value dc_default_network_name),\
-		$(if $(call dc_network_exists,$(dc_default_network_name)),\
-			$(call mb_printf_info,Network $(dc_default_network_name) already exists),\
+		$(if $(call docker_network_exists,$(dc_default_network_name)),\
+			$(call mb_printf_info,Network $(dc_default_network_name) already exists)\
+		,\
 			$(call mb_printf_info,Network $(dc_default_network_name) not found$(mb_comma) creating...) \
 			$(call mb_invoke,docker network create $(dc_default_network_name))\
-		),\
-		$(call mb_printf_warn,dc_default_network_name empty$(mb_comma) skipping ensure)\
+		)\
+	,\
+		$(call mb_printf_warn,dc_default_network_name is empty$(mb_comma) skipping network check)\
 	)
 
+#https://www.gnu.org/software/make/manual/html_node/Parallel-Disable.html
+.NOTPARALLEL: dc/restart dc/rebuild
+
+.PHONY: \
+	dc/pre/up \
+	dc/up \
+	dc/start \
+	dc/stop \
+	dc/down \
+	dc/logs \
+	dc/logs-follow \
+	dc/status \
+	dc/status-all \
+	dc/restart \
+	dc/build \
+	dc/rebuild \
+	dc/remove \
+	dc/nuke \
+	dc/nuke-all \
+	dc/invoke \
+	dc/stats \
+	dc/config \
+	dc/network-default-ensure
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
