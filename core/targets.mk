@@ -9,9 +9,14 @@ ifndef __MB_CORE_TARGETS_MK__
 __MB_CORE_TARGETS_MK__ := 1
 
 mb_debug_targets ?= $(mb_debug)
-mb_targets_valid ?= $(mb_makebind_tmp_path)/mk_targets_valid
-mb_targets_desc ?= $(mb_makebind_tmp_path)/mk_targets_desc
-mb_targets_filtered ?= $(mb_makebind_tmp_path)/mk_targets_filtered
+mb_targets_valid_targets_file ?= $(mb_makebind_tmp_path)/targets_valid_targets_list
+mb_targets_desc_file ?= $(mb_makebind_tmp_path)/targets_descriptions_list
+mb_targets_filtered_file ?= $(mb_makebind_tmp_path)/targets_filtered_list
+mb_targets_list_awk_file ?= $(mb_core_util_bin_path)/target_listing/list.awk
+mb_targets_filtering_awk_file ?= $(mb_core_util_bin_path)/target_listing/filtering.awk
+mb_targets_all_valid_awk_file ?= $(mb_core_util_bin_path)/target_listing/all_valid.awk
+mb_targets_all_desc_file ?= $(mb_core_util_bin_path)/target_listing/all_desc.grep
+
 
 ## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
@@ -28,20 +33,18 @@ else
 ifndef MB_TARGETS_SKIP
 
 mb/targets-list: mb/targets-filtered
-mb/targets-list:
-	awk 'BEGIN {FS = ":.*## "}; { \
-		target = $$1; \
-		description = $$2; \
-		placeholder = "<param>"; \
-		if (match(description, /<([^>]+)>/, arr)) { \
-			placeholder = "<" arr[1] ">"; \
-		} \
-		gsub(/%/, placeholder, target); \
-		printf "\033[36m%-$(mb_target_spacing)s\033[0m %s\n", target, description; \
-	}' "$(mb_targets_filtered)"
+mb/targets-list: # List all targets with description
+	awk -v SPACING="$(mb_target_spacing)" -f "$(mb_targets_list_awk_file)" "$(mb_targets_filtered_file)"
 	$(if $(call mb_is_off,$(mb_debug_targets)),
-		rm -f "$(mb_targets_valid)" "$(mb_targets_desc)" "$(mb_targets_filtered)"
+	   rm -f "$(mb_targets_valid_targets_file)" "$(mb_targets_desc_file)" "$(mb_targets_filtered_file)"
 	)
+
+
+## Do a diff to only get the valid targets that also have a description
+mb/targets-filtered: mb/targets-all-valid .WAIT mb/targets-all-desc
+mb/targets-filtered:
+	awk -f "$(mb_targets_filtering_awk_file)" "$(mb_targets_valid_targets_file)" "$(mb_targets_desc_file)" > "$(mb_targets_filtered_file)"
+
 
 ## Note: Even with -q it still seems to process mb/target-list which is why MB_TARGETS_SKIP is needed
 ## Also, the $(shell) is needed because this forces make to run this during parsing phase and not during the execution phase which caused "Error 2"
@@ -51,17 +54,13 @@ mb/targets-list:
 #-r disables built-in rules.
 #-R disables built-in variables.
 #-n dry run
+## Cache all user-invokable targets
 mb/targets-all-valid:
-	$(shell MB_TARGETS_SKIP=1 MAKECMDGOALS="" GNUMAKEFLAGS="" MAKEFLAGS="" MFLAGS="" mb_debug=0 $(MAKE) -pRrn | awk '/^[^.#\/[:space:]][^=]*:([^=]|$$)/ { print $$1 }' | sort -u > "$(mb_targets_valid)")
+	$(shell MB_TARGETS_SKIP=1 mb_debug=0 $(MAKE) -pRrn | awk -f $(mb_targets_all_valid_awk_file) > "$(mb_targets_valid_targets_file)")
 
 mb/targets-all-desc:
-	$(mb_targets_list_get_files)
-	grep -h -E '^[$$()/a-zA-Z0-9_%/\-]+:.*?## .*$$' $(mb_targets_list_get_files_all) > "$(mb_targets_desc)"
-
-mb/targets-filtered: mb/targets-all-valid
-mb/targets-filtered: mb/targets-all-desc
-mb/targets-filtered:
-	awk -F':' 'NR==FNR { targets[$$1]; next } $$1 in targets' "$(mb_targets_valid)" "$(mb_targets_desc)" > "$(mb_targets_filtered)"
+	$(call mb_targets_list_get_files)
+	grep -h -E -f "$(mb_targets_all_desc_file)" $(mb_targets_list_get_files_all) > "$(mb_targets_desc_file)"
 
 else
 ## To avoid infinite loop
@@ -74,22 +73,24 @@ endif # Windows_NT
 
 ## Get the files to generate the list of make targets from
 define mb_targets_list_get_files
-	$(eval mb_get_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file),$(MAKEFILE_LIST)))
-	$(eval mb_get_files_mb_modules := $(filter $(mb_modules_path)/%,$(MAKEFILE_LIST)))
-	$(eval mb_get_files_project_modules := $(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST)))
+$(strip
+	$(eval $0_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file),$(MAKEFILE_LIST)))
+	$(eval $0_files_mb_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$(filter $(mb_modules_path)/%,$(MAKEFILE_LIST))))
+	$(eval $0_files_project_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST))))
 
-	$(call mb_debug_print,mb/targets-list Project files: $(mb_get_files_project),$(mb_debug_targets))
-	$(call mb_debug_print,mb/targets-list MB modules files: $(mb_get_files_mb_modules),$(mb_debug_targets))
-	$(call mb_debug_print,mb/targets-list Project modules files: $(mb_get_files_project_modules),$(mb_debug_targets))
+	$(call mb_debug_print,mb/targets-list Project files: $($0_files_project),$(mb_debug_targets))
+	$(call mb_debug_print,mb/targets-list MB modules files: $($0_files_mb_modules),$(mb_debug_targets))
+	$(call mb_debug_print,mb/targets-list Project modules files: $($0_files_project_modules),$(mb_debug_targets))
 
 	$(eval mb_targets_list_get_files_all := $(strip \
 		$(mb_core_path)/targets.mk \
 		$(mb_core_path)/modules_manager.mk \
-		$(mb_get_files_project) \
-		$(mb_get_files_mb_modules) \
-		$(mb_get_files_project_modules) \
+		$($0_files_project) \
+		$($0_files_mb_modules) \
+		$($0_files_project_modules) \
 	))
 	$(call mb_debug_print,mb/targets-list all file: $(mb_targets_list_get_files_all),$(mb_debug_targets))
+)
 endef
 
 ## Note: The % is needed because make will not call the same target twice
