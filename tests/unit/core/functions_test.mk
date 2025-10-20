@@ -8,7 +8,7 @@ define test_core_functions_mb_invoke
 	$(eval mb_invoke_last_target := $(mb_empty))
 	$(call mb_assert_was_called,mb_printf_info,2)
 	$(eval result := $(call mb_invoke,echo "mb_invoke tests passed"))
-	$(call mb_assert_eq,echo "mb_invoke tests passed",$(result))
+	$(call mb_assert_eq,echo "mb_invoke tests passed";,$(result))
 endef
 
 define test_core_functions_mb_invoke_mb_invoke_print_off
@@ -18,7 +18,7 @@ define test_core_functions_mb_invoke_mb_invoke_print_off
 	$(eval tests_mb_invoke_cmd := echo "mb_invoke tests passed123")
 	$(eval result := $(call mb_invoke,$(tests_mb_invoke_cmd)))
 	$(eval mb_invoke_print := $(mb_on))
-	$(call mb_assert_eq,$(tests_mb_invoke_cmd),$(result))
+	$(call mb_assert_eq,$(tests_mb_invoke_cmd);,$(result))
 endef
 
 define test_core_functions_mb_invoke_mb_invoke_silent_on
@@ -28,7 +28,7 @@ define test_core_functions_mb_invoke_mb_invoke_silent_on
 	$(eval tests_mb_invoke_cmd := echo "mb_invoke tests passed123")
 	$(eval result := $(call mb_invoke,$(tests_mb_invoke_cmd)))
 	$(eval mb_invoke_silent := $(mb_off))
-	$(call mb_assert_eq,$(tests_mb_invoke_cmd),$(result))
+	$(call mb_assert_eq,$(tests_mb_invoke_cmd);,$(result))
 endef
 
 define test_core_functions_mb_invoke_mb_invoke_dry_run_on

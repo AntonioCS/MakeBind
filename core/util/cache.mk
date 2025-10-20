@@ -40,6 +40,7 @@ define mb_cache_write
 $(strip
 $(call mb_cache_create_needed_data,$1)
 $(call mb_debug_print,Writing cache file $(mb_cache_file_path),$(mb_debug_cache))
+$(if $(value 2),,$(call mb_printf_error, $0 - Value is required))
 $(file >$(mb_cache_file_path),$2)
 $(if $(value 3),
 	$(eval mb_cache_write_ttl := $(call mb_add,$(call mb_timestamp),$3))
