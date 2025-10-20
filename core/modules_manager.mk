@@ -64,8 +64,6 @@ $(file >> $(mb_project_bindhub_modules_file),mb_project_modules_loaded :=$(if $(
 endef
 
 
-
-
 ## Find all info files
 ## $1: Path to search
 define mb_modules_find_info
@@ -99,17 +97,19 @@ $(strip
 
 		$(eval include $($0_module_info_path))
 
+		$(eval $0_module_name := $(strip $(mb_module_name)))
 		$(eval
-			mb_modules_db_all_modules += $(strip $(mb_module_name))
-			mb_modules_db_version_$(mb_module_name) := $(strip $(mb_module_version))
-			mb_modules_db_description_$(mb_module_name) := $(mb_module_description)
-			mb_modules_db_depends_$(mb_module_name) := $(if $(value mb_module_depends),$(mb_module_depends))
-			mb_modules_db_author_$(mb_module_name) := $(if $(value mb_module_author),$(mb_module_author))
-			mb_modules_db_license_$(mb_module_name) := $(if $(value mb_module_license),$(mb_module_license))
-			mb_modules_db_path_$(mb_module_name) := $(realpath $(dir $($0_module_info_path)))/$(mb_module_name).mk
+			mb_modules_db_all_modules += $($0_module_name)
+			mb_modules_db_version_$($0_module_name) := $(strip $(mb_module_version))
+			mb_modules_db_description_$($0_module_name) := $(mb_module_description)
+			mb_modules_db_depends_$($0_module_name) := $(if $(value mb_module_depends),$(mb_module_depends))
+			mb_modules_db_author_$($0_module_name) := $(if $(value mb_module_author),$(mb_module_author))
+			mb_modules_db_license_$($0_module_name) := $(if $(value mb_module_license),$(mb_module_license))
+			mb_modules_db_path_$($0_module_name) := $(realpath $(dir $($0_module_info_path)))/$($0_module_name).mk
+			mb_modules_db_config_path_$($0_module_name) := $(realpath $(dir $($0_module_info_path)))/mod_config.mk
         )
-        $(if $(wildcard $(mb_modules_db_path_$(mb_module_name))),,
-			$(error ERROR: Module $(mb_module_name) is missing the implementation file $(mb_modules_db_path_$(mb_module_name)))
+        $(if $(wildcard $(mb_modules_db_path_$($0_module_name))),,
+			$(error ERROR: Module $($0_module_name) is missing the implementation file $(mb_modules_db_path_$($0_module_name)))
 		)
 	)
 )
@@ -125,7 +125,15 @@ $(strip
 		$(call mb_debug_print, Loading module: $($0_mod),$(mb_debug_modules))
 		$(if $(call mb_module_is_valid_mod,$($0_mod)),
 			$(call mb_debug_print, $($0_mod) path $(mb_modules_db_path_$($0_mod)), $(mb_debug_modules))
-			$(eval include $(mb_modules_db_path_$($0_mod)))
+			$(eval
+				mb_mod_config_path := $(mb_modules_db_config_path_$($0_mod))
+				mb_mod_config_in_project_path := $(mb_project_bindhub_configs)/$($0_mod)_config.mk
+			)
+			$(eval
+				-include $(mb_mod_config_path)
+				-include $(mb_mod_config_in_project_path)
+				include $(mb_modules_db_path_$($0_mod))
+			)
 		,
 			$(call mb_printf_error, Module $($0_mod) is invalid)
 		)
@@ -161,6 +169,7 @@ endef
 ## Add module to the project
 ## $1 string Module name
 ## $2 bool Silence dependency check warning if already loaded
+## The $1 is used in the variables to prevent recursion issues
 define mb_module_add
 $(strip
 	$(eval 1 := $(strip $1))
@@ -177,6 +186,33 @@ $(strip
 		)
 	,
 		$(eval mb_project_modules_loaded += $($0_prm_mod_name_$1))
+		$(eval $0_mod_config_path_$1 := $(mb_modules_db_config_path_$($0_prm_mod_name_$1)))
+		$(eval $0_mod_config_path_in_project_$1 := $(mb_project_bindhub_configs)/$($0_prm_mod_name_$1)_config.mk)
+
+		$(if $(wildcard $($0_mod_config_path_$1)),
+			$(if $(wildcard $($0_mod_config_path_in_project_$1)),
+				$(call mb_printf_info, Config file already present in project for module $($0_prm_mod_name_$1)$(mb_comma) skipping copy)
+			,
+				$(if $(wildcard $(mb_project_bindhub_configs)),,
+					$(info Creating project config folder)
+					$(shell mkdir -p $(mb_project_bindhub_configs))
+				)
+				$(eval
+					tpl_mod_name := $1
+					tpl_mod_gen_ts := $(shell $(mb_date_now))
+				)
+$(eval define $0_config_tpl_$1
+$(file < $(mb_makebind_templates_path)/modules_config.mk)
+endef)
+
+				$(call mb_printf_info, Copying config template for module $($0_prm_mod_name_$1) to project config folder)
+				$(file > $($0_mod_config_path_in_project_$1),$($0_config_tpl_$1))
+				$(shell
+					awk -f $(mb_core_util_bin_path)/module_config_modifier.awk $($0_mod_config_path_$1) >> $($0_mod_config_path_in_project_$1)
+				)
+			)
+		)
+
 		$(if $(mb_modules_db_depends_$($0_prm_mod_name_$1)),
 			$(call mb_printf_info, Module $($0_prm_mod_name_$1) depends on $(mb_modules_db_depends_$($0_prm_mod_name_$1)))
 			$(call mb_module_add,$(mb_modules_db_depends_$($0_prm_mod_name_$1)),$(mb_true))

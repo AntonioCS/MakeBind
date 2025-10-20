@@ -9,13 +9,6 @@
 ifndef __MB_MODULES_NGINX_FUNCTIONS__
 __MB_MODULES_NGINX_FUNCTIONS__ := 1
 
-mb_debug_nginx ?= $(mb_debug)
-nginx_use_docker ?= $(if $(value dc_invoke),$(mb_true),$(mb_false))
-nginx_dc_service ?=# set to nothing
-nginx_dc_default_shell ?= sh
-nginx_error_log ?= /var/log/nginx/error.log
-nginx_access_log ?= /var/log/nginx/access.log
-nginx_cmd_restart ?= service nginx restart
 
 $(call mb_debug_print, nginx_dc_service: $(nginx_dc_service),$(mb_debug_nginx))
 $(call mb_debug_print, nginx_error_log: $(nginx_error_log),$(mb_debug_nginx))
@@ -72,6 +65,6 @@ nginx/restart: ## Restart the nginx service
 
 endif # nginx_use_docker
 
-.PHONY: nginx/logs/tail/error nginx/logs/tail/access nginx/dc/logs nginx/dc/shell nginx/dc/restart nginx/restart
+.PHONY: nginx/logs/tail/error nginx/logs/tail/access
 
 endif # __MB_MODULES_NGINX_TARGETS__

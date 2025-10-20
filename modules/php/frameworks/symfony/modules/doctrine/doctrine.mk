@@ -1,12 +1,6 @@
 ifndef __MB_MODULES_PHP_SYMFONY_SUBMODULE_DOCTRINE__
 __MB_MODULES_PHP_SYMFONY_SUBMODULE_DOCTRINE__ := 1
 
-php_sy_conn                      ?= default# Doctrine connection name
-php_sy_doctrine_migrate_flags    ?= --no-interaction
-php_sy_schema_update_flags       ?= --complete# add --dump-sql to preview
-php_sy_fixtures_flags            ?=# e.g. --append
-php_sy_conn_flag := $(if $(php_sy_conn),-c $(php_sy_conn))
-
 .PHONY: php/sy/logs/tail/all php/sy/doctrine/db/create php/sy/doctrine/db/drop php/sy/doctrine/db/migrate
 
 
@@ -63,14 +57,15 @@ php/sy/doctrine/fixtures/load: ## Load fixtures (purges DB unless --append)
 	$(call php_sy_bin_console,doctrine:fixtures:load $(php_sy_fixtures_flags) $(php_sy_doctrine_migrate_flags) $(php_sy_console_env_flag))
 
 # -------------------- Common flows --------------------
+php/sy/doctrine/dev/rebuild: php/sy/doctrine/db/reset
+php/sy/doctrine/dev/rebuild: php/sy/doctrine/mig/migrate
+php/sy/doctrine/dev/rebuild: php/sy/doctrine/fixtures/load
 php/sy/doctrine/dev/rebuild: ## Reset DB, migrate, load fixtures (dev seed)
-	$(MAKE) php/sy/doctrine/db/reset        php_sy_env=$(php_sy_env) php_sy_conn=$(php_sy_conn)
-	$(MAKE) php/sy/doctrine/mig/migrate     php_sy_env=$(php_sy_env)
-	$(MAKE) php/sy/doctrine/fixtures/load   php_sy_env=$(php_sy_env) php_sy_fixtures_flags=$(php_sy_fixtures_flags)
 
+php/sy/doctrine/test/reset: php_sy_env := test
+php/sy/doctrine/test/reset: php/sy/doctrine/db/reset
+php/sy/doctrine/test/reset: php/sy/doctrine/mig/migrate
 php/sy/doctrine/test/reset: ## Fresh test DB (drop/create/migrate) – no fixtures by default
-	$(MAKE) php/sy/doctrine/db/reset    php_sy_env=test php_sy_conn=$(php_sy_conn)
-	$(MAKE) php/sy/doctrine/mig/migrate php_sy_env=test
 
 
 

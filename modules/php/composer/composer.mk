@@ -4,8 +4,6 @@ __MB_MODULES_PHP_COMPOSER__ := 1
 ifndef __MB_MODULES_PHP_COMPOSER_FUNCTIONS__
 __MB_MODULES_PHP_COMPOSER_FUNCTIONS__ := 1
 
-php_composer_bin ?= /usr/bin/composer
-
 define php_composer_invoke
 $(strip
 	$(eval $0_prms_cmd := $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a commad)))
