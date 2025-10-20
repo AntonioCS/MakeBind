@@ -8,15 +8,7 @@
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
-mb_debug_dc_invoke ?= $(mb_debug)
-dc_default_shell_bin ?= /bin/sh
-dc_files ?= $(mb_empty)#
-dc_env_files ?= $(mb_empty)#
-#$(error ERROR: No docker compose files provided, please add the variable dc_files with the files to your projects mb_config.mk)
-dc_bin ?= docker compose
-dc_bin_options ?= $(if $(value mb_project_name),-p $(mb_project_name),$(mb_empty))
-dc_use_bake ?= $(mb_true)# Use bake on build (Work in progress)
-dc_default_network_name ?=# Empty
+mb_debug_dc_invoke ?= $(mb_debug)# Debug docker compose invoke
 
 #$(if $(dc_use_bake),COMPOSE_BAKE=true) # Where to put this..
 
@@ -80,10 +72,6 @@ $(strip
 )
 endef
 
-
-
-dc_shellc_default_shell_bin ?= $(dc_default_shell_bin) # or /bin/bash
-dc_shellc_default_cmd ?= exec # or run
 
 # $1 = service
 # $2 = commands to run inside the container (quotes will be added automatically)
@@ -265,17 +253,17 @@ dc/stats: ## Show stats of containers
 dc/config: ## Show docker compose configuration
 	$(call dc_invoke,config)
 
-dc/network-default-ensure: ## Ensure that the default network is created
-	$(if $(value dc_default_network_name),\
-		$(if $(call docker_network_exists,$(dc_default_network_name)),\
-			$(call mb_printf_info,Network $(dc_default_network_name) already exists)\
-		,\
-			$(call mb_printf_info,Network $(dc_default_network_name) not found$(mb_comma) creating...) \
-			$(call mb_invoke,docker network create $(dc_default_network_name))\
-		)\
-	,\
-		$(call mb_printf_warn,dc_default_network_name is empty$(mb_comma) skipping network check)\
-	)
+#dc/network-default-ensure: ## Ensure that the default network is created
+#	$(if $(value dc_default_network_name),\
+#		$(if $(call docker_network_exists,$(dc_default_network_name)),\
+#			$(call mb_printf_info,Network $(dc_default_network_name) already exists)\
+#		,\
+#			$(call mb_printf_info,Network $(dc_default_network_name) not found$(mb_comma) creating...) \
+#			$(call mb_invoke,docker network create $(dc_default_network_name))\
+#		)\
+#	,\
+#		$(call mb_printf_warn,dc_default_network_name is empty$(mb_comma) skipping network check)\
+#	)
 
 #https://www.gnu.org/software/make/manual/html_node/Parallel-Disable.html
 .NOTPARALLEL: dc/restart dc/rebuild

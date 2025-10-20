@@ -16,10 +16,10 @@ mb_debug_file ?= $(mb_project_bindhub_path)/mb_debug.log
 ## Note: Calling $(call mb_debug_print here will cause a segmentation fault as this is called in mb/debug/print
 ## which prints all the variables and this will cause an infinite loop
 define mb_debug_helper
-$(info $1 = $(value $1) -- $(origin $1))
+$(info $1 = $(if $(value $1),$(value $1) -- $(origin $1),<not set>))
 endef
 
-mb/debug/print:
+mb/debug/print: # Print all variables and their values
 	$(foreach V,$(sort $(.VARIABLES)), \
 		$(if \
 			$(filter-out environment% default automatic,$(origin $V)), \
@@ -27,17 +27,20 @@ mb/debug/print:
 		) \
 	)
 
-mb/debug/print/%:
+mb/debug/print/%: # Print specific variable with it's value
 	$(call mb_debug_helper,$*)
 
-mb/debug/vars:
+mb/debug/vars: # Print MakeBind important variables
 	$(info mb_makebind_tmp_path: $(mb_makebind_tmp_path))
 	$(info mb_makebind_templates_path: $(mb_makebind_templates_path))
 	$(info mb_core_path: $(mb_core_path))
+	$(info mb_core_util_path: $(mb_core_util_path))
+	$(info mb_core_util_bin_path: $(mb_core_util_bin_path))
 	$(info mb_modules_path: $(mb_modules_path))
 	$(info mb_project_makefile: $(mb_project_makefile))
 	$(info mb_project_bindhub_path: $(mb_project_bindhub_path))
 	$(info mb_project_bindhub_modules_path: $(mb_project_bindhub_modules_path))
+	$(info mb_project_bindhub_configs: $(mb_project_bindhub_configs))
 	$(info mb_project_mb_config_file: $(mb_project_mb_config_file))
 	$(info mb_project_mb_config_local_file: $(mb_project_mb_config_local_file))
 	$(info mb_project_mb_project_mk_file: $(mb_project_mb_project_mk_file))

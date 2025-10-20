@@ -2,11 +2,15 @@
 mb_makebind_tmp_path := $(mb_makebind_path)/tmp
 mb_makebind_templates_path := $(mb_makebind_path)/templates
 mb_core_path := $(abspath $(mb_makebind_path)/core)
+mb_core_util_path := $(mb_core_path)/util
+mb_core_util_bin_path := $(mb_core_util_path)/bin
 mb_modules_path := $(abspath $(mb_makebind_path)/modules)
 mb_project_makefile := $(mb_project_path)/Makefile
 mb_project_bindhub_path := $(mb_project_path)/bind-hub
 ## Specific modules folder for the project
 mb_project_bindhub_modules_path := $(mb_project_bindhub_path)/modules
+## Configs for modules
+mb_project_bindhub_configs := $(mb_project_bindhub_path)/configs
 mb_project_mb_config_file := $(mb_project_bindhub_path)/mb_config.mk
 mb_project_mb_config_local_file := $(mb_project_bindhub_path)/mb_config.local.mk
 mb_project_mb_project_mk_file := $(mb_project_bindhub_path)/mb_project.mk

@@ -32,7 +32,9 @@ mb_main_path := $(abspath $(realpath $(mb_test_path)/../main.mk))
 mb_makebind_path := $(abspath $(realpath $(dir $(mb_main_path))))
 mb_makebind_config_path ?= $(mb_test_path)/mb_config.test.mk
 mb_makebind_config_local_path = #
-mb_makebind_tmp_path := /tmp
+mb_makebind_tmp_path := $(abspath $(mb_test_path)/../tmp/tests)
+
+$(if $(wildcard $(mb_makebind_tmp_path)),, $(shell mkdir -p $(mb_makebind_tmp_path)))
 
 
 include make_testing.mk

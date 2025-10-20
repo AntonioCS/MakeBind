@@ -8,11 +8,6 @@
 ifndef __MB_MODULES_PHP_PHPUNIT__
 __MB_MODULES_PHP_PHPUNIT__ := 1
 
-phpunit_bin ?= vendor/bin/phpunit
-phpunit_remove_max_execution_time ?= $(mb_true)
-phpunit_stop_on_failure ?= $(mb_true) # Stop when an assertion fails
-phpunit_stop_on_error ?= $(mb_true) # Stop when an error occurs (e.g. fatal error, exception, etc.)
-
 php/phpunit:: ## Run phpunit tests (user filter to filter for specific tests, args to pass extra arguments)
 	$(if $(value php_invoke),,$(error ERROR: php_invoke is not defined, please include php.mk module))
 	$(eval $@_args := $(if $(value args),$(strip $(args))))
