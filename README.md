@@ -62,7 +62,7 @@ cat <<'EOF' >> ~/.profile
 export MB_MAKEBIND_GLOBAL_PATH_ENV="full/path/to/MakeBind"
 EOF
 ``` 
-This will ensure that the environment variable every session.
+This will ensure that the environment variable is set for every session.
 
 ## Usage
 MakeBind is designed to be simple to use and easy to configure. Here are some common commands you can use with MakeBind:
