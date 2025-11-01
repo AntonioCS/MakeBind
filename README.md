@@ -49,8 +49,20 @@ powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/A
 - This command downloads the Makefile template and creates a Makefile in your current directory.
 - `make` will then automatically execute and check for the existence of the `MakeBind` folder in the path specified by `mb_mb_default_path` (default is `../MakeBind`, meaning it will search in the parent directory).
 - If the `MakeBind` folder does not exist, the latest release will be downloaded.
-- The folder `bind-hub` will be created in the current directory, which contains important configuration files, which are the `mb_config.mk` and `mb_project.mk`.
+- The folder `bind-hub` will be created in the current directory, which contains important configuration files, which are the `mb_config.mk` and `mb_project.mk` and a few other files and folders.
 - You will then see a list of available targets, and you can start using MakeBind.
+
+NOTE: if you want better control of where MakeBind is installed, you can either manually clone the repo or download from Github.
+But you can also specify `MB_MAKEBIND_GLOBAL_PATH_ENV` and set that to the path you want.
+On Linux and macOS, you can do this by running:
+```shell
+cat <<'EOF' >> ~/.profile
+
+# MakeBind: global path env used by MakeBind tooling
+export MB_MAKEBIND_GLOBAL_PATH_ENV="full/path/to/MakeBind"
+EOF
+``` 
+This will ensure that the environment variable every session.
 
 ## Usage
 MakeBind is designed to be simple to use and easy to configure. Here are some common commands you can use with MakeBind:

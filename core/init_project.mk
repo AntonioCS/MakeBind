@@ -19,7 +19,7 @@ mb_init_cp_config_mk_cmd := $(call mb_powershell,copy $(subst /,\\,$(mb_makebind
 mb_init_cp_project_mk_cmd := $(call mb_powershell,copy $(subst /,\\,$(mb_makebind_templates_path)\\mb_project.tpl.mk) $(subst /,\\,$(mb_project_mb_project_mk_file)))
 
 else
-mb_init_create_folder_cmd := mkdir -p $(mb_project_bindhub_path);
+mb_init_create_folder_cmd := mkdir -p $(mb_project_bindhub_path)
 mb_init_create_configs_folder_cmd := mkdir -p $(mb_project_bindhub_configs);
 mb_init_cp_config_mk_cmd := cp $(mb_makebind_templates_path)/mb_config.tpl.mk $(mb_project_mb_config_file);
 mb_init_cp_project_mk_cmd := cp $(mb_makebind_templates_path)/mb_project.tpl.mk $(mb_project_mb_project_mk_file);

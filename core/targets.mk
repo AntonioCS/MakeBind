@@ -72,15 +72,28 @@ endif # Windows_NT
 
 
 ## Get the files to generate the list of make targets from
+## 0_other_files_in_bind_hub_folder is important in case the user wants to include additional files
 define mb_targets_list_get_files
 $(strip
 	$(eval $0_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file),$(MAKEFILE_LIST)))
 	$(eval $0_files_mb_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$(filter $(mb_modules_path)/%,$(MAKEFILE_LIST))))
-	$(eval $0_files_project_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST))))
+	$(eval $0_files_in_bindhub_modules_folder := $(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST)))
+	$(eval $0_files_project_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$($0_files_in_bindhub_modules_folder)))
 
+	$(eval $0_other_files_in_bind_hub_folder := $(filter-out \
+		$($0_files_project_modules) \
+		%/mod_info.mk %/mod_config.mk \
+		%/mb_config.mk %/mb_modules.mk \
+		%_config.mk %mb_project.mk \
+		$(mb_project_bindhub_modules_path)/%, \
+		$(filter $(mb_project_bindhub_path)/%,$(MAKEFILE_LIST))))
+
+	$(call mb_debug_print,mb/targets-list ALL FILES: $(MAKEFILE_LIST),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list Project files: $($0_files_project),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list MB modules files: $($0_files_mb_modules),$(mb_debug_targets))
+	$(call mb_debug_print,mb/targets-list MB bind-hub modules files: $($0_files_in_bindhub_modules_folder),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list Project modules files: $($0_files_project_modules),$(mb_debug_targets))
+	$(call mb_debug_print,mb/targets-list Other files files: $($0_other_files_in_bind_hub_folder),$(mb_debug_targets))
 
 	$(eval mb_targets_list_get_files_all := $(strip \
 		$(mb_core_path)/targets.mk \
@@ -88,6 +101,7 @@ $(strip
 		$($0_files_project) \
 		$($0_files_mb_modules) \
 		$($0_files_project_modules) \
+		$($0_other_files_in_bind_hub_folder) \
 	))
 	$(call mb_debug_print,mb/targets-list all file: $(mb_targets_list_get_files_all),$(mb_debug_targets))
 )

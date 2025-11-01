@@ -61,9 +61,10 @@ mb/debug/vars: # Print MakeBind important variables
 
 #$1 - msg
 #$2 - debug trigger (defaults to mb_debug if not set)
+#NOTE: MB_TARGETS_SKIP is needed because things are loaded twice so that I can get the valid targets list (see targets.mk, search for MB_TARGETS_SKIP)
 define mb_debug_print
 $(strip
-	$(eval mb_debug_trigger := $(if $(value 2),$2,$(mb_debug)))
+	$(eval mb_debug_trigger := $(if $(value MB_TARGETS_SKIP),$(mb_false),$(if $(value 2),$2,$(mb_debug))))
 	$(if $(call mb_is_on,$(mb_debug_trigger)),
 		$(if $(mb_debug_to_file),
 			$(file >> $(mb_debug_file),$(shell $(mb_date_now)) DEBUG: $(strip $1))

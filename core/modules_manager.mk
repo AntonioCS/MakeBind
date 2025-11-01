@@ -11,6 +11,7 @@ __MB_CORE_MODULES_MANAGER_MK__ := 1
 mb_debug_modules ?= $(mb_debug)
 mb_modules_db_all_modules :=# Empty
 mb_modules_mod_info_file_name := mod_info.mk
+mb_modules_mod_config_file_name := mod_config.mk
 
 ### NOTE: Use mb_project_bindhub_modules_file for project modules file
 
@@ -129,6 +130,9 @@ $(strip
 				mb_mod_config_path := $(mb_modules_db_config_path_$($0_mod))
 				mb_mod_config_in_project_path := $(mb_project_bindhub_configs)/$($0_mod)_config.mk
 			)
+			$(call mb_debug_print, Module $($0_mod) config path: $(mb_mod_config_path) - $(if $(wildcard $(mb_mod_config_path)),Exists,Does not exist),$(mb_debug_modules))
+			$(call mb_debug_print, Module $($0_mod) project config path: $(mb_mod_config_in_project_path) - $(if $(wildcard $(mb_mod_config_in_project_path)),Exists,Does not exist),$(mb_debug_modules))
+			$(call mb_debug_print, Including module $(mb_modules_db_path_$($0_mod)),$(mb_debug_modules))
 			$(eval
 				-include $(mb_mod_config_path)
 				-include $(mb_mod_config_in_project_path)
@@ -280,6 +284,7 @@ mb/modules/create/%: ## Create a new module. Pass <module_name>
 	)
 	$(shell mkdir -p $($@_mod_folder))
 	$(file > $($@_mod_folder)/$(mb_modules_mod_info_file_name),$(call mb_modules_mod_info_default_data,$($@_mod_name)))
+	$(file > $($@_mod_folder)/$(mb_modules_mod_config_file_name),## Empty config file)
 	$(file > $($@_mod_folder)/$($@_mod_filename),$(call mb_modules_new_mod_start_data,$($@_mod_name)))
 
 
