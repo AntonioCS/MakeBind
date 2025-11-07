@@ -1,0 +1,6 @@
+ifndef __MB_MODULES_AWS__SNS
+__MB_MODULES_AWS__SNS := 1
+
+
+
+endif # __MB_MODULES_AWS__SNS
