@@ -10,18 +10,20 @@ __MB_MODULES_PHP_PHPUNIT__ := 1
 
 php/phpunit:: ## Run phpunit tests (user filter to filter for specific tests, args to pass extra arguments)
 	$(if $(value php_invoke),,$(error ERROR: php_invoke is not defined, please include php.mk module))
-	$(eval $@_args := $(if $(value args),$(strip $(args))))
-	$(eval $@_filter := $(if $(value filter),--filter '$(filter)'))
-	$(eval $@_group := $(if $(value group),--group $(group)))
-	$(eval $@_verbose :=  $(if $(and $(value verbose),$(findstring 1,$(verbose))),-vvv))
+	$(eval $@_args := $(strip $(if $(value args),$(strip $(args)))))
+	$(eval $@_filter := $(strip $(if $(value filter),--filter '$(filter)')))
+	$(eval $@_suite := $(strip $(if $(value suite),--testsuite $(suite))))
+	$(eval $@_group := $(strip $(if $(value group),--group $(group))))
+	$(eval $@_verbose := $(strip $(if $(and $(value verbose),$(findstring 1,$(verbose))),-vvv)))
 
 	$(call php_invoke, $(phpunit_bin) \
 		$($@_args) \
 		$($@_filter) \
-		$($@_verbose) \
+		$($@_suite) \
 		$($@_group) \
 		$(if $(call mb_is_true,$(phpunit_stop_on_failure)),--stop-on-failure,) \
 		$(if $(call mb_is_true,$(phpunit_stop_on_error)),--stop-on-error,) \
+		$($@_verbose) \
 		, \
 		$(if $(call mb_is_true,$(phpunit_remove_max_execution_time)),-d max_execution_time=0,) \
 	)

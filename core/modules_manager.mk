@@ -82,13 +82,14 @@ $(strip
 	$(if $(wildcard $(mb_project_bindhub_modules_file)),,
 		$(call mb_modules_build_mod_file)
 	)
-	$(eval $0_all_modules_info_path := $(call mb_modules_find_info, $(mb_modules_path)/))
+	$(eval $0_all_modules_info_path := $(call mb_modules_find_info,$(mb_modules_path)/))
 	$(if $(wildcard $(mb_project_bindhub_modules_path)/*),
 		$(eval $0_all_modules_info_path += $(call mb_modules_find_info, $(mb_project_bindhub_modules_path)/))
 	)
 	$(foreach $0_module_info_path, $($0_all_modules_info_path),
 		$(eval
 			undefine mb_module_name
+			undefine mb_module_filename
 			undefine mb_module_version
 			undefine mb_module_description
 			undefine mb_module_author
@@ -98,7 +99,11 @@ $(strip
 
 		$(eval include $($0_module_info_path))
 
-		$(eval $0_module_name := $(strip $(mb_module_name)))
+		$(eval
+			$0_module_name := $(strip $(mb_module_name))
+			$0_module_dir := $(strip $(realpath $(dir $($0_module_info_path))))
+		)
+		$(eval $0_module_filename := $(strip $(if $(value mb_module_filename),$(mb_module_filename),$($0_module_name))).mk)
 		$(eval
 			mb_modules_db_all_modules += $($0_module_name)
 			mb_modules_db_version_$($0_module_name) := $(strip $(mb_module_version))
@@ -106,11 +111,12 @@ $(strip
 			mb_modules_db_depends_$($0_module_name) := $(if $(value mb_module_depends),$(mb_module_depends))
 			mb_modules_db_author_$($0_module_name) := $(if $(value mb_module_author),$(mb_module_author))
 			mb_modules_db_license_$($0_module_name) := $(if $(value mb_module_license),$(mb_module_license))
-			mb_modules_db_path_$($0_module_name) := $(realpath $(dir $($0_module_info_path)))/$($0_module_name).mk
-			mb_modules_db_config_path_$($0_module_name) := $(realpath $(dir $($0_module_info_path)))/mod_config.mk
+			mb_modules_db_path_$($0_module_name) := $($0_module_dir)/$($0_module_filename)
+			mb_modules_db_config_path_$($0_module_name) := $($0_module_dir)/mod_config.mk
         )
-        $(if $(wildcard $(mb_modules_db_path_$($0_module_name))),,
-			$(error ERROR: Module $($0_module_name) is missing the implementation file $(mb_modules_db_path_$($0_module_name)))
+        $(eval $0_current_mod_path := $(mb_modules_db_path_$($0_module_name)))
+        $(if $(wildcard $($0_current_mod_path)),,
+			$(call mb_printf_warn, Module $($0_module_name) is missing the implementation file $($0_current_mod_path))
 		)
 	)
 )

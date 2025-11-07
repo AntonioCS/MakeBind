@@ -21,7 +21,7 @@ define nginx_tail_logs
 		$(if $(value nginx_dc_service),
 			$(call dc_shellc,$(nginx_dc_service),$($0_cmd))
 			,
-			$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file)
+			$(call mb_printf_error, nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file)
 		)
 		,
 		$($0_cmd)
@@ -42,7 +42,10 @@ nginx/logs/tail/access: ## Tail the access log
 ifeq ($(nginx_use_docker),$(mb_true))
 
 nginx/dc/check_service:
-	$(if $(value nginx_dc_service),,$(error ERROR: nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file))
+	$(if $(value nginx_dc_service),\
+	,\
+		$(call mb_printf_error,nginx_dc_service is not set, please set it to the nginx docker compose service name in your mb_config.mk file)\
+	)
 
 nginx/dc/logs: nginx/dc/check_service
 nginx/dc/logs: ## Tail nginx docker logs

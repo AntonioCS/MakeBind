@@ -95,14 +95,39 @@ $(strip
 	$(call mb_debug_print,mb/targets-list Project modules files: $($0_files_project_modules),$(mb_debug_targets))
 	$(call mb_debug_print,mb/targets-list Other files files: $($0_other_files_in_bind_hub_folder),$(mb_debug_targets))
 
+
+	$(if $(value mb_targets_only_project), \
+		$(eval mb_targets_list_get_files_all := $(strip \
+				$($0_files_project) \
+        		$($0_files_project_modules) \
+        		$($0_other_files_in_bind_hub_folder) \
+        )) \
+	, \
+    	$(eval mb_targets_list_get_files_all := $(strip \
+    		$(mb_core_path)/targets.mk \
+    		$(mb_core_path)/modules_manager.mk \
+    		$($0_files_project) \
+    		$($0_files_mb_modules) \
+    		$($0_files_project_modules) \
+    		$($0_other_files_in_bind_hub_folder) \
+    	)) \
+	)
+
 	$(eval mb_targets_list_get_files_all := $(strip \
-		$(mb_core_path)/targets.mk \
-		$(mb_core_path)/modules_manager.mk \
-		$($0_files_project) \
-		$($0_files_mb_modules) \
-		$($0_files_project_modules) \
-		$($0_other_files_in_bind_hub_folder) \
-	))
+		$(if $(mb_targets_only_project),
+			$($0_files_project) \
+			$($0_files_project_modules) \
+			$($0_other_files_in_bind_hub_folder) \
+		, \
+			$(mb_core_path)/targets.mk \
+			$(mb_core_path)/modules_manager.mk \
+			$($0_files_project) \
+			$($0_files_project_modules) \
+			$($0_other_files_in_bind_hub_folder) \
+			$($0_files_mb_modules) \
+        )) \
+	)
+
 	$(call mb_debug_print,mb/targets-list all file: $(mb_targets_list_get_files_all),$(mb_debug_targets))
 )
 endef

@@ -8,7 +8,12 @@
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__ := 1
 
-mb_debug_dc_invoke ?= $(mb_debug)# Debug docker compose invoke
+$(if $(and $(strip $(dc_env_files)),$(dc_env_auto_include)),\
+	$(foreach dc_current_env_file_to_load,$(dc_env_files),\
+		$(eval -include $(dc_current_env_file_to_load))\
+	)\
+)
+
 
 #$(if $(dc_use_bake),COMPOSE_BAKE=true) # Where to put this..
 
@@ -24,23 +29,23 @@ mb_debug_dc_invoke ?= $(mb_debug)# Debug docker compose invoke
 define dc_invoke
 $(strip
 	$(eval
-		$0_params_command := $(if $(value 1),$1,$(call mb_printf_error, You must pass a command))
-		$0_params_options := $(if $(value 2),$2)
-		$0_params_services := $(if $(value 3),$3)
-		$0_params_extras := $(if $(value 4),$4)
+		$0_prms_command := $(strip $(if $(value 1),$1,$(call mb_printf_error, You must pass a command)))
+		$0_prms_options := $(strip $(if $(value 2),$2))
+		$0_prms_services := $(strip $(if $(value 3),$3))
+		$0_prms_extras := $(strip $(if $(value 4),$4))
 	)
 	$(eval
 		$0_bin := $(dc_bin)
 		$0_bin_options := $(dc_bin_options)
 		$0_all_dc_files := $(call mb_space_unguard,$(if $(value dc_files),$(addprefix --file ,$(dc_files))))
 		$0_all_dc_env_files := $(call mb_space_unguard,$(if $(value dc_env_files),$(addprefix --env-file ,$(dc_env_files))))
-		$0_cmd := $($0_params_command)
-		$0_options := $($0_params_options)
-		$0_services := $($0_params_services)
-		$0_extras := $($0_params_extras)
-		$0_cmd_options := $(if $(value dc_cmd_options_$1),$(dc_cmd_options_$1))
-		$0_cmd_services := $(if $(value dc_cmd_services_$1),$(dc_cmd_services_$1))
-		$0_cmd_extras := $(if $(value dc_cmd_extras_$1),$(dc_cmd_extras_$1))
+		$0_cmd := $($0_prms_command)
+		$0_options := $($0_prms_options)
+		$0_services := $($0_prms_services)
+		$0_extras := $($0_prms_extras)
+		$0_cmd_options := $(if $(value dc_cmd_options_$($0_prms_command)),$(dc_cmd_options_$($0_prms_command)))
+		$0_cmd_services := $(if $(value dc_cmd_services_$($0_prms_command)),$(dc_cmd_services_$($0_prms_command)))
+		$0_cmd_extras := $(if $(value dc_cmd_extras_$($0_prms_command)),$(dc_cmd_extras_$($0_prms_command)))
 	)
 
 	$(call mb_debug_print, dc_invoke_bin: $(dc_invoke_bin),$(mb_debug_dc_invoke))
@@ -72,22 +77,29 @@ $(strip
 )
 endef
 
-
+### Function to run commands inside a container using a selected shell
 # $1 = service
 # $2 = commands to run inside the container (quotes will be added automatically)
-# $3 = shell (optional, default: dc_default_shell_bin)
-# $4 = docker compose command (optional, default: dc_shellc_default_cmd)
-
+# $3 = shell to load /bin/sh or /bin/bash (optional, default: dc_default_shell_bin)
+# $4 = docker compose command to be used exec or run (optional, default: dc_shellc_default_cmd)
+# $5 = extra options to pass to docker compose (optional, default: none)
 define dc_shellc
 $(strip
-	$(eval $0_service := $(if $(value 1),$1,$(call mb_printf_error, $0 requires a service)))
-	$(eval $0_command := $(if $(value 2),$2,$(call mb_printf_error, $0 requires a command)))
-	$(eval $0_selected_shell_bin := $(strip $(if $(value 3),$3,$(dc_shellc_default_shell_bin))))
-	$(eval $0_selected_dc_cmd := $(strip $(if $(value 4),$4,$(dc_shellc_default_cmd))))
+	$(eval $0_service := $(strip $(if $(value 1),$1,$(call mb_printf_error, $0 requires a service))))
+	$(eval $0_command := $(strip $(if $(value 2),$2,$(call mb_printf_error, $0 requires a command))))
+	$(eval $0_shell_bin := $(strip $(if $(value 3),$3,$(dc_shellc_default_shell_bin))))
+	$(eval $0_dc_cmd := $(strip $(if $(value 4),$4,$(dc_shellc_default_cmd))))
+	$(eval $0_extra_options := $(strip $(if $(value 5),$5,$(dc_shellc_default_extra_options))))
 
-	$(call dc_invoke,$($0_selected_dc_cmd),,$($0_service),$($0_selected_shell_bin) -c "$(call mb_normalizer,$($0_command))")
+	$(call dc_invoke,
+		$($0_dc_cmd),\
+		$($0_extra_options),\
+		$($0_service),\
+		$($0_shell_bin) -c "$(call mb_normalizer,$($0_command))"\
+	)
 )
 endef
+
 
 define dc_build_args_linux_mac
 --build-arg USER_ID=$(if $(value mb_dc_build_user_id),$(mb_dc_build_user_id),$(shell id -u)) \
