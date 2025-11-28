@@ -225,7 +225,9 @@ endef)
 
 		$(if $(mb_modules_db_depends_$($0_prm_mod_name_$1)),
 			$(call mb_printf_info, Module $($0_prm_mod_name_$1) depends on $(mb_modules_db_depends_$($0_prm_mod_name_$1)))
-			$(call mb_module_add,$(mb_modules_db_depends_$($0_prm_mod_name_$1)),$(mb_true))
+			$(foreach $0_dep_$1,$(mb_modules_db_depends_$($0_prm_mod_name_$1)),
+				$(call mb_module_add,$($0_dep_$1),$(mb_true))
+			)
 		)
 		$(call mb_printf_info, Module $($0_prm_mod_name_$1) added to project)
 		$(call mb_modules_build_mod_file)
@@ -273,6 +275,8 @@ mb/modules/add/%: ## Add one or more modules. Pass <mod>
 		$(call mb_module_add,$($@_mod_name))\
 	)
 
+mb/modules/add: # Wrapper for mb/modules/add/%
+	$(call mb_printf_info,Usage: make mb/modules/add/<module_name>)
 
 mb/modules/remove/%: ## Remove a module. Pass <mod>
 	$(eval $@_mods_to_remove = $(subst /, ,$(strip $*)))
@@ -280,6 +284,8 @@ mb/modules/remove/%: ## Remove a module. Pass <mod>
 		$(call mb_module_remove,$($@_mod_name))\
 	)
 
+mb/modules/remove: # Wrapper for mb/modules/remove/%
+	$(call mb_printf_info,Usage: make mb/modules/remove/<module_name>)
 
 mb/modules/create/%: ## Create a new module. Pass <module_name>
 	$(eval $@_mod_name = $*)
@@ -293,5 +299,7 @@ mb/modules/create/%: ## Create a new module. Pass <module_name>
 	$(file > $($@_mod_folder)/$(mb_modules_mod_config_file_name),## Empty config file)
 	$(file > $($@_mod_folder)/$($@_mod_filename),$(call mb_modules_new_mod_start_data,$($@_mod_name)))
 
+mb/modules/create: # Wrapper for mb/modules/create/%
+	$(call mb_printf_info,Usage: make mb/modules/create/<module_name>)
 
 endif # __MB_CORE_MODULES_MANAGER_MK__

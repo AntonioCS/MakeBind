@@ -15,6 +15,7 @@ mb_debug_show_all_commands ?= $(mb_debug_all)
 MAKECMDGOALS ?=#
 GNUMAKEFLAGS ?=#
 MAKEFLAGS ?=#
+#MAKEFLAGS += -j4 ## This needs more work. Some targets are not thread safe yet
 MFLAGS ?=#
 
 

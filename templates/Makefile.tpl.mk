@@ -8,8 +8,9 @@
 #####################################################################################
 mb_debug_makefile ?= $(if $(value mb_debug),$(mb_debug))## Debug flag for Makefile (set to empty by default)
 mb_project_path := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))## This projects path
+## This is the default path for MakeBind in your system, change it if needed. It can also be set using the MB_MAKEBIND_GLOBAL_PATH_ENV environment variable
 mb_mb_default_path ?= $(strip $(if $(value MB_MAKEBIND_GLOBAL_PATH_ENV),$(MB_MAKEBIND_GLOBAL_PATH_ENV),\
-	$(abspath $(mb_project_path)/../MakeBind)))## This is the default path for MakeBind in your system, change it if needed
+	$(abspath $(mb_project_path)/../MakeBind)))
 mb_main_mk ?= $(mb_mb_default_path)/main.mk## This is the main entry point for MakeBind
 mb_latest_url ?= https://api.github.com/repos/AntonioCS/MakeBind/releases/latest## Github API URL to get the latest release
 mb_auto_install_if_missing ?= 1## If MakeBind is not found in the project, should it be downloaded?

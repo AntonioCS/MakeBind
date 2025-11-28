@@ -2,7 +2,8 @@
 # Input: Lines from targets-filtered file (target:description pairs)
 # Output: Colored terminal output with properly aligned target names and descriptions
 # Variables passed via -v:
-#   SPACING - column width for target name alignment (e.g., 20)
+#   TARGET_COLUMN_WIDTH - column width for target name alignment (e.g., 20)
+#   LEFT_PADDING - number of spaces to add from the left margin (e.g., 2)
 
 BEGIN {
     # Set field separator to ":.*## " which extracts target and description
@@ -30,6 +31,7 @@ BEGIN {
     # Print with ANSI color codes for cyan text and proper column alignment
     # \033[36m = cyan color
     # \033[0m = reset formatting
-    # %-SPACING s = left-aligned string padded to SPACING width
-    printf "\033[36m%-" SPACING "s\033[0m %s\n", target, description
+    # %-TARGET_COLUMN_WIDTH s = left-aligned string padded to TARGET_COLUMN_WIDTH
+    # %*s = dynamic width spacing for left padding (using LEFT_PADDING)
+    printf "%*s\033[36m%-" TARGET_COLUMN_WIDTH "s\033[0m %s\n", LEFT_PADDING, "", target, description
 }

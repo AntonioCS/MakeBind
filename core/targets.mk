@@ -34,7 +34,8 @@ ifndef MB_TARGETS_SKIP
 
 mb/targets-list: mb/targets-filtered
 mb/targets-list: # List all targets with description
-	awk -v SPACING="$(mb_target_spacing)" -f "$(mb_targets_list_awk_file)" "$(mb_targets_filtered_file)"
+	@echo 'Available targets ($(if $(mb_targets_only_project),listing project targets only,listing all targets)):'
+	awk -v TARGET_COLUMN_WIDTH="$(mb_target_column_width)" -v LEFT_PADDING="$(mb_target_left_padding)" -f "$(mb_targets_list_awk_file)" "$(mb_targets_filtered_file)"
 	$(if $(call mb_is_off,$(mb_debug_targets)),
 	   rm -f "$(mb_targets_valid_targets_file)" "$(mb_targets_desc_file)" "$(mb_targets_filtered_file)"
 	)
