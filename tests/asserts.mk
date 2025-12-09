@@ -113,6 +113,7 @@ $(call mb_assert_log_state)
 endef
 
 ## mb_assert_filter: Assert that a pattern matches a value (using Make's filter)
+## Note: % wildcard only works at start or end of pattern, not in the middle
 ## Args:
 ##   1: pattern (required)
 ##   2: value (required)
@@ -123,6 +124,23 @@ $(if $(filter $1,$2),
 	$(eval mb_assert_pass := 1)
 	,
 	$(eval mb_assert_msg_fail := $(if $(value 3),$3,Pattern '$1' did not match '$2'))
+	$(eval mb_assert_fail := 1)
+)
+$(call mb_assert_log_state)
+)
+endef
+
+## mb_assert_contains: Assert that a substring is found in a value
+## Args:
+##   1: substring (required)
+##   2: value (required)
+##   3: message on failure (optional)
+define mb_assert_contains
+$(strip
+$(if $(findstring $1,$2),
+	$(eval mb_assert_pass := 1)
+	,
+	$(eval mb_assert_msg_fail := $(if $(value 3),$3,Substring '$1' not found in '$2'))
 	$(eval mb_assert_fail := 1)
 )
 $(call mb_assert_log_state)

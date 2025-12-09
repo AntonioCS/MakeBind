@@ -51,7 +51,8 @@ The test engine provides:
 | `mb_assert_neq` | Assert inequality | `$(call mb_assert_neq,bad_value,$(actual))` |
 | `mb_assert_empty` | Assert empty value | `$(call mb_assert_empty,$(result))` |
 | `mb_assert_not_empty` | Assert non-empty | `$(call mb_assert_not_empty,$(result))` |
-| `mb_assert_filter` | Assert pattern match | `$(call mb_assert_filter,%.mk,$(filename))` |
+| `mb_assert_filter` | Assert pattern match (% at start/end only) | `$(call mb_assert_filter,%.mk,$(filename))` |
+| `mb_assert_contains` | Assert substring found | `$(call mb_assert_contains,error,$(output))` |
 | `mb_assert_exists` | Assert file exists | `$(call mb_assert_exists,/path/to/file)` |
 | `mb_assert_not_exists` | Assert file missing | `$(call mb_assert_not_exists,/tmp/should_not_exist)` |
 
