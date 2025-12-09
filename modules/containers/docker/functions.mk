@@ -200,3 +200,28 @@ $(strip
 	)
 )
 endef
+
+######################################################################################
+# mb_exec_with_mode handler
+######################################################################################
+
+## @function mb_exec_with_mode_docker
+## @desc Execute command in a docker container using dk_shellc
+## @desc This handler is called by mb_exec_with_mode when <prefix>_exec_mode is 'docker'
+## @arg 1: command (required) - Command to execute in container
+## @arg 2: prefix (required) - Variable prefix for config lookup
+## @requires <prefix>_dk_container - Container name/id
+## @optional <prefix>_dk_shell - Shell to use (default: dk_shell_default)
+## @optional <prefix>_dk_tty - TTY flags (default: dk_exec_default_tty)
+## @group exec_mode
+## @see mb_exec_with_mode, dk_shellc
+define mb_exec_with_mode_docker
+$(strip
+	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
+	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
+	$(eval $0_container := $(call mb_require_var,$2_dk_container,$0: $2_dk_container not defined for docker mode))
+	$(eval $0_shell := $(if $(value $2_dk_shell),$($2_dk_shell),$(dk_shell_default)))
+	$(eval $0_tty := $(if $(value $2_dk_tty),$($2_dk_tty),$(dk_exec_default_tty)))
+	$(call dk_shellc,$($0_container),$1,$($0_shell),$($0_tty))
+)
+endef

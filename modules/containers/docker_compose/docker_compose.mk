@@ -156,6 +156,33 @@ $(strip
 endef
 
 
+######################################################################################
+# mb_exec_with_mode handler
+######################################################################################
+
+## @function mb_exec_with_mode_docker-compose
+## @desc Execute command in a docker-compose service using dc_shellc
+## @desc This handler is called by mb_exec_with_mode when <prefix>_exec_mode is 'docker-compose'
+## @arg 1: command (required) - Command to execute in service
+## @arg 2: prefix (required) - Variable prefix for config lookup
+## @requires <prefix>_dc_service - Service name
+## @optional <prefix>_dc_shell - Shell to use (default: dc_shellc_default_shell_bin)
+## @optional <prefix>_dc_cmd - Docker compose command: exec or run (default: dc_shellc_default_cmd)
+## @optional <prefix>_dc_options - Extra options (default: dc_shellc_default_extra_options)
+## @group exec_mode
+## @see mb_exec_with_mode, dc_shellc
+define mb_exec_with_mode_docker-compose
+$(strip
+	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
+	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
+	$(eval $0_service := $(call mb_require_var,$2_dc_service,$0: $2_dc_service not defined for docker-compose mode))
+	$(eval $0_shell := $(if $(value $2_dc_shell),$($2_dc_shell),$(dc_shellc_default_shell_bin)))
+	$(eval $0_cmd := $(if $(value $2_dc_cmd),$($2_dc_cmd),$(dc_shellc_default_cmd)))
+	$(eval $0_options := $(if $(value $2_dc_options),$($2_dc_options),$(dc_shellc_default_extra_options)))
+	$(call dc_shellc,$($0_service),$1,$($0_shell),$($0_cmd),$($0_options))
+)
+endef
+
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_FUNCTIONS__
 #####################################################################################
 ifndef __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__
