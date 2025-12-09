@@ -262,6 +262,9 @@ $(strip
 endef
 
 
+## Skip target definitions when loaded dynamically (e.g., during test discovery)
+ifndef __MB_TEST_DISCOVERY__
+
 mb/modules/list: ## List all modules available
 	$(info Modules available:)
 	$(foreach $@_mod,$(mb_modules_db_all_modules),
@@ -301,5 +304,7 @@ mb/modules/create/%: ## Create a new module. Pass <module_name>
 
 mb/modules/create: # Wrapper for mb/modules/create/%
 	$(call mb_printf_info,Usage: make mb/modules/create/<module_name>)
+
+endif # __MB_TEST_DISCOVERY__
 
 endif # __MB_CORE_MODULES_MANAGER_MK__

@@ -137,8 +137,10 @@ $(if $(call mb_exists,$(mb_cache_file_path)),
 endef
 
 
-mb/cache/clear: # Clear all cache files
-mb/cache/clear:
+## Skip target definitions when loaded dynamically (e.g., during test discovery)
+ifndef __MB_TEST_DISCOVERY__
+
+mb/cache/clear: ## Clear all cache files
 	$(if $(call mb_exists,$(mb_cache_folder_path)),
 		$(eval $@_cmd := rm -rf $(mb_cache_folder_path)/*$(mb_cache_file_extension))
 		$(call mb_invoke,$($@_cmd),$@_exit,$@_output)
@@ -146,5 +148,6 @@ mb/cache/clear:
 		$(call mb_printf_info,Cache folder does not exist, nothing to clear)
 	)
 
+endif # __MB_TEST_DISCOVERY__
 
 endif # __MB_CORE_UTIL_CACHE_MK__

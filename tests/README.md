@@ -3,20 +3,23 @@
 ## Running Tests
 
 ```bash
-# Run all core tests
-cd tests && make
+cd tests
 
-# Run tests with filter
+# Run all tests (auto-discovers from tests/unit/ and modules/)
+make
+
+# Run specific module/file tests
+make test=docker
+make test=cache
+
+# Filter which test functions to run
 make filter=test_mb_invoke
 
-# Exclude specific tests
+# Exclude specific test functions
 make exclude=test_slow_operation
 
-# Discover and run module tests
-make discover
-
-# Discover specific module tests
-make discover test=docker
+# Add custom search paths
+make mb_test_search_paths="/path/to/extra/tests"
 ```
 
 ## Architecture
@@ -153,15 +156,31 @@ Module tests are discovered with:
 make discover test=docker
 ```
 
-### Module Test Constraints
+### Dynamic Loading and Targets
 
-Module test files should only include functions, not the full module (which may define targets). Targets cannot be loaded dynamically via `$(eval include ...)`.
+Test discovery uses `$(eval include ...)` which cannot define Make targets. Files with targets must wrap them:
 
 ```makefile
-# Good - include only functions
+## Skip target definitions when loaded dynamically
+ifndef __MB_TEST_DISCOVERY__
+
+my/target: ## My target
+    @echo "Hello"
+
+endif # __MB_TEST_DISCOVERY__
+```
+
+The test runner sets `__MB_TEST_DISCOVERY__` before loading test files.
+
+### Module Test Files
+
+Module tests should include only what they need:
+
+```makefile
+# Good - include only functions (targets are guarded)
 include $(mb_modules_path)/containers/docker/mod_config.mk
 include $(mb_modules_path)/containers/docker/functions.mk
 
-# Bad - will fail if docker.mk includes targets.mk
-include $(mb_modules_path)/containers/docker/docker.mk
+# Also works if targets are wrapped with ifndef __MB_TEST_DISCOVERY__
+include $(mb_core_path)/util/cache.mk
 ```

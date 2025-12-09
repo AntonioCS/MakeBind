@@ -1,6 +1,7 @@
-
-
-include $(mb_makebind_path)/core/util.mk
+## Note: cache.mk has targets wrapped in ifndef __MB_TEST_DISCOVERY__
+## so they're skipped during dynamic loading
+include $(mb_core_path)/util/variables.mk
+include $(mb_core_path)/util/cache.mk
 
 mb_debug_cache := $(mb_off)
 mb_project_prefix := testprj

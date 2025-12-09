@@ -44,22 +44,10 @@ define mock_prj_call
 $(strip $(MAKE) GNUMAKEFLAGS="" --file=$(mb_test_mock_project_mk) $1)
 endef
 
-## Include core test files (these don't define targets, only test_* variables)
-include $(mb_test_path_unit)/core/util_test.mk
-include $(mb_test_path_unit)/core/util/cache_test.mk
-include $(mb_test_path_unit)/core/util/help_test.mk
-include $(mb_test_path_unit)/core/mb_invoke_test.mk
-include $(mb_test_path_unit)/core/modules_manager_test.mk
-
-## Default target: run all loaded tests
+## Default target: discover and run all tests
+## Usage: make
+## Usage: make test=docker  (filter by module name)
 .PHONY: run_tests
 run_tests:
-	$(call mb_run_tests)
-
-## Run tests with auto-discovery (loads all *_test.mk files)
-## Usage: make discover
-## Usage: make discover test=docker
-.PHONY: discover
-discover:
-	$(call mb_test_load_tests,$(test))
+	$(call mb_test_load_tests,$(value test))
 	$(call mb_run_tests)

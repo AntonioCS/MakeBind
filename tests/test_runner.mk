@@ -21,11 +21,15 @@ mb_debug_tests ?=#
 # Test Discovery
 ######################################################################################
 
-## mb_test_find_all_tests: Find all test files in tests/unit/ and modules/
+## mb_test_search_paths: Paths to search for test files
+## Override or append to add custom test directories
+mb_test_search_paths ?= $(mb_test_path_unit) $(mb_modules_path)
+
+## mb_test_find_all_tests: Find all test files in configured search paths
 ## Returns: List of all *_test.mk files
 define mb_test_find_all_tests
 $(strip
-	$(shell find $(mb_test_path_unit) $(mb_modules_path) -type f -name "*_test.mk" 2>/dev/null)
+	$(shell find $(mb_test_search_paths) -type f -name "*_test.mk" 2>/dev/null)
 )
 endef
 
@@ -42,8 +46,10 @@ endef
 ## mb_test_load_tests: Load test files based on filter
 ## Args:
 ##   1: filter (optional) - only load tests matching this pattern
+## Note: Sets __MB_TEST_DISCOVERY__ to skip target definitions in included files
 define mb_test_load_tests
 $(strip
+	$(eval __MB_TEST_DISCOVERY__ := 1)
 	$(eval $0_all_test_files := $(call mb_test_find_all_tests))
 
 	$(if $(value 1),
