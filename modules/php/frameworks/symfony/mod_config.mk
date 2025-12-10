@@ -30,3 +30,9 @@ php_sy_helpers_path ?= $(php_sy_mod_path)/helpers
 
 ## jq formatter for Symfony logs
 php_sy_jq_log_formatters ?= $(php_sy_helpers_path)/jq/log_format.jq
+
+## Flag to pass to console commands to set the environment
+php_sy_console_env_flag ?= $(if $(call mb_is_eq,$(php_sy_env),dev),,--env=$(php_sy_env))
+
+## Additional flags to pass to console commands
+php_sys_bin_console_options ?= $(php_sy_console_env_flag)

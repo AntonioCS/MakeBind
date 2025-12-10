@@ -6,7 +6,6 @@
 # License: MIT License
 #####################################################################################
 
-
 .ONESHELL:
 .DEFAULT_GOAL := run_tests
 SHELL = /bin/bash
@@ -36,33 +35,19 @@ mb_makebind_tmp_path := $(abspath $(mb_test_path)/../tmp/tests)
 
 $(if $(wildcard $(mb_makebind_tmp_path)),, $(shell mkdir -p $(mb_makebind_tmp_path)))
 
-
-include make_testing.mk
-
+include test_runner.mk
 
 .SHELLFLAGS := -euco pipefail
-#ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
-### Note: Make seem to ignore this
-#SHELL := pwsh.exe
-#MAKESHELL := $(SHELL)
-#.SHELLFLAGS := -NoProfile -Command
-#endif
 
-## Helper
-## Note: Was getting a warning of undefined GNUMAKEFLAGS, so I added it to the call
+## Helper for calling mock project
 define mock_prj_call
 $(strip $(MAKE) GNUMAKEFLAGS="" --file=$(mb_test_mock_project_mk) $1)
 endef
 
-
-include $(mb_test_path_unit)/core/util_test.mk
-include $(mb_test_path_unit)/core/util/cache_test.mk
-include $(mb_test_path_unit)/core/util/help_test.mk
-include $(mb_test_path_unit)/core/functions_test.mk
-#include $(mb_test_path_unit)/modules/docker_compose_test.mk
-#include $(mb_test_path_unit)/core/util_test_mb_is_regex_match.mk ### -- Problems WIP
-#include $(mb_test_path)/Makefile_test.mk --WIP
-
-
+## Default target: discover and run all tests
+## Usage: make
+## Usage: make test=docker  (filter by module name)
+.PHONY: run_tests
 run_tests:
+	$(call mb_test_load_tests,$(value test))
 	$(call mb_run_tests)

@@ -12,7 +12,7 @@ ifndef __MB_MODULES_PHP__FUNCTIONS__
 __MB_MODULES_PHP__FUNCTIONS__ := 1
 
 # Check if something is listening on the xdebug port
-define php_xdebug_is_listener_on
+define php_xdebug_check_is_listening
 $(strip
 $(shell nc -z -w "1" "$(php_xdebug_listener_host)" "$(php_xdebug_listener_port)" > /dev/null 2>&1 && echo $(mb_true))
 )
@@ -24,15 +24,17 @@ endef
 ## $2 string: Flags to pass to the php command
 define php_invoke
 $(strip
-	$(eval $0_php_cmd := $(if $(value 1),$(strip $1),$(error ERROR: $0 - You must pass a commad)))
-	$(eval $0_php_bin := $(strip $(php_bin)))
-	$(eval $0_php_cmd_flags := $(if $(value 2),$(strip $2),$(mb_empty)))
-	$(if $(and $(call mb_is_on,$(php_xdebug_check_listener)),$(call mb_is_false,$(call php_xdebug_is_listener_on))),
+	$(eval
+		$0_php_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error, $0 - You must pass a commad))
+		$0_php_cmd_flags := $(strip $(if $(value 2),$(strip $2)))
+		$0_php_bin := $(strip $(php_bin))
+	)
+	$(if $(and $(call mb_is_on,$(php_xdebug_check_listener)),$(call mb_is_false,$(call php_xdebug_check_is_listening))),
 		$(eval $0_php_cmd_flags += -d xdebug.mode=off)
 	)
 	$(eval $0_php_cmd_call := $(strip $($0_php_bin) $($0_php_cmd_flags) $($0_php_cmd)))
 	$(if $(php_use_docker),
-		$(if $(value php_dc_service),,$(error ERROR: php_dc_service is not set, please set it to the php docker compose service name in your mb_config.mk or php_config.mk file))
+		$(if $(value php_dc_service),,$(call mb_printf_error,$0 - php_dc_service is not set$(mb_comma) please set it in your mb_config.mk or php_config.mk file))
 		$(call dc_shellc,$(php_dc_service),$($0_php_cmd_call),$(php_dc_default_shell),$(php_invoke_dc_mode))
 	,
 		$(call mb_invoke,$($0_php_cmd_call))
@@ -40,6 +42,17 @@ $(strip
 )
 endef
 
+# $1 - Invoker name
+# $2 - Docker check variable name
+# $3 - Docker compose service name variable
+### WIP - Find a way to generalize the above function. Many other modules are using similar function (if not identical)
+define local_or_dc_invoker
+$(strip
+	$(eval
+
+	)
+)
+endef
 
 endif # __MB_MODULES_PHP__FUNCTIONS__
 
@@ -55,15 +68,21 @@ php/version: ## Show php version
 
 ifeq ($(php_use_docker),$(mb_true))
 
+php/dc/check_service: # Internal helper
+	$(if $(value php_dc_service),\
+	,\
+		$(call mb_printf_error, php_dc_service is not set, please set it to the php docker compose service name in your mb_config.mk or php_config.mk file)\
+	)
+
+php/dc/shell: php/dc/check_service
 php/dc/shell: ## Start a shell in the php container
 	$(call dc_invoke,$(php_dc_shell_mode),,$(php_dc_service),$(php_dc_default_shell))
 
-endif
+php/dc/logs: php/dc/check_service
+php/dc/logs: ## Show php container logs
+	$(call dc_invoke,logs,-f $(php_dc_service))
 
-#phpstan_bin ?= vendor/bin/phpstan
-#phpstan_config_file ?= phpstan.neon
-#phpstan_send_to_file ?= $(mb_true)
-#phpstan_output_file ?= phpstan.output
+endif
 
 php/phpstan: mb/info-$$@ := Running PHPStan
 php/phpstan: ## Run PHPStan to phpstan.output
@@ -72,11 +91,6 @@ php/phpstan: ## Run PHPStan to phpstan.output
 		$(if $(phpstan_send_to_file),--error-format=github > $(phpstan_output_file)) \
 		 || true \
 	)
-
-#psalm_bin ?= vendor/bin/psalm
-#psalm_send_to_file ?= $(mb_true)
-#psalm_output_file ?= psalm.output
-#psalm_flags ?= -m --output-format=compact
 
 php/psalm: ## Run Psalm to psalm.output
 	$(call php_invoke,$(psalm_bin) $(psalm_flags) \
@@ -89,9 +103,6 @@ php/phpcs: ## Run PHP CodeSniffer to check code style issues
 
 php/phpcbf: ## Run PHP CodeSniffer to fix code style issues
 	$(call php_invoke,vendor/bin/phpcbf)
-
-
-.PHONY: php/inis php/version
 
 endif # __MB_MODULES_PHP_TARGETS__
 

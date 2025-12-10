@@ -1,4 +1,9 @@
 {
+    # Skip documentation annotation lines (## @var, ## @desc, ## @type, etc.)
+    if ($0 ~ /^[[:space:]]*##[[:space:]]*@/) {
+        next
+    }
+
     # Replace ?= with :=
     gsub(/\?=/, ":=")
 

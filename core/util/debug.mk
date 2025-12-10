@@ -19,7 +19,10 @@ define mb_debug_helper
 $(info $1 = $(if $(value $1),$(value $1) -- $(origin $1),<not set>))
 endef
 
-mb/debug/print: # Print all variables and their values
+## Skip target definitions when loaded dynamically (e.g., during test discovery)
+ifndef __MB_TEST_DISCOVERY__
+
+mb/debug/print: ## Print all variables and their values
 	$(foreach V,$(sort $(.VARIABLES)), \
 		$(if \
 			$(filter-out environment% default automatic,$(origin $V)), \
@@ -27,10 +30,10 @@ mb/debug/print: # Print all variables and their values
 		) \
 	)
 
-mb/debug/print/%: # Print specific variable with it's value
+mb/debug/print/%: ## Print specific variable with it's value
 	$(call mb_debug_helper,$*)
 
-mb/debug/vars: # Print MakeBind important variables
+mb/debug/vars: ## Print MakeBind important variables
 	$(info mb_makebind_tmp_path: $(mb_makebind_tmp_path))
 	$(info mb_makebind_templates_path: $(mb_makebind_templates_path))
 	$(info mb_core_path: $(mb_core_path))
@@ -58,6 +61,8 @@ mb/debug/vars: # Print MakeBind important variables
 	$(info mb_auto_install_if_missing: $(mb_auto_install_if_missing))
 	$(info mb_silent_mode: $(mb_silent_mode))
 	$(info mb_has_main_mk: $(mb_has_main_mk))
+
+endif # __MB_TEST_DISCOVERY__
 
 #$1 - msg
 #$2 - debug trigger (defaults to mb_debug if not set)

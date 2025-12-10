@@ -10,3 +10,4 @@ phpunit_stop_on_failure ?= $(mb_true)#
 
 ## If true, stop when an error occurs (--stop-on-error)
 phpunit_stop_on_error ?= $(mb_true)#
+

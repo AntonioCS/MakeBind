@@ -41,11 +41,6 @@ endef
 # - Destructive actions require confirmation via mb_user_confirm.
 # =============================================================================
 
-.PHONY: aws/s3/list aws/s3/list/% aws/s3/list-recursive/% \
-        aws/s3/create/% aws/s3/delete/% aws/s3/delete-force/% aws/s3/bucket-empty/% \
-        aws/s3/put aws/s3/get aws/s3/object/head aws/s3/object/delete aws/s3/prefix/delete \
-        aws/s3/sync-up aws/s3/sync-down aws/s3/presign
-
 # ---- List buckets & objects --------------------------------------------------
 
 aws/s3/list: ## List all S3 buckets
@@ -55,9 +50,14 @@ aws/s3/list/%: ## List top-level objects in <bucket>
 	$(eval $@_aws_bucket := $*)
 	$(call mb_aws_invoke,s3 ls s3://$($@_aws_bucket)/)
 
+# Note: aws/s3/list already exists as a concrete target, so no wrapper needed
+
 aws/s3/list-recursive/%: ## List ALL objects in <bucket> (recursive, summarized)
 	$(eval $@_aws_bucket := $*)
 	$(call mb_aws_invoke,s3 ls s3://$($@_aws_bucket)/ --recursive --human-readable --summarize)
+
+aws/s3/list-recursive: # Wrapper for aws/s3/list-recursive/%
+	$(call mb_printf_info,Usage: make aws/s3/list-recursive/<bucket>)
 
 # ---- Create bucket -----------------------------------------------------------
 
@@ -66,6 +66,9 @@ aws/s3/create/%: ## Create buckets <bucket[/bucket2/...]> (respects aws_bucket_c
     $(foreach b,$($@_aws_buckets), \
     	$(call aws_s3_bucket_create,$b,$(aws_bucket_check)) \
     )
+
+aws/s3/create: # Wrapper for aws/s3/create/%
+	$(call mb_printf_info,Usage: make aws/s3/create/<bucket> [aws_bucket_check=...])
 
 # ---- Delete / empty bucket (requires confirmation) ---------------------------
 
@@ -76,12 +79,18 @@ aws/s3/delete/%: ## Delete EMPTY <bucket> (fails if not empty) [requires confirm
 		$(call mb_printf_warn,Aborted by user) \
 	)
 
+aws/s3/delete: # Wrapper for aws/s3/delete/%
+	$(call mb_printf_info,Usage: make aws/s3/delete/<bucket>)
+
 aws/s3/delete-force/%: ## Force-delete <bucket> (empties recursively) [requires confirmation]
 	$(eval $@_aws_bucket := $*)
 	$(if $(call mb_user_confirm,Force-delete bucket s3://$($@_aws_bucket) (empties all objects)?), \
 		$(call mb_aws_invoke,s3 rb s3://$($@_aws_bucket) --force), \
 		$(call mb_printf_warn,Aborted by user) \
 	)
+
+aws/s3/delete-force: # Wrapper for aws/s3/delete-force/%
+	$(call mb_printf_info,Usage: make aws/s3/delete-force/<bucket>)
 
 aws/s3/empty/%: ## Remove ALL objects under <bucket>/ (non-versioned) [requires confirmation]
 	$(eval $@_aws_bucket := $*)
@@ -90,12 +99,18 @@ aws/s3/empty/%: ## Remove ALL objects under <bucket>/ (non-versioned) [requires 
 		$(call mb_printf_warn,Aborted by user) \
 	)
 
+aws/s3/empty: # Wrapper for aws/s3/empty/%
+	$(call mb_printf_info,Usage: make aws/s3/empty/<bucket>)
+
 aws/s3/key-delete/%: ## Delete ALL versions of ALL objects under <bucket>/ (versioned) [requires confirmation]
 	$(eval $@_aws_bucket := $*)
 	$(if $(call mb_user_confirm,Delete ALL versions of ALL objects from s3://$($@_aws_bucket)/ ?), \
-		$(call mb_aws_invoke,s3api list-object-versions --bucket "$($@_aws_bucket)" --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}' | jq -c '.Objects' | xargs -n 2 -I {} $(mb_aws_bin) s3api delete-objects --bucket "$($@_aws_bucket)" --delete '{}'), \
+		$(call mb_aws_invoke,s3api list-object-versions --bucket "$($@_aws_bucket)" --output=json --query='{Objects: Versions[].{Key:Key,VersionId:VersionId}}' | jq -c '.Objects' | xargs -n 2 -I {} $(aws_bin) s3api delete-objects --bucket "$($@_aws_bucket)" --delete '{}'), \
 		$(call mb_printf_warn,Aborted by user) \
 	)
+
+aws/s3/key-delete: # Wrapper for aws/s3/key-delete/%
+	$(call mb_printf_info,Usage: make aws/s3/key-delete/<bucket>)
 
 # ---- Put / Get single objects (aws_bucket may include key) -------------------
 

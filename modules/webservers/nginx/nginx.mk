@@ -68,6 +68,4 @@ nginx/restart: ## Restart the nginx service
 
 endif # nginx_use_docker
 
-.PHONY: nginx/logs/tail/error nginx/logs/tail/access
-
 endif # __MB_MODULES_NGINX_TARGETS__

@@ -33,9 +33,14 @@ php/lv/ar/run/%: ## Run artisan <command>. Ex.: make php/lv/ar/run/migrate. Use 
 	$(eval opts := $(if $(value ar_opts),$(ar_opts)))
 	$(call php_lv_artisan, $(cmd) $(opts) $(params))
 
+php/lv/ar/run: # Wrapper for php/lv/ar/run/%
+	$(call mb_printf_info,Usage: make php/lv/ar/run/<command> [ar_opts="..."])
+
 php/lv/ar/help/%: ## Get help for this artisan <command>. Ex.: make lv/ar/help/migrate
 	$(MAKE) lv/ar/run/$* ar_opts=--help
 
+php/lv/ar/help: # Wrapper for php/lv/ar/help/%
+	$(call mb_printf_info,Usage: make php/lv/ar/help/<command>)
 
 php/lv/ar/list: ## List all artisan commands
 	$(call lv_artisan)
@@ -43,11 +48,10 @@ php/lv/ar/list: ## List all artisan commands
 php/lv/ar/list/%: ## List all artisan commands but filter by <filter>. Ex.: make lv/ar/list/migrate
 	$(MAKE) php/lv/ar/list | grep $*
 
+# Note: php/lv/ar/list already exists as a concrete target, so no wrapper needed
+
 php/lv/ar/tinker: php/lv/ar/run/tinker
 php/lv/ar/tinker: ## Run tinker
-
-
-.PHONY: php/lv/ar/run/% php/lv/ar/help/% php/lv/ar/list php/lv/ar/list/% php/lv/ar/tinker
 
 endif # __MB_MODULES_PHP_FRAMEWORKS_LARAVEL_TARGETS__
 

@@ -10,27 +10,113 @@ __MB_CORE_FUNCTIONS_MK__ := 1
 
 include $(mb_core_path)/util.mk
 
-mb_invoke_print ?= $(mb_on) ## Print the command that is being executed
-mb_invoke_print_target ?= $(mb_on) ## Print the target that is being executed
-mb_invoke_dry_run ?= $(mb_off) ## Do not execute the command
-mb_invoke_last_target := $(mb_empty) ## Last target that was executed
-mb_invoke_last_cmd := $(mb_empty) ## Last command invoked
-mb_invoke_silent ?= $(mb_off) ## Do not print anything
-mb_invoke_run_in_shell ?= $(mb_off) ## Run the command in a shell
-mb_invoke_shell_exit_code :=## The exit code of the last command run in shell (set by mb_invoke)
-mb_invoke_shell_output :=## The output of the last command run in shell (set by mb_invoke)
+## @var mb_invoke_print
+## @desc Print the command before execution (shows in stdout)
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_invoke
+## @example mb_invoke_print=$(mb_off) make target
+## @see mb_invoke_silent, mb_invoke_print_target
+mb_invoke_print ?= $(mb_on)
 
-## Note: We need to add a separator if multiple commands are passed if mb_invoke is used in a loop and the command is not run in a shell
-mb_invoke_cmd_autosep ?= $(mb_true)## default: auto-terminate
-mb_invoke_cmd_sep ?= $(mb_scolon)## default: semicolon
+## @var mb_invoke_print_target
+## @desc Print the target name before command execution
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_invoke
+## @see mb_invoke_print
+mb_invoke_print_target ?= $(mb_on)
+
+## @var mb_invoke_dry_run
+## @desc Print commands without executing them (useful for debugging)
+## @type boolean
+## @default $(mb_off)
+## @values $(mb_on), $(mb_off)
+## @group mb_invoke
+## @example mb_invoke_dry_run=$(mb_on) make deploy
+mb_invoke_dry_run ?= $(mb_off)
+
+## @var mb_invoke_last_target
+## @desc Tracks the last target that was executed (internal use)
+## @type string
+## @default $(mb_empty)
+## @group mb_invoke
+mb_invoke_last_target := $(mb_empty)
+
+## @var mb_invoke_last_cmd
+## @desc Stores the last command invoked (internal use)
+## @type string
+## @default $(mb_empty)
+## @group mb_invoke
+mb_invoke_last_cmd := $(mb_empty)
+
+## @var mb_invoke_silent
+## @desc Suppress all output from mb_invoke (overrides print settings)
+## @type boolean
+## @default $(mb_off)
+## @values $(mb_on), $(mb_off)
+## @group mb_invoke
+## @see mb_invoke_print, mb_invoke_print_target
+mb_invoke_silent ?= $(mb_off)
+
+## @var mb_invoke_run_in_shell
+## @desc Run command in a shell and capture output/exit code
+## @type boolean
+## @default $(mb_off)
+## @values $(mb_on), $(mb_off)
+## @group mb_invoke
+## @see mb_invoke_shell_exit_code, mb_invoke_shell_output
+mb_invoke_run_in_shell ?= $(mb_off)
+
+## @var mb_invoke_shell_exit_code
+## @desc Exit code of the last command run in shell (set by mb_invoke)
+## @type number
+## @group mb_invoke
+## @see mb_invoke_run_in_shell, mb_is_last_rc_ok, mb_is_last_rc_fail
+mb_invoke_shell_exit_code :=
+
+## @var mb_invoke_shell_output
+## @desc Combined stdout/stderr output of last shell command (set by mb_invoke)
+## @type string
+## @group mb_invoke
+## @see mb_invoke_run_in_shell
+mb_invoke_shell_output :=
+
+## @var mb_invoke_cmd_autosep
+## @desc Automatically add separator after commands (for loop usage)
+## @type boolean
+## @default $(mb_true)
+## @values $(mb_true), $(mb_false)
+## @group mb_invoke
+## @see mb_invoke_cmd_sep
+mb_invoke_cmd_autosep ?= $(mb_true)
+
+## @var mb_invoke_cmd_sep
+## @desc Command separator to use when autosep is enabled
+## @type string
+## @default $(mb_scolon)
+## @values $(mb_scolon), $(mb_ampersand), etc.
+## @group mb_invoke
+## @see mb_invoke_cmd_autosep
+mb_invoke_cmd_sep ?= $(mb_scolon)
 
 
-# Predicates bound to the last mb_invoke run-in-shell exit code
+# Predicates bound to the last mb_invoke run-in-shell return code
 mb_is_last_rc_ok   = $(call mb_is_eq,$(strip $(mb_invoke_shell_exit_code)),0)
 mb_is_last_rc_fail = $(call mb_is_neq,$(strip $(mb_invoke_shell_exit_code)),0)
 
-
-## $1 - command (Note: Don't put $1 in $0_cmd to avoid evaluation issues)
+## @function mb_invoke
+## @desc Execute commands with consistent logging, dry-run support, and shell capture
+## @desc This is the core command execution function used throughout MakeBind.
+## @desc It handles printing, dry-run mode, and can optionally capture output.
+## @arg 1: command (required) - The command to execute
+## @example $(call mb_invoke,docker ps -a)
+## @example $(call mb_invoke,npm install)
+## @returns Command output or captured result (if mb_invoke_run_in_shell is enabled)
+## @group mb_invoke
+## @see mb_invoke_print, mb_invoke_dry_run, mb_invoke_run_in_shell, mb_shell_capture
 define mb_invoke
 $(strip
 	$(if $(value 1),,$(error ERROR: You must pass a command))
@@ -63,6 +149,12 @@ $(strip
 )
 endef # mb_invoke
 
+## @function mb_invoke_normalizer
+## @desc Normalize command strings for safe printing (escapes special characters)
+## @arg 1: text (required) - Text to normalize
+## @returns Normalized text with escaped quotes and special characters
+## @group mb_invoke
+## @see mb_invoke
 define mb_invoke_normalizer
 $(strip
 	$(subst \\",",
@@ -73,12 +165,17 @@ $(strip
 )
 endef
 
-# $(call mb_shell_capture,<command>,<exit_var>,<log_var>)
-# $1: Runs <command> in /bin/sh
-# $2: Sets <exit_var> to the numeric exit code
-# $3: Sets <log_var>  to the combined stdout+stderr
-# Note: pass the actual name of the variables not $(var) but just var.
-# Example: $(call mb_shell_capture,ls dir,exit_code_var,log_var)
+## @function mb_shell_capture
+## @desc Run command in shell and capture both exit code and output
+## @desc Uses temporary file to capture combined stdout/stderr output.
+## @desc Pass variable names (not values) for exit_var and log_var parameters.
+## @arg 1: command (required) - Command to execute in /bin/sh
+## @arg 2: exit_var (required) - Variable name to store numeric exit code
+## @arg 3: log_var (required) - Variable name to store combined stdout+stderr
+## @example $(call mb_shell_capture,ls /tmp,my_exit_code,my_output)
+## @example $(call mb_shell_capture,git status,exit_code_var,log_var)
+## @group mb_invoke
+## @see mb_invoke, mb_invoke_run_in_shell
 define mb_shell_capture
 	$(eval $0_mk_tmp := $(shell mktemp -t mkout.XXXXXX))
 	$(eval $0_mk_ec  := $(shell sh -c '$1 > "$($0_mk_tmp)" 2>&1; printf "%s" $$?'))
@@ -92,54 +189,49 @@ endef
 ############################################################################################################################
 ############################################################################################################################
 
-
-# =============================================================================
-# mb_user_confirm — Ask the user to confirm an action (with timeout & defaults)
-#
-# Purpose:
-#   Prompt the user before performing a potentially destructive or sensitive
-#   action. Works non-interactively when auto-accept is enabled.
-#
-# Signature:
-#   $(call mb_user_confirm[,<message>[,<accepted value>]])
-#
-# Params:
-#   $1 (optional) : Confirmation message shown to the user.
-#                   Defaults to $(mb_user_confirm_default_msg)
-#                   (e.g., "Are you sure? [y/n]").
-#   $2 (optional) : The answer that will be considered acceptance (compared
-#                   case-insensitively). Defaults to
-#                   $(mb_user_confirm_default_accepted_value) (e.g., "y").
-#
-# Behavior:
-#   - If $(mb_user_confirm_auto_accept) is ON, returns $(mb_true) immediately.
-#   - Otherwise, prompts the user (with an optional timeout of
-#     $(mb_user_confirm_timeout) seconds if non-zero).
-#   - Returns $(mb_true) if the reply equals the accepted value (case-insensitive),
-#     else returns $(mb_false).
-#
-# Config (overridable in mb_config):
-#   mb_user_confirm_default_msg              ?= Are you sure? [y/n]
-#   mb_user_confirm_default_accepted_value   ?= y
-#   mb_user_confirm_auto_accept              ?= $(mb_off)   # ON to auto-accept
-#   mb_user_confirm_timeout                  ?= 15          # 0 disables timeout
-#
-# Example:
-#   $(if $(call mb_user_confirm,Delete bucket s3://my-bucket?),,\
-#       $(call mb_printf_warn,Aborted by user); exit 1)
-#
-# Notes:
-#   - Relies on existing helpers: mb_is_on, mb_tolower, mb_ask_user,
-#     mb_is_eq, mb_true/mb_false, mb_space, mb_warning_triangle.
-#   - Use inside a recipe line so that "exit 1" stops the shell if declined.
-# =============================================================================
-
-
+## @var mb_user_confirm_default_msg
+## @desc Default confirmation prompt message
+## @type string
+## @default Are you sure? [y/n]
+## @group mb_user_confirm
 mb_user_confirm_default_msg ?= Are you sure? [y/n]
+
+## @var mb_user_confirm_default_accepted_value
+## @desc Default value that represents user acceptance (case-insensitive)
+## @type string
+## @default y
+## @values y, yes, n, no, etc.
+## @group mb_user_confirm
 mb_user_confirm_default_accepted_value ?= y
+
+## @var mb_user_confirm_auto_accept
+## @desc Automatically accept all confirmations (non-interactive mode)
+## @type boolean
+## @default $(mb_off)
+## @values $(mb_on), $(mb_off)
+## @group mb_user_confirm
+## @example mb_user_confirm_auto_accept=$(mb_on) make deploy
 mb_user_confirm_auto_accept ?= $(mb_off)
+
+## @var mb_user_confirm_timeout
+## @desc Timeout in seconds for user confirmation (0 disables timeout)
+## @type number
+## @default 15
+## @values 0 (no timeout), positive integer
+## @group mb_user_confirm
 mb_user_confirm_timeout ?= 15
 
+## @function mb_user_confirm
+## @desc Prompt user for confirmation before performing potentially destructive actions
+## @desc Supports auto-accept mode and configurable timeouts for non-interactive use.
+## @desc Returns mb_true if user confirms, mb_false otherwise.
+## @arg 1: message (optional) - Confirmation message (defaults to mb_user_confirm_default_msg)
+## @arg 2: accepted_value (optional) - Value considered as acceptance (defaults to mb_user_confirm_default_accepted_value)
+## @example $(if $(call mb_user_confirm,Delete bucket s3://my-bucket?),,$(call mb_printf_warn,Aborted); exit 1)
+## @example $(if $(call mb_user_confirm),,exit 1)
+## @returns $(mb_true) if confirmed, $(mb_false) otherwise
+## @group mb_user_confirm
+## @see mb_ask_user, mb_user_confirm_auto_accept, mb_user_confirm_timeout
 define mb_user_confirm
 $(strip
 	$(eval
@@ -170,11 +262,32 @@ endef
 ############################################################################################################################
 ############################################################################################################################
 
+## @var mb_ask_user_default_question_text
+## @desc Default question text when prompting user for input
+## @type string
+## @default Are you sure? [y/n]:
+## @group mb_ask_user
 mb_ask_user_default_question_text ?= Are you sure? [y/n]:
-#https://www.baeldung.com/linux/read-command
-# $1 - text to display (string) optional, Default set in mb_ask_user_default_question_text"
-# $2 - timeout (int) optional, Default 0 (Does not work on windows)
-# $3 - default text filled in (string) optional, Default "" (Does not work on windows)
+
+## @var mb_ask_user_linux_mac_cmd
+## @desc Command used for reading user input on Linux/Mac
+## @type string
+## @default read -e
+## @values read -e, read, etc.
+## @group mb_ask_user
+mb_ask_user_linux_mac_cmd ?= read -e
+
+## @function mb_ask_user
+## @desc Prompt user for input with optional timeout and default value
+## @desc Cross-platform function (Linux/Mac/Windows). Note: timeout and default text don't work on Windows.
+## @arg 1: question_text (optional) - Text to display (defaults to mb_ask_user_default_question_text)
+## @arg 2: timeout (optional) - Timeout in seconds, 0 for no timeout (does not work on Windows)
+## @arg 3: default_text (optional) - Default text pre-filled (does not work on Windows)
+## @example $(call mb_ask_user,Enter your name:)
+## @example $(call mb_ask_user,Proceed?,10,y)
+## @returns User input as string
+## @group mb_ask_user
+## @see mb_user_confirm
 define mb_ask_user
 $(strip
 	$(eval $0_question_text := $(if $(value 1),$1,$($0_default_question_text)))
@@ -184,7 +297,12 @@ $(strip
 )
 endef
 
-mb_ask_user_linux_mac_cmd ?= read -e
+## @function mb_ask_user_linux_mac
+## @desc Linux/Mac implementation of user input prompt (uses bash read command)
+## @desc Internal function called by mb_ask_user for Unix-based systems
+## @returns User input from REPLY variable
+## @group mb_ask_user
+## @see mb_ask_user
 define mb_ask_user_linux_mac
 $(strip
 $(mb_ask_user_linux_mac_cmd) \
@@ -204,47 +322,119 @@ mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_default_ques
 ############################################################################################################################
 ############################################################################################################################
 
-#https://stackoverflow.com/a/63626637/8715
-#https://www.computerhope.com/unix/uprintf.htm
-
-
+## @var mb_printf_info_format_specifier
+## @desc Format string for info messages (OS-specific)
+## @type string
+## @group mb_printf
 ifeq ($(OS),Windows_NT)
 mb_printf_info_format_specifier ?= "{0}{1} {2}"
-mb_printf_warn_format_specifier ?= "{0}{1} WARNING: {2}"
-mb_printf_error_format_specifier ?= "{0}{1} ERROR: {2}"
-mb_printf_debug_format_specifier ?= "{0}{1} DEBUG: {2}"
-mb_printf_ts_format ?= "yyyy-MM-dd HH:mm:ss"## Timestamp format
 else
-##NOTE: Things need to be close to the seconds %s as a spaces seems to be getting in
-## From printf manual
-# %b     ARGUMENT as a string with '\' escapes interpreted, except that octal escapes are of the form \0 or \0NNN
 mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s)%b"
-mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%sWARNING): %b"
-mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%sERROR): %b"
-mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%sDEBUG): %b"
-mb_printf_ts_format ?= +'%F %T'## Timestamp format
 endif
-mb_printf_opt_display_ts ?= $(mb_on)## Display timestamp
-mb_printf_opt_display_project_name ?= $(mb_on)## Display project name
-mb_printf_opt_display_guard_l ?= [## Display Left guard
-mb_printf_opt_display_guard_r ?= ]## Right guard
 
-mb_printf_use_break_line ?= $(mb_on)## Use break line
-# This will cause the printf to use the shell command and be printed using $(info) which will make it be printed via make and not the actual shell
-mb_printf_opt_use_shell ?= $(mb_on)## Use shell command
+## @var mb_printf_warn_format_specifier
+## @desc Format string for warning messages (OS-specific)
+## @type string
+## @group mb_printf
+ifeq ($(OS),Windows_NT)
+mb_printf_warn_format_specifier ?= "{0}{1} WARNING: {2}"
+else
+mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%sWARNING): %b"
+endif
 
+## @var mb_printf_error_format_specifier
+## @desc Format string for error messages (OS-specific)
+## @type string
+## @group mb_printf
+ifeq ($(OS),Windows_NT)
+mb_printf_error_format_specifier ?= "{0}{1} ERROR: {2}"
+else
+mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%sERROR): %b"
+endif
+
+## @var mb_printf_debug_format_specifier
+## @desc Format string for debug messages (OS-specific)
+## @type string
+## @group mb_printf
+ifeq ($(OS),Windows_NT)
+mb_printf_debug_format_specifier ?= "{0}{1} DEBUG: {2}"
+else
+mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%sDEBUG): %b"
+endif
+
+## @var mb_printf_ts_format
+## @desc Timestamp format for log messages (OS-specific)
+## @type string
+## @group mb_printf
+ifeq ($(OS),Windows_NT)
+mb_printf_ts_format ?= "yyyy-MM-dd HH:mm:ss"
+else
+mb_printf_ts_format ?= +'%F %T'
+endif
+
+## @var mb_printf_opt_display_ts
+## @desc Display timestamp in log messages
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_printf
+mb_printf_opt_display_ts ?= $(mb_on)
+
+## @var mb_printf_opt_display_project_name
+## @desc Display project name in log messages
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_printf
+mb_printf_opt_display_project_name ?= $(mb_on)
+
+## @var mb_printf_opt_display_guard_l
+## @desc Left guard character for timestamp/project name
+## @type string
+## @default [
+## @group mb_printf
+mb_printf_opt_display_guard_l ?= [
+
+## @var mb_printf_opt_display_guard_r
+## @desc Right guard character for timestamp/project name
+## @type string
+## @default ]
+## @group mb_printf
+mb_printf_opt_display_guard_r ?= ]
+
+## @var mb_printf_use_break_line
+## @desc Add newline after each message
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_printf
+mb_printf_use_break_line ?= $(mb_on)
+
+## @var mb_printf_opt_use_shell
+## @desc Use shell command for printing (vs direct make output)
+## @type boolean
+## @default $(mb_on)
+## @values $(mb_on), $(mb_off)
+## @group mb_printf
+mb_printf_opt_use_shell ?= $(mb_on)
+
+## Internal constants for mb_printf
 mb_printf_internal_print_using_info := 1
 mb_printf_internal_print_using_warning := 2
 mb_printf_internal_print_using_error := 3
 mb_printf_internal_print ?= $(mb_printf_internal_print_using_info)
 
-## $1 - msg
-## $2 - format
-## $3 - project name (defaults to variable mb_project_name or just MakeBind
-## $4 - use break line on/off  (defaults to on)
-## $5 - use shell on/off (defaults to value set on mb_printf_opt_use_shell)
-### NOTE: $(add $(value 4),$(strip $4)) <-- this is important to detect if the value is empty or not because it might have spaces
-## This might be because of how mb_printf_info etc are done.
+## @function mb_printf
+## @desc Core formatted logging function (internal, use mb_printf_info/warn/error instead)
+## @desc Supports timestamps, project name, colors, and different output modes
+## @arg 1: msg (required) - Message to print
+## @arg 2: format (required) - Format specifier (use mb_printf_*_format_specifier variables)
+## @arg 3: project_name (optional) - Project name (defaults to mb_project_name or "MakeBind")
+## @arg 4: use_breakline (optional) - Add newline (defaults to mb_printf_use_break_line)
+## @arg 5: use_shell (optional) - Use shell for output (defaults to mb_printf_opt_use_shell)
+## @returns Formatted message output
+## @group mb_printf
+## @see mb_printf_info, mb_printf_warn, mb_printf_error
 ifdef MB_TARGETS_SKIP
 mb_printf =#
 else
@@ -302,11 +492,28 @@ $(strip \
 )
 endef
 
+## @function mb_printf_info
+## @desc Print informational message with timestamp and project name
+## @arg 1: msg (required) - Message to print
+## @arg 2: project_name (optional) - Project name override
+## @arg 3: use_breakline (optional) - Add newline
+## @arg 4: use_shell (optional) - Use shell for output
+## @example $(call mb_printf_info,Starting deployment)
+## @example $(call mb_printf_info,Task completed successfully)
+## @group mb_printf
+## @see mb_printf, mb_printf_warn, mb_printf_error
+mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3),$(if $(value 4),$4))
 
-## NOTE: Seems to require the slashes at the end (unlike the other functions), might be because of the $(call. This is only required if I do this in multiline mode
-mb_printf_info = $(call mb_printf,$(call mb_normalizer,$1),$(mb_printf_info_format_specifier),$(if $(value 2),$2),$(if $(value 3),$3),$(if $(value 4),$4))## Let this be on one line
-
-
+## @function mb_printf_warn
+## @desc Print warning message with timestamp and project name
+## @arg 1: msg (required) - Warning message to print
+## @arg 2: project_name (optional) - Project name override
+## @arg 3: use_breakline (optional) - Add newline
+## @arg 4: use_shell (optional) - Use shell for output
+## @example $(call mb_printf_warn,Deprecated feature used)
+## @example $(call mb_printf_warn,Configuration file missing)
+## @group mb_printf
+## @see mb_printf, mb_printf_info, mb_printf_error
 define mb_printf_warn
 $(strip \
 	$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_warning))\
@@ -314,6 +521,16 @@ $(strip \
 )
 endef
 
+## @function mb_printf_error
+## @desc Print error message with timestamp and project name
+## @arg 1: msg (required) - Error message to print
+## @arg 2: project_name (optional) - Project name override
+## @arg 3: use_breakline (optional) - Add newline
+## @arg 4: use_shell (optional) - Use shell for output
+## @example $(call mb_printf_error,Build failed)
+## @example $(call mb_printf_error,Invalid configuration detected)
+## @group mb_printf
+## @see mb_printf, mb_printf_info, mb_printf_warn
 define mb_printf_error
 $(strip \
 	$(eval mb_printf_internal_print := $(mb_printf_internal_print_using_error))\
@@ -321,7 +538,76 @@ $(strip \
 )
 endef
 
+## @function mb_normalizer
+## @desc Normalize text by escaping special characters for safe shell output
+## @arg 1: text (required) - Text to normalize
+## @returns Normalized text with escaped quotes and backticks
+## @group mb_printf
+## @see mb_printf_info, mb_printf_warn, mb_printf_error
 mb_normalizer = $(strip $(subst	`,\`, $(subst ",\",$1)))
+
+############################################################################################################################
+############################################################################################################################
+
+## @function mb_require_var
+## @desc Get variable value or error if not defined (helper for required config)
+## @arg 1: var_name (required) - Variable name to check
+## @arg 2: error_msg (required) - Error message if variable not defined
+## @returns Variable value
+## @group core
+## @example $(call mb_require_var,my_config_var,$0: my_config_var is required)
+define mb_require_var
+$(strip
+	$(if $(value $1),$(value $1),$(call mb_printf_error,$2))
+)
+endef
+
+## @function mb_exec_with_mode
+## @desc Execute command with mode selection (local/docker/docker-compose)
+## @desc Reads <prefix>_exec_mode to determine execution mode and delegates to appropriate handler.
+## @desc Supports three modes: local (uses <prefix>_bin), docker (uses dk_shellc with <prefix>_dk_container),
+## @desc and docker-compose (uses dc_shellc with <prefix>_dc_service).
+## @arg 1: command (required) - Command to execute
+## @arg 2: prefix (required) - Variable prefix for config lookup (e.g., "php", "localstack", "pg")
+## @example $(call mb_exec_with_mode,bash,localstack)
+## @example $(call mb_exec_with_mode,php --version,php)
+## @returns Command output via mode-specific handler function
+## @group exec_mode
+## @see mb_exec_with_mode_local, mb_invoke
+## @note Mode handlers are defined by modules: docker adds mb_exec_with_mode_docker,
+##       docker_compose adds mb_exec_with_mode_docker-compose, etc.
+define mb_exec_with_mode
+$(strip
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
+
+	$(eval $0_mode := $(call mb_require_var,$($0_arg2_prefix)_exec_mode,$0: $($0_arg2_prefix)_exec_mode not defined))
+	$(eval $0_handler := $0_$($0_mode))
+
+	$(if $(value $($0_handler)),,
+		$(call mb_printf_error,$0: unknown mode '$($0_mode)' for prefix '$($0_arg2_prefix)'. Handler '$($0_handler)' not defined. Ensure the required module is loaded.)
+	)
+
+	$(call $($0_handler),$($0_arg1_cmd),$($0_arg2_prefix))
+)
+endef
+
+## @function mb_exec_with_mode_local
+## @desc Execute command locally using the binary specified by <prefix>_bin
+## @arg 1: command (required) - Command to execute
+## @arg 2: prefix (required) - Variable prefix for config lookup
+## @requires <prefix>_bin - Path to the binary
+## @group exec_mode
+## @see mb_exec_with_mode
+define mb_exec_with_mode_local
+$(strip
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
+
+	$(eval $0_bin := $(call mb_require_var,$($0_arg2_prefix)_bin,$0: $($0_arg2_prefix)_bin not defined for local mode))
+	$(call mb_invoke,$($0_bin) $($0_arg1_cmd))
+)
+endef
 
 
 endif # __MB_CORE_FUNCTIONS_MK__

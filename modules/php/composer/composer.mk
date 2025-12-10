@@ -22,6 +22,9 @@ php/composer/run/%: ## Run composer <command>. Use variable cargs to pass extra 
 	$(call mb_printf_info, Running composer $($@_cmd) $(if $(value cargs), with arguments $(cargs)))
 	$(call php_composer_invoke,$($@_cmd) $($@_args))
 
+php/composer/run: # Wrapper for php/composer/run/%
+	$(call mb_printf_info,Usage: make php/composer/run/<command> [cargs="..."])
+
 php/composer/install: php/composer/run/install
 php/composer/install: ## Run composer install. Use variable cargs to pass extra parameters
 
@@ -30,9 +33,6 @@ php/composer/update: ## Run composer install. Use variable cargs to pass extra p
 
 php/composer/require: php/composer/run/require
 php/composer/require: ## Run composer require. Use variable cargs to pass extra parameters
-
-
-.PHONY: php/composer/run/% php/composer/install php/composer/update php/composer/require
 
 endif # __MB_MODULES_PHP_COMPOSER_TARGETS__
 
