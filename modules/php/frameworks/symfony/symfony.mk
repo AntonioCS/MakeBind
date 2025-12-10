@@ -8,6 +8,9 @@
 ifndef __MB_MODULES_PHP_SYMFONY__
 __MB_MODULES_PHP_SYMFONY__ := 1
 
+
+## $1: Command to run with flags
+## Internally it will be split into command and flags
 define php_sy_bin_console
 $(strip
 	$(eval
@@ -21,7 +24,7 @@ $(strip
 			$0_flags := $(strip $(wordlist 2,$(words $($0_args)),$($0_args)))
 		)
 	)
-	$(call php_invoke, $(php_sy_bin) $($0_cmd) $(if $(php_sy_verbose),-vvv) $($0_flags))
+	$(call php_invoke,$(php_sy_bin) $($0_cmd) $(php_sys_bin_console_options) $(if $(php_sy_verbose),-vvv) $($0_flags))
 )
 endef
 
@@ -43,7 +46,7 @@ php/sy/logs/tail/all: ## tail all symfony logs files
 	)
 
 php/sy/cache/clear: ## Clear symfony cache
-	$(call php_sy_bin_console,cache:clear $(php_sy_console_env_flag) --no-warmup)
+	$(call php_sy_bin_console,cache:clear --no-warmup)
 
 
 #php/sy/doctrine/db/drop: ## Drop the database using doctrine

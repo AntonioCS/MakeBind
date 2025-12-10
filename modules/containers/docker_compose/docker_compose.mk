@@ -173,13 +173,14 @@ endef
 ## @see mb_exec_with_mode, dc_shellc
 define mb_exec_with_mode_docker-compose
 $(strip
-	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
-	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
-	$(eval $0_service := $(call mb_require_var,$2_dc_service,$0: $2_dc_service not defined for docker-compose mode))
-	$(eval $0_shell := $(if $(value $2_dc_shell),$($2_dc_shell),$(dc_shellc_default_shell_bin)))
-	$(eval $0_cmd := $(if $(value $2_dc_cmd),$($2_dc_cmd),$(dc_shellc_default_cmd)))
-	$(eval $0_options := $(if $(value $2_dc_options),$($2_dc_options),$(dc_shellc_default_extra_options)))
-	$(call dc_shellc,$($0_service),$1,$($0_shell),$($0_cmd),$($0_options))
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
+
+	$(eval $0_service := $(call mb_require_var,$($0_arg2_prefix)_dc_service,$0: $($0_arg2_prefix)_dc_service not defined for docker-compose mode))
+	$(eval $0_shell := $(if $(value $($0_arg2_prefix)_dc_shell),$($($0_arg2_prefix)_dc_shell),$(dc_shellc_default_shell_bin)))
+	$(eval $0_cmd := $(if $(value $($0_arg2_prefix)_dc_cmd),$($($0_arg2_prefix)_dc_cmd),$(dc_shellc_default_cmd)))
+	$(eval $0_options := $(if $(value $($0_arg2_prefix)_dc_options),$($($0_arg2_prefix)_dc_options),$(dc_shellc_default_extra_options)))
+	$(call dc_shellc,$($0_service),$($0_arg1_cmd),$($0_shell),$($0_cmd),$($0_options))
 )
 endef
 
@@ -306,26 +307,5 @@ dc/config: ## Show docker compose configuration
 
 #https://www.gnu.org/software/make/manual/html_node/Parallel-Disable.html
 .NOTPARALLEL: dc/restart dc/rebuild
-
-.PHONY: \
-	dc/pre/up \
-	dc/up \
-	dc/start \
-	dc/stop \
-	dc/down \
-	dc/logs \
-	dc/logs-follow \
-	dc/status \
-	dc/status-all \
-	dc/restart \
-	dc/build \
-	dc/rebuild \
-	dc/remove \
-	dc/nuke \
-	dc/nuke-all \
-	dc/invoke \
-	dc/stats \
-	dc/config \
-	dc/network-default-ensure
 
 endif # __MB_MODULES_DOCKER_DOCKER_COMPOSE_TARGETS__

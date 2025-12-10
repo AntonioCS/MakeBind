@@ -19,11 +19,6 @@ __MB_MODULES_AWS_SQS := 1
 #   aws_attributes_json        -> JSON for create/set-attributes
 # =============================================================================
 
-.PHONY: aws/sqs/list aws/sqs/create/% aws/sqs/url/% \
-        aws/sqs/send aws/sqs/receive aws/sqs/delete-message \
-        aws/sqs/purge aws/sqs/delete \
-        aws/sqs/attributes aws/sqs/set-attributes
-
 aws_sqs_get_queue_url_cache_ttl ?= 3600 # Cache for 1 hour
 
 # $1 - Queue name
@@ -75,6 +70,9 @@ aws/sqs/url/%: ## Get queue URL for <queue-name>
 		$(call mb_printf_error,Invalid queue - $($@_name))\
 	)
 
+aws/sqs/url: # Wrapper for aws/sqs/url/%
+	$(call mb_printf_info,Usage: make aws/sqs/url/<queue-name>)
+
 #$(call mb_aws_invoke,sqs get-queue-url --queue-name "$($@_name)" --query QueueUrl --output text))
 # ---- Create / Delete / Purge -------------------------------------------------
 
@@ -85,6 +83,9 @@ aws/sqs/create/%: ## Create queue <queue-name> [optional: aws_attributes_json='{
 	)
 	$(call mb_aws_invoke,sqs create-queue --queue-name "$($@_name)" $($@_attrs))
 
+aws/sqs/create: # Wrapper for aws/sqs/create/%
+	$(call mb_printf_info,Usage: make aws/sqs/create/<queue-name> [aws_attributes_json='...'])
+
 aws/sqs/delete/%: ## Delete queue <queue name|url> [requires confirmation]
 	$(eval $@_url = $(call aws_if_queue_name_give_url,$*))
 	$(if $(call mb_user_confirm,Delete queue $($@_url)?), \
@@ -94,6 +95,9 @@ aws/sqs/delete/%: ## Delete queue <queue name|url> [requires confirmation]
 		$(call mb_printf_warn,Aborted by user) \
 	)
 
+aws/sqs/delete: # Wrapper for aws/sqs/delete/%
+	$(call mb_printf_info,Usage: make aws/sqs/delete/<queue-name|url>)
+
 aws/sqs/purge/%: ## Purge ALL messages from <queue name|url> [requires confirmation]: aws_queue_url=<url>
 	$(eval $@_url = $(call aws_if_queue_name_give_url,$*))
 	$(if $(call mb_user_confirm,Purge ALL messages from $($@_url)?), \
@@ -102,6 +106,9 @@ aws/sqs/purge/%: ## Purge ALL messages from <queue name|url> [requires confirmat
 	, \
 		$(call mb_printf_warn,Aborted by user) \
 	)
+
+aws/sqs/purge: # Wrapper for aws/sqs/purge/%
+	$(call mb_printf_info,Usage: make aws/sqs/purge/<queue-name|url>)
 
 # ---- Send / Receive / Delete message ----------------------------------------
 
@@ -139,6 +146,8 @@ aws/sqs/peek/%: ## Peek messages from queue <queue-name>
 			--message-attribute-names All | jq . \
 	)
 
+aws/sqs/peek: # Wrapper for aws/sqs/peek/%
+	$(call mb_printf_info,Usage: make aws/sqs/peek/<queue-name>)
 
 # ---- Queue attributes --------------------------------------------------------
 

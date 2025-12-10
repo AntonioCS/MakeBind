@@ -578,19 +578,17 @@ endef
 ##       docker_compose adds mb_exec_with_mode_docker-compose, etc.
 define mb_exec_with_mode
 $(strip
-	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
-	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
 
-	$(eval $0_cmd := $(strip $1))
-	$(eval $0_p := $(strip $2))
-	$(eval $0_mode := $(call mb_require_var,$($0_p)_exec_mode,$0: $($0_p)_exec_mode not defined))
-	$(eval $0_handler := mb_exec_with_mode_$($0_mode))
+	$(eval $0_mode := $(call mb_require_var,$($0_arg2_prefix)_exec_mode,$0: $($0_arg2_prefix)_exec_mode not defined))
+	$(eval $0_handler := $0_$($0_mode))
 
 	$(if $(value $($0_handler)),,
-		$(call mb_printf_error,$0: unknown mode '$($0_mode)' for prefix '$($0_p)'. Handler '$($0_handler)' not defined. Ensure the required module is loaded.)
+		$(call mb_printf_error,$0: unknown mode '$($0_mode)' for prefix '$($0_arg2_prefix)'. Handler '$($0_handler)' not defined. Ensure the required module is loaded.)
 	)
 
-	$(call $($0_handler),$($0_cmd),$($0_p))
+	$(call $($0_handler),$($0_arg1_cmd),$($0_arg2_prefix))
 )
 endef
 
@@ -603,10 +601,11 @@ endef
 ## @see mb_exec_with_mode
 define mb_exec_with_mode_local
 $(strip
-	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
-	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
-	$(eval $0_bin := $(call mb_require_var,$2_bin,$0: $2_bin not defined for local mode))
-	$(call mb_invoke,$($0_bin) $1)
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
+
+	$(eval $0_bin := $(call mb_require_var,$($0_arg2_prefix)_bin,$0: $($0_arg2_prefix)_bin not defined for local mode))
+	$(call mb_invoke,$($0_bin) $($0_arg1_cmd))
 )
 endef
 

@@ -217,11 +217,12 @@ endef
 ## @see mb_exec_with_mode, dk_shellc
 define mb_exec_with_mode_docker
 $(strip
-	$(if $(value 1),,$(call mb_printf_error,$0: command argument required))
-	$(if $(value 2),,$(call mb_printf_error,$0: prefix argument required))
-	$(eval $0_container := $(call mb_require_var,$2_dk_container,$0: $2_dk_container not defined for docker mode))
-	$(eval $0_shell := $(if $(value $2_dk_shell),$($2_dk_shell),$(dk_shell_default)))
-	$(eval $0_tty := $(if $(value $2_dk_tty),$($2_dk_tty),$(dk_exec_default_tty)))
-	$(call dk_shellc,$($0_container),$1,$($0_shell),$($0_tty))
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
+	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
+
+	$(eval $0_container := $(call mb_require_var,$($0_arg2_prefix)_dk_container,$0: $($0_arg2_prefix)_dk_container not defined for docker mode))
+	$(eval $0_shell := $(if $(value $($0_arg2_prefix)_dk_shell),$($($0_arg2_prefix)_dk_shell),$(dk_shell_default)))
+	$(eval $0_tty := $(if $(value $($0_arg2_prefix)_dk_tty),$($($0_arg2_prefix)_dk_tty),$(dk_exec_default_tty)))
+	$(call dk_shellc,$($0_container),$($0_arg1_cmd),$($0_shell),$($0_tty))
 )
 endef

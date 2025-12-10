@@ -119,27 +119,30 @@ endef
 # LocalStack-Specific Targets
 #####################################################################################
 
-.PHONY: localstack/health localstack/status localstack/shell localstack/validate localstack/diagnostics
-.PHONY: localstack/s3/list-all localstack/sqs/purge-all
-
 localstack/health: ## Check if LocalStack is running and healthy
 	$(call localstack_api_check,/_localstack/health,LocalStack is healthy at $(localstack_endpoint_url))
 
 localstack/status: ## Show LocalStack initialization status
 	$(call localstack_api_json,/_localstack/init)
 
-localstack/shell: ## Open shell in LocalStack container (external container)
-	$(call dk_invoke,exec,-it,$(localstack_container_name),$(localstack_shell))
+ifneq ($(localstack_exec_mode),local)
+localstack/shell: ## Open shell in LocalStack container
+	$(if $(filter docker,$(localstack_exec_mode)),\
+		$(call dk_invoke,exec,-it,$(localstack_dk_container),$(localstack_dk_shell))\
+	,\
+		$(call dc_invoke,exec,,$(localstack_dc_service),$(localstack_dc_shell))\
+	)
+endif # localstack_exec_mode != local
 
 localstack/validate: ## Validate LocalStack configuration
-	$(if $(value localstack_container_name),,$(call mb_printf_error,localstack_container_name not set))
+	$(if $(value localstack_dk_container),,$(call mb_printf_error,localstack_dk_container not set))
 	$(if $(value localstack_endpoint_url),,$(call mb_printf_error,localstack_endpoint_url not set))
 	$(call mb_printf_info,LocalStack configuration valid)
 
 localstack/diagnostics: ## Run comprehensive LocalStack diagnostics
 	$(call mb_printf_info,=== LocalStack Diagnostics ===)
 	$(call mb_printf_info,Endpoint: $(localstack_endpoint_url))
-	$(call mb_printf_info,Container: $(localstack_container_name))
+	$(call mb_printf_info,Container: $(localstack_dk_container))
 	echo ""
 	$(call mb_printf_info,--- Health Check ---)
 	$(call localstack_api_check,/_localstack/health)
@@ -151,6 +154,9 @@ localstack/diagnostics: ## Run comprehensive LocalStack diagnostics
 	$(call localstack_api_json,/_localstack/init,.services // {} | keys)
 	echo ""
 	$(call mb_printf_info,=== Diagnostics Complete ===)
+
+localstack/version: ## Show LocalStack version
+	$(call localstack_api_json,/_localstack/info,.version)
 
 #####################################################################################
 # Convenience Targets (Common Operations)
