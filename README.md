@@ -49,7 +49,7 @@ powershell -Command "Invoke-WebRequest -Uri 'https://raw.githubusercontent.com/A
 - This command downloads the Makefile template and creates a Makefile in your current directory.
 - `make` will then automatically execute and check for the existence of the `MakeBind` folder in the path specified by `mb_mb_default_path` (default is `../MakeBind`, meaning it will search in the parent directory).
 - If the `MakeBind` folder does not exist, the latest release will be downloaded.
-- The folder `bind-hub` will be created in the current directory, which contains important configuration files, which are the `mb_config.mk` and `mb_project.mk` and a few other files and folders.
+- The folder `bind-hub` will be created in the current directory, which contains important configuration files, including `config.mk` and `project.mk`, plus an `internal/` subfolder for auto-generated files.
 - You will then see a list of available targets, and you can start using MakeBind.
 
 NOTE: if you want better control of where MakeBind is installed, you can either manually clone the repo or download from Github.
@@ -72,9 +72,9 @@ MakeBind is designed to be simple to use and easy to configure. Here are some co
   Run a specific target.
 
 ## Configuration
-As mentioned, when you run MakeBind for the first time, it will create the `mb_config.mk` and `mb_project.mk` files in the folder `bind-hub`. These files are used to configure MakeBind for your project.
-- In `mb_config.mk`, you can set all configuration variables that are used by MakeBind modules or your own modules. You can create a local version named `mb_config.local.mk` to override the default values (do not commit this file to your repository).
-- In `mb_project.mk`, you can add all targets that are specific to your project. You can create a local version named `mb_project.local.mk` to override the default values (do not commit this file to your repository).
+As mentioned, when you run MakeBind for the first time, it will create the `config.mk` and `project.mk` files in the folder `bind-hub`. These files are used to configure MakeBind for your project.
+- In `config.mk`, you can set all configuration variables that are used by MakeBind modules or your own modules. You can create a local version named `config.local.mk` to override the default values (do not commit this file to your repository).
+- In `project.mk`, you can add all targets that are specific to your project. You can create a local version named `project.local.mk` to override the default values (do not commit this file to your repository).
 - In the `bind-hub` folder, you can add all your custom modules in `bind-hub/modules`.
 
 ## Upgrading Make

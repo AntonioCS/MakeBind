@@ -1,3 +1,26 @@
+## [2.1.1] - 2025-12-10
+
+### Changed
+- **bind-hub folder restructure**: Simplified file naming and improved organization
+  - Renamed user-editable files to remove `mb_` prefix:
+    - `mb_config.mk` → `config.mk`
+    - `mb_project.mk` → `project.mk`
+    - `mb_config.local.mk` → `config.local.mk`
+    - `mb_project.local.mk` → `project.local.mk`
+  - Moved auto-generated modules file to `internal/` subfolder:
+    - `mb_modules.mk` → `internal/modules.mk`
+  - Updated internal variable names for consistency:
+    - `mb_project_bindhub_modules_file` → `mb_project_bindhub_internal_modules_file`
+  - Template files renamed to match new convention (`config.tpl.mk`, `project.tpl.mk`)
+
+### Added
+- **Deprecation detection**: Projects using old bind-hub structure (pre-2.1.1) will now fail with migration instructions
+- `core/deprecation.mk`: New file containing deprecation checks and error messages
+- `templates/README.bind-hub.md`: README template for new bind-hub folders explaining structure
+
+### Fixed
+- Improved clarity of bind-hub folder organization (user files vs auto-generated files)
+
 ## [2.1.0] - 2025-12-10
 
 ### Added

@@ -76,7 +76,7 @@ endif # Windows_NT
 ## 0_other_files_in_bind_hub_folder is important in case the user wants to include additional files
 define mb_targets_list_get_files
 $(strip
-	$(eval $0_files_project := $(filter $(mb_project_mb_project_mk_file) $(mb_project_mb_project_mk_local_file),$(MAKEFILE_LIST)))
+	$(eval $0_files_project := $(filter $(mb_project_file) $(mb_project_local_file),$(MAKEFILE_LIST)))
 	$(eval $0_files_mb_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$(filter $(mb_modules_path)/%,$(MAKEFILE_LIST))))
 	$(eval $0_files_in_bindhub_modules_folder := $(filter $(mb_project_bindhub_modules_path)/%,$(MAKEFILE_LIST)))
 	$(eval $0_files_project_modules := $(filter-out %/mod_info.mk %/mod_config.mk,$($0_files_in_bindhub_modules_folder)))

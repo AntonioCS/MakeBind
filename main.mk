@@ -47,6 +47,10 @@ include $(mb_core_path)/util.mk
 include $(mb_core_path)/functions.mk
 include $(mb_core_path)/modules_manager.mk
 include $(mb_core_path)/targets.mk
+include $(mb_core_path)/deprecation.mk
+
+## Check for deprecated bind-hub structure (pre-2.1.1)
+$(if $(call mb_check_deprecated_bindhub),$(error $(mb_deprecated_bindhub_error_msg)))
 
 
 #https://www.gnu.org/software/make/manual/html_node/Options-Summary.html
@@ -88,14 +92,14 @@ $(call mb_debug_print, mb_modules_path: $(mb_modules_path))
 $(call mb_debug_print, mb_project_makefile: $(mb_project_makefile))
 $(call mb_debug_print, mb_project_bindhub_path: $(mb_project_bindhub_path))
 $(call mb_debug_print, mb_project_bindhub_modules_path: $(mb_project_bindhub_modules_path))
-$(call mb_debug_print, mb_project_mb_config_file: $(mb_project_mb_config_file))
-$(call mb_debug_print, mb_project_mb_config_local_file: $(mb_project_mb_config_local_file))
-$(call mb_debug_print, mb_project_mb_project_mk_file: $(mb_project_mb_project_mk_file))
-$(call mb_debug_print, mb_project_mb_project_mk_local_file: $(mb_project_mb_project_mk_local_file))
+$(call mb_debug_print, mb_project_config_file: $(mb_project_config_file))
+$(call mb_debug_print, mb_project_config_local_file: $(mb_project_config_local_file))
+$(call mb_debug_print, mb_project_file: $(mb_project_file))
+$(call mb_debug_print, mb_project_local_file: $(mb_project_local_file))
 $(call mb_debug_print, mb_default_shell_not_windows: $(mb_default_shell_not_windows))
 
 
-ifeq ($(and $(mb_check_missing_project_files),$(or $(call mb_not_exists,$(mb_project_mb_config_file)),$(call mb_not_exists,$(mb_project_mb_project_mk_file)))),$(mb_true))
+ifeq ($(and $(mb_check_missing_project_files),$(or $(call mb_not_exists,$(mb_project_config_file)),$(call mb_not_exists,$(mb_project_file)))),$(mb_true))
 ifeq ($(mb_auto_include_init_project_if_config_missing),$(mb_on))
 $(call mb_debug_print, Including init_project since files are missing)
 include $(mb_core_path)/init_project.mk
@@ -106,8 +110,8 @@ endif
 
 ## Include the project specific configuration and target files
 $(call mb_debug_print, Including project config files)
-include $(mb_project_mb_config_file)
--include $(mb_project_mb_config_local_file)
+include $(mb_project_config_file)
+-include $(mb_project_config_local_file)
 
 $(call mb_modules_build_db)
 $(call mb_load_modules)
@@ -119,6 +123,6 @@ $(call mb_load_modules)
 ## Then the target that the user has created in either mb_project.mk or the modules
 
 $(call mb_debug_print, Including project target files)
-include $(mb_project_mb_project_mk_file)
--include $(mb_project_mb_project_mk_local_file)
+include $(mb_project_file)
+-include $(mb_project_local_file)
 
