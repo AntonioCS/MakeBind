@@ -59,7 +59,7 @@ make mb/help-<keyword>
 ```
 
 ### Debugging
-Set debug flags in your environment or mb_config.mk:
+Set debug flags in your environment or config.mk:
 - `mb_debug=1` - Enable general debugging
 - `mb_debug_modules=1` - Debug module loading
 - `mb_debug_targets=1` - Debug target listing
@@ -106,7 +106,7 @@ Set debug flags in your environment or mb_config.mk:
 
 **Module Loading Process**:
 1. Build module database from all mod_info.mk files
-2. Read `bind-hub/mb_modules.mk` for enabled modules
+2. Read `bind-hub/internal/modules.mk` for enabled modules
 3. For each enabled module:
    - Load module's `mod_config.mk` (if exists)
    - Load project override: `bind-hub/configs/<module>_config.mk` (if exists)
@@ -124,15 +124,15 @@ Set debug flags in your environment or mb_config.mk:
 ### Project Configuration
 
 **Configuration Hierarchy** (bind-hub folder):
-1. `mb_config.mk` - Project configuration (committed)
-2. `mb_config.local.mk` - Local overrides (gitignored)
-3. `mb_project.mk` - Project-specific targets (committed)
-4. `mb_project.local.mk` - Local target overrides (gitignored)
-5. `mb_modules.mk` - Auto-generated list of enabled modules (DO NOT EDIT)
-6. `configs/` - Module configuration overrides
-7. `modules/` - Project-specific custom modules
+1. `config.mk` - Project configuration (committed)
+2. `config.local.mk` - Local overrides (gitignored)
+3. `project.mk` - Project-specific targets (committed)
+4. `project.local.mk` - Local target overrides (gitignored)
+5. `internal/modules.mk` - Auto-generated list of enabled modules (DO NOT EDIT)
+6. `configs/` - Module configuration overrides (created on-demand)
+7. `modules/` - Project-specific custom modules (created on-demand)
 
-**Important Variables** (in mb_config.mk):
+**Important Variables** (in config.mk):
 - `mb_project_path` - Absolute path to project root (REQUIRED)
 - `mb_makebind_path` - Path to MakeBind installation
 - `mb_default_target` - Default target (default: mb/targets-list)
@@ -143,11 +143,11 @@ Set debug flags in your environment or mb_config.mk:
 
 Understanding the load order is critical:
 1. `Makefile` includes `main.mk`
-2. `main.mk` loads `mb_config.mk` and `mb_config.local.mk`
+2. `main.mk` loads `config.mk` and `config.local.mk`
 3. Core utilities loaded (util.mk, functions.mk)
 4. Module database built (`mb_modules_build_db`)
 5. Modules loaded (`mb_load_modules`)
-6. Project targets loaded (`mb_project.mk`, `mb_project.local.mk`)
+6. Project targets loaded (`project.mk`, `project.local.mk`)
 
 This order ensures:
 - Module targets can be overridden by project targets

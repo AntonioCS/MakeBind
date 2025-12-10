@@ -13,12 +13,12 @@ mb_modules_db_all_modules :=# Empty
 mb_modules_mod_info_file_name := mod_info.mk
 mb_modules_mod_config_file_name := mod_config.mk
 
-### NOTE: Use mb_project_bindhub_modules_file for project modules file
+### NOTE: Use mb_project_bindhub_internal_modules_file for project modules file
 
 define mb_modules_header
 #####################################################################################
 # Project: MakeBind
-# File: mb_modules.mk
+# File: internal/modules.mk
 # Description: Module structure for MakeBind
 # Author: AntonioCS
 # License: MIT License
@@ -60,8 +60,9 @@ endef
 ## NOTE: This must be called after the creation of the bind-hub folder
 ## This was causing problems on fresh projects that had no bind folder
 define mb_modules_build_mod_file
-$(file > $(mb_project_bindhub_modules_file),$(mb_modules_header))
-$(file >> $(mb_project_bindhub_modules_file),mb_project_modules_loaded :=$(if $(value mb_project_modules_loaded), $(mb_project_modules_loaded),## No modules added))
+$(if $(wildcard $(mb_project_bindhub_internal_path)),,$(error Internal folder missing: $(mb_project_bindhub_internal_path). Run project initialization first.))
+$(file > $(mb_project_bindhub_internal_modules_file),$(mb_modules_header))
+$(file >> $(mb_project_bindhub_internal_modules_file),mb_project_modules_loaded :=$(if $(value mb_project_modules_loaded), $(mb_project_modules_loaded),## No modules added))
 endef
 
 
@@ -79,7 +80,7 @@ endef
 ## Build the database of modules
 define mb_modules_build_db
 $(strip
-	$(if $(wildcard $(mb_project_bindhub_modules_file)),,
+	$(if $(wildcard $(mb_project_bindhub_internal_modules_file)),,
 		$(call mb_modules_build_mod_file)
 	)
 	$(eval $0_all_modules_info_path := $(call mb_modules_find_info,$(mb_modules_path)/))
@@ -127,7 +128,7 @@ define mb_load_modules
 $(strip
 	$(if $(value mb_project_modules), $(call mb_printf_warn, mb_project_modules is now deprecated$(mb_comma) please remove it and use mb/modules/add to add your modules))
 	$(call mb_debug_print, Starting modules loading,$(mb_debug_modules))
-	$(eval -include $(mb_project_bindhub_modules_file))
+	$(eval -include $(mb_project_bindhub_internal_modules_file))
 	$(foreach $0_mod,$(mb_project_modules_loaded),
 		$(call mb_debug_print, Loading module: $($0_mod),$(mb_debug_modules))
 		$(if $(call mb_module_is_valid_mod,$($0_mod)),
