@@ -319,10 +319,18 @@ Before writing module code, review `main.mk` for active settings:
 - `.SECONDEXPANSION:` - enables `$$@` and `$$*` in prerequisites for dynamic expansion
 
 ### Changelog
-When making significant changes, update `CHANGELOG.md`:
+**IMPORTANT**: When making significant changes, you MUST update `CHANGELOG.md`. This includes:
+- New modules
+- New features or targets
+- Breaking changes
+- Bug fixes
+
+Rules:
 - Follow [Keep a Changelog](https://keepachangelog.com/) format
 - Group changes under: Added, Changed, Deprecated, Removed, Fixed, Security
 - Include version number and date for releases
+- Bump minor version (e.g., 2.1.0 → 2.2.0) for new features/modules
+- Bump patch version (e.g., 2.1.0 → 2.1.1) for bug fixes
 
 ### Trello Board
 **Board ID: `vBmmD6it`** - Must be set at the start of each session using `mcp__trello__set_active_board`.

@@ -1,3 +1,18 @@
+## [2.2.0] - 2025-12-15
+
+### Added
+- **Terraform module**: New workflow automation for multi-environment Terraform deployments
+  - `tf_run` function for executing terraform commands with automatic shared vars inclusion
+  - `tf_build_chdir`, `tf_build_var_file`, `tf_is_auto_approve_env` helper functions
+  - Pattern targets: `terraform/init/%`, `terraform/plan/%`, `terraform/apply/%`, `terraform/destroy/%`, `terraform/validate/%`, `terraform/output/%`, `terraform/state/list/%`, `terraform/refresh/%`
+  - Utility targets: `terraform/fmt`, `terraform/fmt/check`, `terraform/version`
+  - Configuration: `tf_bin`, `tf_root_dir`, `tf_env_dir`, `tf_shared_vars` (multi-file support), `tf_auto_approve_envs`, `tf_destroy_confirm`, `tf_chdir_flag`
+  - Comprehensive test suite (15 tests, 36 assertions)
+- **LocalStack module enhancements**:
+  - `localstack/s3/ls` target with optional `bucket=` parameter
+  - `localstack/sqs/ls` target for listing queues
+  - Comprehensive test suite (11 tests, 26 assertions)
+
 ## [2.1.1] - 2025-12-10
 
 ### Changed
