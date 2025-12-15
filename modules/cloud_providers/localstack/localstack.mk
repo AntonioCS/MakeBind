@@ -115,6 +115,7 @@ $(strip \
 )
 endef
 
+ifndef __MB_TEST_DISCOVERY__
 #####################################################################################
 # LocalStack-Specific Targets
 #####################################################################################
@@ -162,6 +163,9 @@ localstack/version: ## Show LocalStack version
 # Convenience Targets (Common Operations)
 #####################################################################################
 
+localstack/s3/ls: ## List S3 buckets or bucket contents (optional: bucket=my-bucket)
+	$(call localstack_cmd,s3 ls $(if $(value bucket),s3://$(bucket),))
+
 localstack/s3/list-all: ## List all S3 buckets with details
 	$(call localstack_cmd,s3 ls)
 	echo ""
@@ -178,6 +182,9 @@ localstack/s3/list-all: ## List all S3 buckets with details
 		),\
 		$(call mb_printf_warn,No buckets found)\
 	)
+
+localstack/sqs/ls: ## List all SQS queues
+	$(call localstack_cmd,sqs list-queues)
 
 localstack/sqs/purge-all: ## Purge all SQS queues (use with caution!)
 	$(call mb_printf_warn,Purging all SQS queues...)
@@ -216,5 +223,7 @@ localstack/aws/%: aws/% ;
 
 localstack/aws: # Wrapper for localstack/aws/%
 	$(call mb_printf_info,Usage: make localstack/aws/<aws_target> (e.g.$(mb_comma) localstack/aws/s3/create/my-bucket))
+
+endif # __MB_TEST_DISCOVERY__
 
 endif # __MB_MODULES_LOCALSTACK__
