@@ -84,8 +84,8 @@ $(strip
 	$(eval $0_other_files_in_bind_hub_folder := $(filter-out \
 		$($0_files_project_modules) \
 		%/mod_info.mk %/mod_config.mk \
-		%/mb_config.mk %/mb_modules.mk \
-		%_config.mk %mb_project.mk \
+		%/mb_config.mk %/mb_modules.mk %/config.mk \
+		%_config.mk %mb_project.mk %/project.mk \
 		$(mb_project_bindhub_modules_path)/%, \
 		$(filter $(mb_project_bindhub_path)/%,$(MAKEFILE_LIST))))
 
