@@ -62,3 +62,10 @@ tf_destroy_confirm ?= $(mb_true)
 ## @default $(mb_true)
 ## @group terraform
 tf_chdir_flag ?= $(mb_true)
+
+## @var tf_no_var_file_cmds
+## @desc Space-separated list of terraform commands that don't support -var-file
+## @type string
+## @default init validate output state
+## @group terraform
+tf_no_var_file_cmds ?= init validate output state

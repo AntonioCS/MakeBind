@@ -1,3 +1,11 @@
+## [2.2.2] - 2025-12-15
+
+### Changed
+- **Terraform module**: Refactored to use `tf_no_var_file_cmds` config list instead of `skip_vars` parameter
+  - New `tf_no_var_file_cmds` variable (default: `init validate output state`)
+  - `tf_run` automatically skips `-var-file` for commands in the list
+  - Use `mb_is_true` for boolean checks instead of `$(filter $(mb_true),...)`
+
 ## [2.2.1] - 2025-12-15
 
 ### Fixed
