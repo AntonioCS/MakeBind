@@ -1,3 +1,10 @@
+## [2.2.3] - 2025-12-15
+
+### Fixed
+- **Target listing**: Fix duplicate targets appearing after bind-hub restructure (v2.1.1)
+  - Added `%/project.mk` and `%/config.mk` to filter-out patterns
+  - Previously `project.mk` was included in both project files and other bind-hub files
+
 ## [2.2.2] - 2025-12-15
 
 ### Changed
