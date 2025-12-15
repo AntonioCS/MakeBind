@@ -170,20 +170,33 @@ define test_modules_terraform_run_with_shared_vars
 	$(eval mb_invoke_silent := $(mb_off))
 endef
 
-define test_modules_terraform_run_skip_vars
+define test_modules_terraform_run_no_var_file_cmds
 	$(eval mb_invoke_silent := $(mb_on))
 	$(eval tf_bin := terraform)
 	$(eval tf_chdir_flag := $(mb_true))
 	$(eval tf_env_dir := terraform/environments)
 	$(eval tf_shared_vars := ../../shared/common.tfvars)
+	$(eval tf_no_var_file_cmds := init validate output state)
 
-	## With skip_vars=$(mb_true), should NOT include -var-file
-	$(eval $0_result := $(call tf_run,local,validate,,$(mb_true)))
+	## Commands in tf_no_var_file_cmds should NOT include -var-file
+	$(eval $0_result := $(call tf_run,local,validate))
 	$(call mb_assert_contains,terraform,$($0_result))
 	$(call mb_assert_contains,validate,$($0_result))
 	$(call mb_assert_not_empty,$(findstring -chdir,$($0_result)))
-	## Verify -var-file is NOT present
-	$(call mb_assert_empty,$(findstring -var-file,$($0_result)),skip_vars should exclude -var-file)
+	$(call mb_assert_empty,$(findstring -var-file,$($0_result)),validate should not have -var-file)
+
+	## Test init (also in the list)
+	$(eval $0_result := $(call tf_run,local,init))
+	$(call mb_assert_empty,$(findstring -var-file,$($0_result)),init should not have -var-file)
+
+	## Test state list (multi-word command, first word is "state")
+	$(eval $0_result := $(call tf_run,local,state list))
+	$(call mb_assert_contains,state list,$($0_result))
+	$(call mb_assert_empty,$(findstring -var-file,$($0_result)),state should not have -var-file)
+
+	## Test plan (NOT in list) - should include -var-file
+	$(eval $0_result := $(call tf_run,local,plan))
+	$(call mb_assert_not_empty,$(findstring -var-file,$($0_result)),plan should have -var-file)
 
 	$(eval tf_shared_vars :=)
 	$(eval mb_invoke_silent := $(mb_off))
@@ -223,6 +236,7 @@ define test_modules_terraform_config_defaults
 	$(eval tf_auto_approve_envs := local)
 	$(eval tf_destroy_confirm := $(mb_true))
 	$(eval tf_chdir_flag := $(mb_true))
+	$(eval tf_no_var_file_cmds := init validate output state)
 
 	$(call mb_assert_eq,terraform,$(tf_bin))
 	$(call mb_assert_eq,terraform,$(tf_root_dir))
@@ -231,6 +245,7 @@ define test_modules_terraform_config_defaults
 	$(call mb_assert_eq,local,$(tf_auto_approve_envs))
 	$(call mb_assert_eq,$(mb_true),$(tf_destroy_confirm))
 	$(call mb_assert_eq,$(mb_true),$(tf_chdir_flag))
+	$(call mb_assert_eq,init validate output state,$(tf_no_var_file_cmds))
 endef
 
 ######################################################################################
