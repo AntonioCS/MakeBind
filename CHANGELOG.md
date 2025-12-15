@@ -1,3 +1,8 @@
+## [2.2.4] - 2025-12-15
+
+### Added
+- **Docker Compose module**: New `dc/pull` target to pull latest images for all services
+
 ## [2.2.3] - 2025-12-15
 
 ### Fixed
