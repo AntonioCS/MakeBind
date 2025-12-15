@@ -78,15 +78,17 @@ endef
 
 ## @function tf_run
 ## @desc Execute terraform command in environment directory
-## @desc Automatically includes shared tfvars if tf_shared_vars is set
+## @desc Automatically includes shared tfvars if tf_shared_vars is set (unless skip_vars is true)
 ## @arg 1: env (required) - Environment name (e.g., local, dev, prod)
 ## @arg 2: command (required) - Terraform command (e.g., init, plan, apply)
 ## @arg 3: extra_args (optional) - Additional arguments
+## @arg 4: skip_vars (optional) - Set to $(mb_true) to skip -var-file inclusion (for commands that don't support it)
 ## @returns Command output via mb_invoke
 ## @group terraform
-## @example $(call tf_run,local,init)
+## @example $(call tf_run,local,init,,,$(mb_true))
 ## @example $(call tf_run,dev,plan,-detailed-exitcode)
 ## @example $(call tf_run,prod,apply,-auto-approve)
+## @note Commands that don't support -var-file: init, validate, output, state
 define tf_run
 $(strip \
 	$(if $(value 1),,$(call mb_printf_error,$0: env required)) \
@@ -94,8 +96,9 @@ $(strip \
 	$(eval $0_arg1_env := $(strip $1)) \
 	$(eval $0_arg2_cmd := $(strip $2)) \
 	$(eval $0_arg3_extra := $(if $(value 3),$(strip $3))) \
+	$(eval $0_arg4_skip_vars := $(if $(value 4),$(strip $4))) \
 	$(eval $0_chdir := $(call tf_build_chdir,$($0_arg1_env))) \
-	$(eval $0_var_file := $(call tf_build_var_file)) \
+	$(eval $0_var_file := $(if $(filter $(mb_true),$($0_arg4_skip_vars)),,$(call tf_build_var_file))) \
 	$(call mb_invoke,$(tf_bin) $($0_chdir) $($0_arg2_cmd) $($0_var_file) $($0_arg3_extra)) \
 )
 endef
@@ -107,7 +110,7 @@ ifndef __MB_TEST_DISCOVERY__
 
 terraform/init/%: ## Initialize Terraform for environment (usage: make terraform/init/local)
 	$(call mb_printf_info,Initializing Terraform for $* environment...)
-	$(call tf_run,$*,init)
+	$(call tf_run,$*,init,,$(mb_true))
 
 terraform/plan/%: ## Plan Terraform changes (usage: make terraform/plan/dev)
 	$(call mb_printf_info,Planning Terraform changes for $* environment...)
@@ -131,13 +134,13 @@ terraform/destroy/%: ## Destroy Terraform infrastructure (usage: make terraform/
 
 terraform/validate/%: ## Validate Terraform configuration (usage: make terraform/validate/local)
 	$(call mb_printf_info,Validating Terraform configuration for $*...)
-	$(call tf_run,$*,validate)
+	$(call tf_run,$*,validate,,$(mb_true))
 
 terraform/output/%: ## Show Terraform outputs (usage: make terraform/output/local)
-	$(call tf_run,$*,output)
+	$(call tf_run,$*,output,,$(mb_true))
 
 terraform/state/list/%: ## List Terraform state resources (usage: make terraform/state/list/local)
-	$(call tf_run,$*,state list)
+	$(call tf_run,$*,state list,,$(mb_true))
 
 terraform/refresh/%: ## Refresh Terraform state (usage: make terraform/refresh/local)
 	$(call mb_printf_info,Refreshing Terraform state for $*...)

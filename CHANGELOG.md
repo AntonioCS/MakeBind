@@ -1,3 +1,10 @@
+## [2.2.1] - 2025-12-15
+
+### Fixed
+- **Terraform module**: Added `skip_vars` parameter to `tf_run` function for commands that don't support `-var-file`
+  - Commands that now correctly skip `-var-file`: `init`, `validate`, `output`, `state list`
+  - New test: `test_modules_terraform_run_skip_vars`
+
 ## [2.2.0] - 2025-12-15
 
 ### Added
