@@ -255,6 +255,9 @@ dc/build:: ## Build all containers
 	$(call mb_os_detection)
 	$(call dc_invoke,build,--parallel $(if $(mb_os_is_linux_or_osx),$(dc_build_args_linux_mac)))
 
+dc/pull: ## Pull latest images for all services
+	$(call dc_invoke,pull)
+
 dc/rebuild: ## Rebuild all containers (calls dc/stop & dc/build with --no-cache & dc/start)
 dc/rebuild: dc/stop
 dc/rebuild: dc_cmd_options_build := --no-cache
