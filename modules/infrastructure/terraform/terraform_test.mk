@@ -170,6 +170,25 @@ define test_modules_terraform_run_with_shared_vars
 	$(eval mb_invoke_silent := $(mb_off))
 endef
 
+define test_modules_terraform_run_skip_vars
+	$(eval mb_invoke_silent := $(mb_on))
+	$(eval tf_bin := terraform)
+	$(eval tf_chdir_flag := $(mb_true))
+	$(eval tf_env_dir := terraform/environments)
+	$(eval tf_shared_vars := ../../shared/common.tfvars)
+
+	## With skip_vars=$(mb_true), should NOT include -var-file
+	$(eval $0_result := $(call tf_run,local,validate,,$(mb_true)))
+	$(call mb_assert_contains,terraform,$($0_result))
+	$(call mb_assert_contains,validate,$($0_result))
+	$(call mb_assert_not_empty,$(findstring -chdir,$($0_result)))
+	## Verify -var-file is NOT present
+	$(call mb_assert_empty,$(findstring -var-file,$($0_result)),skip_vars should exclude -var-file)
+
+	$(eval tf_shared_vars :=)
+	$(eval mb_invoke_silent := $(mb_off))
+endef
+
 define test_modules_terraform_run_error_without_env
 	$(eval mb_invoke_silent := $(mb_on))
 
