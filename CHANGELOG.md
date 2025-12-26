@@ -1,3 +1,17 @@
+## [2.2.5] - 2025-12-26
+
+### Added
+- **Docker module**: Network management targets
+  - `docker/network/create/<name>` - Create a network (fails if exists)
+  - `docker/network/ensure/<name>` - Create network if it doesn't exist (idempotent)
+  - `docker/network/remove/<name>` - Remove a network (fails if doesn't exist)
+  - Flexible configuration via target parameters or variables:
+    - Target format: `<name>[@driver][@subnet][@gateway]`
+    - Variable format: `docker_network_<name>_driver`, `docker_network_<name>_subnet`, `docker_network_<name>_gateway`
+  - `docker_network_ignore_errors` variable to suppress errors silently
+  - `dk_network_default_driver` config (default: bridge)
+  - Helper functions: `dk_network_parse_params`, `dk_network_create`, `dk_network_remove`
+
 ## [2.2.4] - 2025-12-15
 
 ### Added

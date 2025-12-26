@@ -24,8 +24,12 @@ dk_exec_default_tty ?= -it#
 ## Default options for docker logs (non-blocking by default)
 dk_logs_default_opts ?= --tail=200#
 
-## Default network name for docker/network-ensure target
-dk_default_network_name ?=#
+## Default network driver for docker/network/create and docker/network/ensure targets
+dk_network_default_driver ?= bridge#
+
+## Suppress errors for network create (when exists) and remove (when missing)
+## Set to 'true' to skip silently instead of failing
+docker_network_ignore_errors ?=#
 
 ## Default command for running commands in containers
 dk_exec_default_dk_cmd ?= exec
