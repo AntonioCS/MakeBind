@@ -202,6 +202,83 @@ $(strip
 endef
 
 ######################################################################################
+# Network Functions
+######################################################################################
+
+## @function dk_network_parse_params
+## @desc Parse network target parameters from format: name[@driver][@subnet][@gateway]
+## @desc Resolution order: target param > variable docker_network_<name>_<setting> > default
+## @arg 1: params (required) - Params string, e.g., "mynet" or "mynet@overlay@172.20.0.0/16@172.20.0.1"
+## @sets dk_network_parse_params_name - Network name
+## @sets dk_network_parse_params_driver - Network driver (resolved)
+## @sets dk_network_parse_params_subnet - Network subnet (resolved)
+## @sets dk_network_parse_params_gateway - Network gateway (resolved)
+## @example $(call dk_network_parse_params,mynet@overlay)
+## @example Access: $(dk_network_parse_params_name), $(dk_network_parse_params_driver), etc.
+define dk_network_parse_params
+$(strip
+	$(eval $0_arg1_params := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: params string required)))
+
+	$(if $(findstring @,$($0_arg1_params)),\
+		$(eval $0_parts := $(subst @, ,$($0_arg1_params)))\
+		$(eval $0_name := $(word 1,$($0_parts)))\
+		$(eval $0_param_driver := $(word 2,$($0_parts)))\
+		$(eval $0_param_subnet := $(word 3,$($0_parts)))\
+		$(eval $0_param_gateway := $(word 4,$($0_parts)))\
+	,\
+		$(eval $0_name := $($0_arg1_params))\
+		$(eval $0_param_driver :=)\
+		$(eval $0_param_subnet :=)\
+		$(eval $0_param_gateway :=)\
+	)
+
+	$(eval $0_driver := $(strip \
+		$(if $($0_param_driver),$($0_param_driver),\
+			$(if $(value docker_network_$($0_name)_driver),$(docker_network_$($0_name)_driver),\
+				$(dk_network_default_driver)))))
+
+	$(eval $0_subnet := $(strip \
+		$(if $($0_param_subnet),$($0_param_subnet),\
+			$(if $(value docker_network_$($0_name)_subnet),$(docker_network_$($0_name)_subnet),))))
+
+	$(eval $0_gateway := $(strip \
+		$(if $($0_param_gateway),$($0_param_gateway),\
+			$(if $(value docker_network_$($0_name)_gateway),$(docker_network_$($0_name)_gateway),))))
+)
+endef
+
+## @function dk_network_create
+## @desc Create a docker network with optional driver, subnet, and gateway
+## @arg 1: name (required) - Network name
+## @arg 2: driver (optional) - Network driver (default: bridge)
+## @arg 3: subnet (optional) - Network subnet in CIDR notation, e.g., 172.20.0.0/16
+## @arg 4: gateway (optional) - Network gateway IP, e.g., 172.20.0.1
+define dk_network_create
+$(strip
+	$(eval $0_arg1_name := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: network name required)))
+	$(eval $0_arg2_driver := $(if $(value 2),$(strip $2),bridge))
+	$(eval $0_arg3_subnet := $(if $(value 3),$(strip $3)))
+	$(eval $0_arg4_gateway := $(if $(value 4),$(strip $4)))
+
+	$(eval $0_opts := --driver $($0_arg2_driver))
+	$(if $($0_arg3_subnet),$(eval $0_opts += --subnet $($0_arg3_subnet)))
+	$(if $($0_arg4_gateway),$(eval $0_opts += --gateway $($0_arg4_gateway)))
+
+	$(call dk_invoke,network create,$($0_opts),$($0_arg1_name))
+)
+endef
+
+## @function dk_network_remove
+## @desc Remove a docker network
+## @arg 1: name (required) - Network name to remove
+define dk_network_remove
+$(strip
+	$(eval $0_arg1_name := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: network name required)))
+	$(call dk_invoke,network rm,,$($0_arg1_name))
+)
+endef
+
+######################################################################################
 # mb_exec_with_mode handler
 ######################################################################################
 

@@ -71,3 +71,75 @@ docker/clean-all: ## Remove all unused containers, images, volumes, and networks
 		$(call mb_printf_info,Cleaning all unused Docker resources...) $(call dk_invoke,system prune,--volumes --force),\
 		$(call mb_printf_info,Cleanup cancelled)\
 	)
+
+######################################################################################
+# Targets - Network Operations
+######################################################################################
+
+## docker/network/create: Create a docker network (fails if exists)
+## Usage: docker/network/create/<name>[@driver][@subnet][@gateway]
+## Parameters (use @ as separator):
+##   name    - Network name (required)
+##   driver  - Network driver: bridge, overlay, host, none (default: bridge)
+##   subnet  - Network subnet in CIDR notation (optional, e.g., 172.20.0.0/16)
+##   gateway - Network gateway IP (optional, e.g., 172.20.0.1)
+## Configuration variables (used if target params not provided):
+##   docker_network_<name>_driver  - Network driver
+##   docker_network_<name>_subnet  - Network subnet
+##   docker_network_<name>_gateway - Network gateway
+## To suppress errors when network exists, set: docker_network_ignore_errors=true
+## Examples:
+##   make docker/network/create/myapp
+##   make docker/network/create/myapp@overlay
+##   make docker/network/create/myapp@bridge@172.20.0.0/16
+##   make docker/network/create/myapp@bridge@172.20.0.0/16@172.20.0.1
+docker/network/create/%: ## Create a network (fails if exists). Usage: docker/network/create/<name>[@driver][@subnet][@gateway]
+	$(call dk_network_parse_params,$*)
+	$(if $(call mb_is_true,$(call dk_network_exists,$(dk_network_parse_params_name))),\
+		$(if $(call mb_is_true,$(docker_network_ignore_errors)),\
+			$(call mb_printf_info,Network $(dk_network_parse_params_name) already exists (skipped))\
+		,\
+			$(call mb_printf_error,Network $(dk_network_parse_params_name) already exists. Use docker/network/ensure instead)\
+		),\
+		$(call mb_printf_info,Creating network $(dk_network_parse_params_name))\
+		$(call dk_network_create,$(dk_network_parse_params_name),$(dk_network_parse_params_driver),$(dk_network_parse_params_subnet),$(dk_network_parse_params_gateway))\
+	)
+
+docker/network/create: # Wrapper for docker/network/create/%
+	$(call mb_printf_info,Usage: make docker/network/create/<name>[@driver][@subnet][@gateway])
+
+## docker/network/ensure: Ensure a docker network exists (create if missing)
+## Usage: docker/network/ensure/<name>[@driver][@subnet][@gateway]
+## Parameters and configuration are identical to docker/network/create
+## This target is idempotent - safe to call multiple times
+## Examples:
+##   make docker/network/ensure/myapp
+##   make docker/network/ensure/myapp@overlay@172.20.0.0/16
+docker/network/ensure/%: ## Ensure network exists (create if missing). Usage: docker/network/ensure/<name>[@driver][@subnet][@gateway]
+	$(call dk_network_parse_params,$*)
+	$(if $(call mb_is_true,$(call dk_network_exists,$(dk_network_parse_params_name))),\
+		$(call mb_printf_info,Network $(dk_network_parse_params_name) already exists),\
+		$(call mb_printf_info,Creating network $(dk_network_parse_params_name))\
+		$(call dk_network_create,$(dk_network_parse_params_name),$(dk_network_parse_params_driver),$(dk_network_parse_params_subnet),$(dk_network_parse_params_gateway))\
+	)
+
+docker/network/ensure: # Wrapper for docker/network/ensure/%
+	$(call mb_printf_info,Usage: make docker/network/ensure/<name>[@driver][@subnet][@gateway])
+
+## docker/network/remove: Remove a docker network (fails if not exists)
+## Usage: docker/network/remove/<name>
+## To suppress errors when network doesn't exist, set: docker_network_ignore_errors=true
+## Examples:
+##   make docker/network/remove/myapp
+docker/network/remove/%: ## Remove a network (fails if not exists). Usage: docker/network/remove/<name>
+	$(if $(call mb_is_false,$(call dk_network_exists,$*)),\
+		$(if $(call mb_is_true,$(docker_network_ignore_errors)),\
+			$(call mb_printf_info,Network $* does not exist (skipped)),\
+			$(call mb_printf_error,Network $* does not exist)\
+		),\
+		$(call mb_printf_info,Removing network $*)\
+		$(call dk_network_remove,$*)\
+	)
+
+docker/network/remove: # Wrapper for docker/network/remove/%
+	$(call mb_printf_info,Usage: make docker/network/remove/<name>)
