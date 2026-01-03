@@ -1,3 +1,18 @@
+## [2.2.6] - 2026-01-03
+
+### Added
+- **PHP CodeSniffer module**: New standalone module for PHP_CodeSniffer
+  - `php/phpcs/check` - Run PHP CodeSniffer to detect coding standard violations
+  - `php/phpcs/fix` - Run PHP Code Beautifier to auto-fix violations
+  - `php/phpcs/staged` - Run PHP CodeSniffer on staged PHP files only
+  - Configuration options: `phpcs_parallel`, `phpcs_cache`, `phpcs_progress`, `phpcs_report`
+  - Runtime variables: `phpcs_files=` for paths, `phpcs_args=` for extra options
+  - Depends on `php` module
+
+### Changed
+- **PHP module**: Removed old `php/phpcs` and `php/phpcbf` targets (now in separate phpcs module)
+- **Documentation**: Added pitfall about `##` comments in `define...endef` blocks being literal text
+
 ## [2.2.5] - 2025-12-26
 
 ### Added

@@ -98,12 +98,6 @@ php/psalm: ## Run Psalm to psalm.output
 		|| true \
 	)
 
-php/phpcs: ## Run PHP CodeSniffer to check code style issues
-	$(call php_invoke,vendor/bin/phpcs -s)
-
-php/phpcbf: ## Run PHP CodeSniffer to fix code style issues
-	$(call php_invoke,vendor/bin/phpcbf)
-
 endif # __MB_MODULES_PHP_TARGETS__
 
 endif # __MB_MODULES_PHP__
