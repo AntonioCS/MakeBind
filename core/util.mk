@@ -26,6 +26,7 @@ include $(mb_core_path)/util/os_detection.mk
 include $(mb_core_path)/util/cache.mk
 include $(mb_core_path)/util/colours.mk
 include $(mb_core_path)/util/debug.mk
+include $(mb_core_path)/util/git.mk
 
 include $(mb_core_path)/util/variables.mk
 
