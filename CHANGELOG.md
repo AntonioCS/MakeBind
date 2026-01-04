@@ -1,3 +1,27 @@
+## [2.2.8] - 2026-01-04
+
+### Added
+- **PostgreSQL module**: Complete rewrite with feature-based architecture
+  - **Feature system**: Enable only the features you need via `pg_features` variable
+  - Available features: `core`, `sql`, `db`, `role`, `conn`, `session`, `dump`, `extension`, `table`, `index`, `maintenance`
+  - Default features: `core sql db dump maintenance`
+  - **Execution mode support** via `pg_invoke` wrapper function:
+    - `local`: Direct binary execution on host
+    - `docker`: Run via `docker exec` in `pg_dk_container`
+    - `docker-compose`: Run via `docker compose exec` in `pg_dc_service`
+  - **New targets**:
+    - Connection monitoring: `pg/conn/list`, `pg/conn/count`, `pg/conn/long-running`
+    - Session management: `pg/session/kill/%`, `pg/session/kill-idle`, `pg/session/cancel/%`
+    - Extension management: `pg/extension/list`, `pg/extension/available`, `pg/extension/create/%`, `pg/extension/drop/%`
+    - Index management: `pg/index/list`, `pg/index/unused`, `pg/index/reindex`, `pg/index/reindex/%`
+    - Additional: `pg/dump/info`, `pg/table/stats`, `pg/vacuum/%`, `pg/analyze`, `pg/bloat`
+  - Configuration via `mod_config.mk` with sensible defaults
+  - Tests for configuration, command building, and feature loading
+- **`mb_exec_with_mode` enhancements**:
+  - Added `<prefix>_env` support to all mode handlers for passing environment variables
+  - Improved documentation explaining extensibility and how to create custom mode handlers
+  - Handlers (`mb_exec_with_mode_local`, `mb_exec_with_mode_docker`, `mb_exec_with_mode_docker-compose`) now automatically prepend `<prefix>_env` to commands
+
 ## [2.2.7] - 2026-01-04
 
 ### Added

@@ -290,6 +290,7 @@ endef
 ## @requires <prefix>_dk_container - Container name/id
 ## @optional <prefix>_dk_shell - Shell to use (default: dk_shell_default)
 ## @optional <prefix>_dk_tty - TTY flags (default: dk_exec_default_tty)
+## @optional <prefix>_env - Environment variables to prepend (e.g., "PGPASSWORD=xxx")
 ## @group exec_mode
 ## @see mb_exec_with_mode, dk_shellc
 define mb_exec_with_mode_docker
@@ -300,6 +301,7 @@ $(strip
 	$(eval $0_container := $(call mb_require_var,$($0_arg2_prefix)_dk_container,$0: $($0_arg2_prefix)_dk_container not defined for docker mode))
 	$(eval $0_shell := $(if $(value $($0_arg2_prefix)_dk_shell),$($($0_arg2_prefix)_dk_shell),$(dk_shell_default)))
 	$(eval $0_tty := $(if $(value $($0_arg2_prefix)_dk_tty),$($($0_arg2_prefix)_dk_tty),$(dk_exec_default_tty)))
-	$(call dk_shellc,$($0_container),$($0_arg1_cmd),$($0_shell),$($0_tty))
+	$(eval $0_env := $(if $(value $($0_arg2_prefix)_env),$($($0_arg2_prefix)_env)))
+	$(call dk_shellc,$($0_container),$($0_env) $($0_arg1_cmd),$($0_shell),$($0_tty))
 )
 endef
