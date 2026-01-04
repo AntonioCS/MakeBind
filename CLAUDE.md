@@ -258,6 +258,7 @@ Cache files stored in `tmp/cache/` with TTL support.
 4. **Windows Support**: Test PowerShell commands - some Make features differ on Windows
 5. **Module Dependencies**: Circular dependencies are not detected - avoid them
 6. **Include Guards**: Always use unique include guards in .mk files
+7. **Comments in define blocks**: `##` comments inside `define...endef` are NOT comments - they become literal output text. Only use comments OUTSIDE define blocks or use `$(info ...)` for debug output
 
 ## Code Style
 
