@@ -81,7 +81,7 @@ endef
 # $1 = service
 # $2 = commands to run inside the container (quotes will be added automatically)
 # $3 = shell to load /bin/sh or /bin/bash (optional, default: dc_default_shell_bin)
-# $4 = docker compose command to be used exec or run (optional, default: dc_shellc_default_cmd)
+# $4 = docker compose command to be used, exec or run (optional, default: dc_shellc_default_cmd)
 # $5 = extra options to pass to docker compose (optional, default: none)
 define dc_shellc
 $(strip
@@ -169,6 +169,7 @@ endef
 ## @optional <prefix>_dc_shell - Shell to use (default: dc_shellc_default_shell_bin)
 ## @optional <prefix>_dc_cmd - Docker compose command: exec or run (default: dc_shellc_default_cmd)
 ## @optional <prefix>_dc_options - Extra options (default: dc_shellc_default_extra_options)
+## @optional <prefix>_env - Environment variables to prepend (e.g., "PGPASSWORD=xxx")
 ## @group exec_mode
 ## @see mb_exec_with_mode, dc_shellc
 define mb_exec_with_mode_docker-compose
@@ -178,9 +179,10 @@ $(strip
 
 	$(eval $0_service := $(call mb_require_var,$($0_arg2_prefix)_dc_service,$0: $($0_arg2_prefix)_dc_service not defined for docker-compose mode))
 	$(eval $0_shell := $(if $(value $($0_arg2_prefix)_dc_shell),$($($0_arg2_prefix)_dc_shell),$(dc_shellc_default_shell_bin)))
-	$(eval $0_cmd := $(if $(value $($0_arg2_prefix)_dc_cmd),$($($0_arg2_prefix)_dc_cmd),$(dc_shellc_default_cmd)))
+	$(eval $0_dc_cmd := $(if $(value $($0_arg2_prefix)_dc_cmd),$($($0_arg2_prefix)_dc_cmd),$(dc_shellc_default_cmd)))
 	$(eval $0_options := $(if $(value $($0_arg2_prefix)_dc_options),$($($0_arg2_prefix)_dc_options),$(dc_shellc_default_extra_options)))
-	$(call dc_shellc,$($0_service),$($0_arg1_cmd),$($0_shell),$($0_cmd),$($0_options))
+	$(eval $0_env := $(if $(value $($0_arg2_prefix)_env),$($($0_arg2_prefix)_env)))
+	$(call dc_shellc,$($0_service),$($0_env) $($0_arg1_cmd),$($0_shell),$($0_dc_cmd),$($0_options))
 )
 endef
 

@@ -563,19 +563,33 @@ $(strip
 endef
 
 ## @function mb_exec_with_mode
-## @desc Execute command with mode selection (local/docker/docker-compose)
-## @desc Reads <prefix>_exec_mode to determine execution mode and delegates to appropriate handler.
-## @desc Supports three modes: local (uses <prefix>_bin), docker (uses dk_shellc with <prefix>_dk_container),
-## @desc and docker-compose (uses dc_shellc with <prefix>_dc_service).
+## @desc Execute command with mode selection via extensible handler system.
+## @desc Reads <prefix>_exec_mode to determine which handler to call: mb_exec_with_mode_<mode>
+## @desc
+## @desc Built-in modes:
+## @desc   - local: Runs command directly (handler in core/functions.mk)
+## @desc   - docker: Runs via docker exec (handler in docker module)
+## @desc   - docker-compose: Runs via docker compose exec (handler in docker_compose module)
+## @desc
+## @desc Creating custom modes:
+## @desc   Define a handler function named mb_exec_with_mode_<yourmode> that accepts:
+## @desc     @arg 1: command - The command to execute
+## @desc     @arg 2: prefix - Variable prefix for config lookup
+## @desc   The handler can look up any <prefix>_* variables it needs.
+## @desc   Example: mb_exec_with_mode_ssh could look up <prefix>_ssh_host, <prefix>_ssh_user, etc.
+## @desc
+## @desc Environment variables:
+## @desc   Handlers should check for <prefix>_env and prepend it to commands.
+## @desc   Example: pg_env := PGPASSWORD=$(pg_pass)
+## @desc   This allows passing credentials or other env vars to the execution context.
+## @desc
 ## @arg 1: command (required) - Command to execute
 ## @arg 2: prefix (required) - Variable prefix for config lookup (e.g., "php", "localstack", "pg")
 ## @example $(call mb_exec_with_mode,bash,localstack)
 ## @example $(call mb_exec_with_mode,php --version,php)
 ## @returns Command output via mode-specific handler function
 ## @group exec_mode
-## @see mb_exec_with_mode_local, mb_invoke
-## @note Mode handlers are defined by modules: docker adds mb_exec_with_mode_docker,
-##       docker_compose adds mb_exec_with_mode_docker-compose, etc.
+## @see mb_exec_with_mode_local, mb_exec_with_mode_docker, mb_exec_with_mode_docker-compose
 define mb_exec_with_mode
 $(strip
 	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command argument required)))
@@ -597,6 +611,7 @@ endef
 ## @arg 1: command (required) - Command to execute
 ## @arg 2: prefix (required) - Variable prefix for config lookup
 ## @requires <prefix>_bin - Path to the binary
+## @optional <prefix>_env - Environment variables to prepend (e.g., "PGPASSWORD=xxx")
 ## @group exec_mode
 ## @see mb_exec_with_mode
 define mb_exec_with_mode_local
@@ -605,7 +620,8 @@ $(strip
 	$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(call mb_printf_error,$0: prefix argument required)))
 
 	$(eval $0_bin := $(call mb_require_var,$($0_arg2_prefix)_bin,$0: $($0_arg2_prefix)_bin not defined for local mode))
-	$(call mb_invoke,$($0_bin) $($0_arg1_cmd))
+	$(eval $0_env := $(if $(value $($0_arg2_prefix)_env),$($($0_arg2_prefix)_env)))
+	$(call mb_invoke,$($0_env) $($0_bin) $($0_arg1_cmd))
 )
 endef
 
