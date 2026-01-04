@@ -84,20 +84,6 @@ php/dc/logs: ## Show php container logs
 
 endif
 
-php/phpstan: mb/info-$$@ := Running PHPStan
-php/phpstan: ## Run PHPStan to phpstan.output
-	$(call php_invoke,$(phpstan_bin) analyse \
-		--configuration=$(phpstan_config_file) \
-		$(if $(phpstan_send_to_file),--error-format=github > $(phpstan_output_file)) \
-		 || true \
-	)
-
-php/psalm: ## Run Psalm to psalm.output
-	$(call php_invoke,$(psalm_bin) $(psalm_flags) \
-		$(if $(psalm_send_to_file),> $(psalm_output_file)) \
-		|| true \
-	)
-
 endif # __MB_MODULES_PHP_TARGETS__
 
 endif # __MB_MODULES_PHP__

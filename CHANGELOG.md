@@ -1,3 +1,22 @@
+## [2.2.7] - 2026-01-04
+
+### Added
+- **PHPStan module**: New standalone module for PHPStan static analysis
+  - `php/phpstan/analyse` - Run PHPStan analysis
+  - `php/phpstan/staged` - Run PHPStan on staged PHP files only
+  - Configuration options: `phpstan_level`, `phpstan_memory_limit`
+  - Runtime variables: `phpstan_files=` for paths, `phpstan_args=` for extra options
+  - Depends on `php` module
+- **Psalm module**: New standalone module for Psalm static analysis
+  - `php/psalm/analyse` - Run Psalm analysis
+  - `php/psalm/staged` - Run Psalm on staged PHP files only
+  - Configuration options: `psalm_threads`
+  - Runtime variables: `psalm_files=` for paths, `psalm_args=` for extra options
+  - Depends on `php` module
+
+### Changed
+- **PHP module**: Removed old `php/phpstan` and `php/psalm` targets (now in separate modules)
+
 ## [2.2.6] - 2026-01-03
 
 ### Added
