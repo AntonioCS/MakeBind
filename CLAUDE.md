@@ -139,6 +139,9 @@ Set debug flags in your environment or config.mk:
 - `mb_target_spacing` - Column spacing for target listing (default: 40)
 - `mb_targets_only_project` - Show only project/module targets, hide MakeBind core (default: false)
 
+**Environment Variables**:
+- `MB_MAKEBIND_GLOBAL_PATH_ENV` - Global path to MakeBind installation. Set this in your shell profile (e.g., `.bashrc`) to avoid hardcoding the path in each project's Makefile.
+
 ### Loading Order
 
 Understanding the load order is critical:
