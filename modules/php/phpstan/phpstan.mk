@@ -42,7 +42,7 @@ php/phpstan/analyse: ## Run PHPStan analysis (phpstan_files= for paths, phpstan_
 	)
 
 php/phpstan/staged: ## Run PHPStan on staged PHP files only
-	$(call mb_run_on_staged,php,$(call php_invoke,$(phpstan_bin) analyse))
+	$(call php_run_on_staged,$(phpstan_bin) analyse)
 
 endif # __MB_TEST_DISCOVERY__
 

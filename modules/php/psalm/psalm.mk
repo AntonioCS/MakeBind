@@ -41,7 +41,7 @@ php/psalm/analyse: ## Run Psalm analysis (psalm_files= for paths, psalm_args= fo
 	)
 
 php/psalm/staged: ## Run Psalm on staged PHP files only
-	$(call mb_run_on_staged,php,$(call php_invoke,$(psalm_bin)))
+	$(call php_run_on_staged,$(psalm_bin))
 
 endif # __MB_TEST_DISCOVERY__
 

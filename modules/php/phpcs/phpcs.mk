@@ -48,7 +48,7 @@ php/phpcs/fix: ## Run PHP Code Beautifier to auto-fix (phpcs_files= for paths, p
 	$(call php_invoke,$($@_cmd))
 
 php/phpcs/staged: ## Run PHP CodeSniffer on staged PHP files only
-	$(call mb_run_on_staged,php,$(call php_invoke,$(phpcs_bin) -s))
+	$(call php_run_on_staged,$(phpcs_bin) -s)
 
 endif # __MB_TEST_DISCOVERY__
 

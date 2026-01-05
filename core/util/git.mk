@@ -10,6 +10,10 @@ __MB_CORE_UTIL_GIT_MK__ := 1
 
 mb_debug_git ?= $(mb_debug)
 
+## Strip prefix from staged file paths to match container paths
+## Example: git shows 'app/src/Foo.php' but container expects 'src/Foo.php' → set to 'app/'
+mb_staged_strip_prefix ?=#
+
 ## Check if git is available (set once at load time)
 ## Note: Can't use mb_cmd_exists or mb_true here as they may not be defined yet
 mb_git_available := $(shell command -v git >/dev/null 2>&1 && echo 1)
@@ -17,17 +21,20 @@ mb_git_available := $(shell command -v git >/dev/null 2>&1 && echo 1)
 ## @function mb_staged_files
 ## @description Returns a space-separated list of staged files, optionally filtered by extension
 ## @arg 1: extension (optional) - File extension to filter (e.g., php, py, go). If empty, returns all staged files.
-## @returns Space-separated list of staged files (paths relative to git root)
+## @arg 2: strip_prefix (optional) - Path prefix to strip. If empty, uses mb_staged_strip_prefix.
+## @returns Space-separated list of staged files (paths relative to git root, with prefix stripped)
 ## @example $(call mb_staged_files,php) -> src/Foo.php src/Bar.php
+## @example $(call mb_staged_files,php,app/) -> strips 'app/' prefix from paths
 ## @example $(call mb_staged_files) -> all staged files
 define mb_staged_files
 $(strip
 	$(if $(mb_git_available),
 		$(eval $0_arg1_ext := $(if $(value 1),$(strip $1),))
-		$(if $($0_arg1_ext),
-			$(shell git diff --cached --name-only --diff-filter=d 2>/dev/null | grep '\.$($0_arg1_ext)$$' || true),
-			$(shell git diff --cached --name-only --diff-filter=d 2>/dev/null)
-		)
+		$(eval $0_arg2_prefix := $(if $(value 2),$(strip $2),$(mb_staged_strip_prefix)))
+		$(eval $0_files := $(if $($0_arg1_ext),\
+			$(shell git diff --cached --name-only --diff-filter=d 2>/dev/null | grep '\.$($0_arg1_ext)$$' || true),\
+			$(shell git diff --cached --name-only --diff-filter=d 2>/dev/null)))
+		$(if $($0_arg2_prefix),$(patsubst $($0_arg2_prefix)%,%,$($0_files)),$($0_files))
 	)
 )
 endef

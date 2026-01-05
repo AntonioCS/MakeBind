@@ -1,3 +1,18 @@
+## [2.2.9] - 2026-01-04
+
+### Fixed
+- **PHP staged targets broken in docker mode**: `php/phpcs/staged`, `php/phpstan/staged`, `php/psalm/staged` were not working with docker/docker-compose execution modes
+  - **Issue 1**: `mb_run_on_staged` appended files outside docker shell quotes, so files were passed to shell instead of the tool
+  - **Issue 2**: Git staged file paths are relative to repo root, but container may mount a subdirectory
+  - **Fix**: New `php_run_on_staged` helper gets staged files and passes them inside the invoke call
+
+### Added
+- **`mb_staged_strip_prefix` config** (in `core/util/git.mk`): Global config to strip path prefix from staged files
+  - Example: Set `mb_staged_strip_prefix := app/` if your code is in `app/` folder mounted as `/app` in container
+- **`php_run_on_staged` helper** (in `modules/php/php/php.mk`): Run PHP tools on staged files with proper docker support
+  - Usage: `$(call php_run_on_staged,vendor/bin/phpcs -s)`
+- **`mb_staged_files` now supports prefix stripping**: Pass optional second argument or use global `mb_staged_strip_prefix`
+
 ## [2.2.8] - 2026-01-04
 
 ### Added

@@ -42,6 +42,21 @@ $(strip
 )
 endef
 
+## @function php_run_on_staged
+## @description Run a PHP tool on staged PHP files only
+## @arg 1: command (required) - Command to run (files will be appended)
+## @example $(call php_run_on_staged,vendor/bin/phpcs -s)
+## @example $(call php_run_on_staged,vendor/bin/phpstan analyse)
+define php_run_on_staged
+$(strip
+	$(eval $0_arg1_cmd := $(if $(value 1),$(strip $1),$(call mb_printf_error,$0: command required)))
+	$(eval $0_files := $(call mb_staged_files,php))
+	$(if $($0_files),\
+		$(call php_invoke,$($0_arg1_cmd) $($0_files)),\
+		$(call mb_printf_info,No staged .php files))
+)
+endef
+
 # $1 - Invoker name
 # $2 - Docker check variable name
 # $3 - Docker compose service name variable
