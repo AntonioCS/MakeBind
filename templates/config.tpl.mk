@@ -7,8 +7,14 @@
 ### - mb_project_bindhub_path: Path to the bind.hub folder of the project
 ### - mb_project_bindhub_modules_path: Path to the modules folder in the bind-hub folder of the project
 ### - mb_project_path: Path of your project
-### NOTE!
-### mb_targets_only_project := $(mb_true)# set this to only show targets from the project and its modules
 
 mb_project_name := project-name### Please replace project-name with the name of your project
 mb_project_prefix := project-prefix### Please replace project-prefix with the prefix of your project
+
+### Optional settings (uncomment to enable):
+### Show only project targets (hides MakeBind core AND enabled module targets)
+#mb_targets_only_project := $(mb_true)
+
+### Strip prefix from staged file paths to match container paths
+### Example: git shows 'app/src/Foo.php' but container expects 'src/Foo.php' → set to 'app/'
+#mb_staged_strip_prefix := app/
