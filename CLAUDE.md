@@ -336,6 +336,18 @@ Rules:
 - Bump minor version (e.g., 2.1.0 → 2.2.0) for new features/modules
 - Bump patch version (e.g., 2.1.0 → 2.1.1) for bug fixes
 
+### README Files
+**IMPORTANT**: Keep README files up to date when making changes:
+
+| File | Update When |
+|------|-------------|
+| `README.md` | Adding commands, changing installation, new user-facing features |
+| `modules/README.md` | Changes to module structure, new module conventions |
+| `core/README.md` | New core functions, changes to loading order, new utilities |
+| `tests/README.md` | Changes to test framework, new assertions, test conventions |
+
+When adding a new module, ensure the "Available Modules" table in `README.md` is updated.
+
 ### Trello Board
 **Board ID: `vBmmD6it`** - Must be set at the start of each session using `mcp__trello__set_active_board`.
 
