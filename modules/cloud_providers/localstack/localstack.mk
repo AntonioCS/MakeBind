@@ -167,38 +167,13 @@ localstack/s3/ls: ## List S3 buckets or bucket contents (optional: bucket=my-buc
 	$(call localstack_cmd,s3 ls $(if $(value bucket),s3://$(bucket),))
 
 localstack/s3/list-all: ## List all S3 buckets with details
-	$(call localstack_cmd,s3 ls)
-	echo ""
-	$(call mb_printf_info,Listing contents of all buckets:)
-	$(let mb_invoke_run_in_shell,$(mb_on),\
-		$(call localstack_cmd,s3api list-buckets --query "Buckets[].Name" --output text)\
-	)
-	$(eval _buckets := $(mb_invoke_shell_output))
-	$(if $(strip $(_buckets)),\
-		$(foreach b,$(strip $(_buckets)),\
-			echo "";\
-			$(call mb_printf_info,Bucket: $(b));\
-			$(call localstack_cmd,s3 ls s3://$(b) --recursive) || echo "  (empty)";\
-		),\
-		$(call mb_printf_warn,No buckets found)\
-	)
+	$(call mb_invoke,$(mb_modules_path)/cloud_providers/localstack/scripts/s3-list-all.sh $(localstack_endpoint_url) $(localstack_region))
 
 localstack/sqs/ls: ## List all SQS queues
 	$(call localstack_cmd,sqs list-queues)
 
 localstack/sqs/purge-all: ## Purge all SQS queues (use with caution!)
-	$(call mb_printf_warn,Purging all SQS queues...)
-	$(let mb_invoke_run_in_shell,$(mb_on),\
-		$(call localstack_cmd,sqs list-queues --query "QueueUrls[]" --output text)\
-	)
-	$(eval _queue_urls := $(mb_invoke_shell_output))
-	$(if $(strip $(_queue_urls)),\
-		$(foreach url,$(strip $(_queue_urls)),\
-			$(call mb_printf_info,Purging: $(url));\
-			$(call localstack_cmd,sqs purge-queue --queue-url $(url)) || true;\
-		),\
-		$(call mb_printf_warn,No queues found)\
-	)
+	$(call mb_invoke,$(mb_modules_path)/cloud_providers/localstack/scripts/sqs-purge-all.sh $(localstack_endpoint_url) $(localstack_region))
 
 #####################################################################################
 # AWS Module Integration - The Magic Redirect
