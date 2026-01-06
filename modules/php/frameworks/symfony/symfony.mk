@@ -32,12 +32,15 @@ endef
 #########################################################################################################
 #########################################################################################################
 
+# Two jq processes are needed: the first (-R 'fromjson? | select(.)') reads raw input and
+# skips non-JSON lines (like tail's "==> filename <==" headers when tailing multiple files).
+# The second applies the user's custom filter. This avoids requiring every filter to handle raw input.
 php/sy/logs/tail/all: ## tail all symfony logs files
 	$(eval $@_logs_path := $(php_sy_logs_path)/*.log)
 	$(if $(wildcard $($@_logs_path)),\
 		$(eval $@_cmd := tail -f $($@_logs_path))\
 		$(if $(php_sy_logs_use_jq_in_tail),\
-			$(eval $@_cmd += | jq -C -f "$(php_sy_jq_log_formatters)")\
+			$(eval $@_cmd += | jq -R 'fromjson? | select(.)' | jq -C -f "$(php_sy_jq_log_formatters)")\
 		)\
 		$(call mb_printf_info, Tailing all Symfony logs)\
 		$(call mb_invoke,$($@_cmd))\
