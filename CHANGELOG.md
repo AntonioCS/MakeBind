@@ -1,3 +1,17 @@
+## [2.2.10] - 2026-01-06
+
+### Fixed
+- **LocalStack `localstack/s3/list-all` and `localstack/sqs/purge-all` syntax error**: Using `$(foreach)` in recipes with `.ONESHELL` caused bash syntax errors due to multi-line output from `mb_invoke`
+  - Moved iteration logic to external shell scripts for cleaner execution
+
+### Changed
+- **`localstack/s3/list-all` improved output**: Now displays buckets and objects in a tree view with human-readable file sizes and timestamps
+
+### Added
+- **LocalStack scripts folder**: `modules/cloud_providers/localstack/scripts/`
+  - `s3-list-all.sh` - Lists all S3 buckets and their contents in tree format
+  - `sqs-purge-all.sh` - Purges all SQS queues
+
 ## [2.2.9] - 2026-01-04
 
 ### Fixed
