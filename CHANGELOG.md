@@ -1,3 +1,14 @@
+## [2.2.11] - 2026-01-08
+
+### Changed
+- **PHP analysis staged targets renamed** for consistent `action/staged` pattern:
+  - `php/phpcs/staged` → `php/phpcs/check/staged`
+  - `php/phpstan/staged` → `php/phpstan/analyse/staged`
+  - `php/psalm/staged` → `php/psalm/analyse/staged`
+
+### Added
+- **`php/phpcs/fix/staged`**: Run PHP Code Beautifier on staged PHP files only
+
 ## [2.2.10] - 2026-01-06
 
 ### Fixed
