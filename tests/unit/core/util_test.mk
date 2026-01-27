@@ -125,3 +125,58 @@ define test_mb_is_regex_match_empty_string
 	$(eval result := $(call mb_is_regex_match,$(text_to_check),$(regex_pattern)))
 	$(call mb_assert_empty,$(result))
 endef
+
+######################################################################################
+# mb_timestamp tests
+######################################################################################
+
+define test_core_util_timestamp_returns_number
+	$(eval $0_result := $(call mb_timestamp))
+	$(eval $0_is_numeric := $(shell echo '$($0_result)' | grep -E '^[0-9]+$$' > /dev/null && echo 1))
+	$(call mb_assert,$($0_is_numeric),mb_timestamp should return numeric value)
+endef
+
+define test_core_util_timestamp_reasonable_value
+	$(eval $0_result := $(call mb_timestamp))
+	$(eval $0_min_ts := 1700000000)
+	$(eval $0_is_greater := $(shell [ $($0_result) -gt $($0_min_ts) ] && echo 1))
+	$(call mb_assert,$($0_is_greater),mb_timestamp should return value greater than 1700000000)
+endef
+
+######################################################################################
+# mb_random tests
+######################################################################################
+
+define test_core_util_random_returns_number
+	$(eval $0_result := $(call mb_random))
+	$(eval $0_is_numeric := $(shell echo '$($0_result)' | grep -E '^[0-9]+$$' > /dev/null && echo 1))
+	$(call mb_assert,$($0_is_numeric),mb_random should return numeric value)
+endef
+
+define test_core_util_random_within_default_bounds
+	$(eval $0_result := $(call mb_random))
+	$(eval $0_in_range := $(shell [ $($0_result) -ge 1 ] && [ $($0_result) -le 65534 ] && echo 1))
+	$(call mb_assert,$($0_in_range),mb_random should be within default bounds 1-65534)
+endef
+
+define test_core_util_random_with_custom_bounds
+	$(eval $0_result := $(call mb_random,100,200))
+	$(eval $0_in_range := $(shell [ $($0_result) -ge 100 ] && [ $($0_result) -le 200 ] && echo 1))
+	$(call mb_assert,$($0_in_range),mb_random with bounds 100-200 should be within range)
+endef
+
+######################################################################################
+# mb_unzip function test (structure only - doesn't actually unzip)
+######################################################################################
+
+define test_core_util_unzip_function_defined
+	$(call mb_assert,$(value mb_unzip),mb_unzip function should be defined)
+endef
+
+######################################################################################
+# mb_downloader function test
+######################################################################################
+
+define test_core_util_downloader_function_defined
+	$(call mb_assert,$(value mb_downloader),mb_downloader function should be defined)
+endef

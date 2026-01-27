@@ -83,22 +83,18 @@ mb_not_exists = $(if $(call mb_exists,$1),,$(mb_true))
 
 ## Useful variables
 
-
-define mb_timestamp
-$(call mb_os_call,
-	$(call mb_powershell,[math]::Floor((New-TimeSpan -Start (Get-Date "01/01/1970") -End (Get-Date)).TotalSeconds)),\
-	date +%s\
-)
-endef
+## @function mb_timestamp
+## @desc Get current Unix timestamp
+## @returns Unix timestamp as integer
+mb_timestamp = $(call mb_os_call,date +%s)
 
 mb_date_now = date "+%Y-%m-%d %H:%M"
 
-define mb_expression
-$(call mb_os_call,
-	$(call mb_powershell,$1),\
-	echo $1 | bc\
-)
-endef
+## @function mb_expression
+## @desc Evaluate a mathematical expression using bc
+## @arg 1: expression (required) - Mathematical expression (e.g., "1+1")
+## @returns Result of the expression
+mb_expression = $(call mb_os_call,echo $1 | bc)
 
 mb_add = $(call mb_expression,$1+$2)
 mb_sub = $(call mb_expression,$1-$2)
@@ -111,8 +107,11 @@ mb_dec = $(eval $1 := $(call mb_sub,$($1),1))
 
 ## Random numbers
 
-# $1: lower limit (default: 1)
-# $2: upper limit (default: 65534)
+## @function mb_random
+## @desc Generate a random number within bounds
+## @arg 1: lower_limit (optional) - Lower bound (default: 1)
+## @arg 2: upper_limit (optional) - Upper bound (default: 65534)
+## @returns Random integer within bounds
 mb_random_lower_bound := 1
 mb_random_upper_bound := 65534
 define mb_random
@@ -121,19 +120,14 @@ $(strip
 	mb_random_lo := $(if $(value 1),$1,$(mb_random_lower_bound))
 	mb_random_hi := $(if $(value 2),$2,$(mb_random_upper_bound))
 	)
-	$(call mb_os_call,
-    	$(call mb_powershell,Get-Random -Minimum $(mb_random_lo) -Maximum $(mb_random_hi)),\
-    	shuf -i $(mb_random_lo)-$(mb_random_hi) -n 1,\
-    	jot -r 1 $(mb_random_lo) $(mb_random_hi)\
-    )
+	$(call mb_os_call,\
+		shuf -i $(mb_random_lo)-$(mb_random_hi) -n 1,\
+		jot -r 1 $(mb_random_lo) $(mb_random_hi)\
+	)
 )
 endef
 
 mb_remove_spaces = $(subst $(mb_space),$(mb_empty),$1)
-
-
-mb_rep_dollar := $(mb_dollar_replace)## Dollar sign for powershell command which is inside a make function
-#mb_value_rep_dollar := $(mb_dollar)
 
 
 mb_rreplacer = $(subst ",', $(subst $(mb_dollar_replace),$(mb_dollar),$1))
@@ -144,21 +138,6 @@ mb_space_guard_word := __SPACE__#
 mb_space_guard = $(subst $(mb_space),$(mb_space_guard_word),$(strip $1))#
 mb_space_unguard = $(subst $(mb_space_guard_word),$(mb_space),$(strip $1))#
 
-
-## SHELL seems to be ignored on windows so I must use this to call powershell directly and not through the SHELL variable
-## NOTE: -ErrorAction Stop must come after -Command
-## NOTe: Here I can use -Debug and -Verbose  - WIP
-define mb_powershell_cmdlets
-
-endef
-
-
-## NOTE: Use try catch to catch errors - WIP
-define mb_powershell_expression
-powershell -NoProfile -Command "try { [math]::Floor((New-TimeSpan -Start (Get-Date '01/01/1970') -End (Get-Date)).TotalSeconds) } catch { Write-Error $_.Exception.Message }"
-endef
-
-mb_powershell = $(strip pwsh.exe -NoProfile -Command "$(strip $(call mb_rreplacer,$1))")
 
 ## WIP
 define ___mb_array_from_file
@@ -179,36 +158,35 @@ endef
 #	)
 
 
-# $1: URL to download
-# $2: Output file name
+## @function mb_downloader
+## @desc Download a file from URL (uses curl which is available on both Linux and macOS)
+## @arg 1: url (required) - URL to download
+## @arg 2: output (required) - Output file path
 define mb_downloader
 $(strip
 	$(eval $0_url := $(strip $1))
 	$(eval $0_output := $(strip $2))
-	$(call mb_os_call,\
-		curl -sS -L -o $($0_output) $($0_url),\
-		wget -q -O $($0_output) $($0_url),\
-		curl -sS -L -o $($0_output) $($0_url)
-	)
+	$(shell curl -sS -L -o $($0_output) $($0_url))
 )
 endef
 
 
-# $1: Input file (zip file)
-# $2: Output directory
+## @function mb_unzip
+## @desc Extract a zip file
+## @arg 1: input (required) - Input zip file path
+## @arg 2: output (required) - Output directory path
 define mb_unzip
 $(strip
 	$(eval $0_input := $(strip $1))
 	$(eval $0_output := $(strip $2))
-	$(call mb_os_call,\
-		powershell -Command "Expand-Archive -Path '$($0_input)' -DestinationPath '$($0_output)'",\
-		unzip -qq $($0_input) -d $($0_output)\
-	)
+	$(call mb_os_call,unzip -qq $($0_input) -d $($0_output))
 )
 endef
 
-# $1: Command to check
-# returns mb_true/mb_false
+## @function mb_cmd_exists
+## @desc Check if a command exists in PATH
+## @arg 1: command (required) - Command to check
+## @returns mb_true if exists, mb_false otherwise
 mb_cmd_exists = $(strip $(if $(shell command -v $1 >/dev/null 2>&1 && echo yes), $(mb_true), $(mb_false)))
 
 

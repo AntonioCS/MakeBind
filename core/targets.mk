@@ -20,16 +20,6 @@ mb_targets_all_desc_file ?= $(mb_core_util_bin_path)/target_listing/all_desc.gre
 
 ## https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 ## This will list all the targets in the Makefile with their description
-## Note: Having ifeq ($(mb_os_is_windows),1) was not working correctly
-ifeq ($(if $(value OS),$(OS),not_windows),Windows_NT)
-mb/targets-list:
-	powershell -Command "Select-String -Path $(subst $(mb_space),$(mb_comma),$(mb_targets_list_get_files_all)) -Pattern '^[\$$\(\)/a-zA-Z0-9_-]+:.*?## .*$$' -ErrorAction SilentlyContinue |\
-		ForEach-Object {\
-			$$parts = $$_.Line -split '##';\
-			$$formattedText = '{0,-40} {1}' -f $$parts[0].Trim().TrimEnd(':'), $$parts[1].Trim();\
-			Write-Host $$formattedText -ForegroundColor Cyan;\
-		}"
-else
 ifndef MB_TARGETS_SKIP
 
 mb/targets-list: mb/targets-filtered
@@ -69,7 +59,6 @@ mb/targets-list:
 	;
 
 endif # MB_TARGETS_SKIP
-endif # Windows_NT
 
 
 ## Get the files to generate the list of make targets from
@@ -157,7 +146,6 @@ mb/help: ## Call help to get a list of available help keywords
 		$(call mb_printf_info, - $(subst mb_help_msg_,,$(mb_hmsg)))
 	)
 
-## Note, might not display properly on windows
 mb/help-%:
 	$(if $(value mb_help_msg_$*),
 		echo -e "$(mb_help_msg_$*)" | less -R

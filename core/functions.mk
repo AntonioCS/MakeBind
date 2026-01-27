@@ -279,10 +279,9 @@ mb_ask_user_linux_mac_cmd ?= read -e
 
 ## @function mb_ask_user
 ## @desc Prompt user for input with optional timeout and default value
-## @desc Cross-platform function (Linux/Mac/Windows). Note: timeout and default text don't work on Windows.
 ## @arg 1: question_text (optional) - Text to display (defaults to mb_ask_user_default_question_text)
-## @arg 2: timeout (optional) - Timeout in seconds, 0 for no timeout (does not work on Windows)
-## @arg 3: default_text (optional) - Default text pre-filled (does not work on Windows)
+## @arg 2: timeout (optional) - Timeout in seconds, 0 for no timeout
+## @arg 3: default_text (optional) - Default text pre-filled
 ## @example $(call mb_ask_user,Enter your name:)
 ## @example $(call mb_ask_user,Proceed?,10,y)
 ## @returns User input as string
@@ -293,84 +292,48 @@ $(strip
 	$(eval $0_question_text := $(if $(value 1),$1,$($0_default_question_text)))
 	$(eval $0_time_out := $(if $(value 2),-t $(strip $2)))
 	$(eval $0_default_text := $(if $(value 3),-i "$(strip $3)"))
-	$(call mb_os_call,$(call $0_windows),$(call $0_linux_mac))
+	$(mb_ask_user_linux_mac_cmd) \
+		-p "$($0_question_text)$(mb_space)" \
+		$($0_time_out) \
+		$($0_default_text) \
+		; \
+		echo $(mb_dollar_replace)REPLY
 )
 endef
-
-## @function mb_ask_user_linux_mac
-## @desc Linux/Mac implementation of user input prompt (uses bash read command)
-## @desc Internal function called by mb_ask_user for Unix-based systems
-## @returns User input from REPLY variable
-## @group mb_ask_user
-## @see mb_ask_user
-define mb_ask_user_linux_mac
-$(strip
-$(mb_ask_user_linux_mac_cmd) \
-	-p "$(mb_ask_user_question_text)$(mb_space)" \
-	$(mb_ask_user_time_out) \
-	$(mb_ask_user_default_text) \
-	; \
-	echo $(mb_dollar_replace)REPLY \
-)
-endef
-
-
-## NOTE: there is more that can be done to simulate the linux version (timeout and default text) but for now this is enough
-mb_ask_user_windows = $(call mb_powershell,Read-Host "$(mb_ask_user_default_question_text)")
 
 
 ############################################################################################################################
 ############################################################################################################################
 
 ## @var mb_printf_info_format_specifier
-## @desc Format string for info messages (OS-specific)
+## @desc Format string for info messages
 ## @type string
 ## @group mb_printf
-ifeq ($(OS),Windows_NT)
-mb_printf_info_format_specifier ?= "{0}{1} {2}"
-else
 mb_printf_info_format_specifier ?= "%s$(call mb_colour_text,Green,%s)%b"
-endif
 
 ## @var mb_printf_warn_format_specifier
-## @desc Format string for warning messages (OS-specific)
+## @desc Format string for warning messages
 ## @type string
 ## @group mb_printf
-ifeq ($(OS),Windows_NT)
-mb_printf_warn_format_specifier ?= "{0}{1} WARNING: {2}"
-else
 mb_printf_warn_format_specifier ?= "%s$(call mb_colour_text,IYellow,%sWARNING): %b"
-endif
 
 ## @var mb_printf_error_format_specifier
-## @desc Format string for error messages (OS-specific)
+## @desc Format string for error messages
 ## @type string
 ## @group mb_printf
-ifeq ($(OS),Windows_NT)
-mb_printf_error_format_specifier ?= "{0}{1} ERROR: {2}"
-else
 mb_printf_error_format_specifier ?= "%s$(call mb_colour_text,BRed,%sERROR): %b"
-endif
 
 ## @var mb_printf_debug_format_specifier
-## @desc Format string for debug messages (OS-specific)
+## @desc Format string for debug messages
 ## @type string
 ## @group mb_printf
-ifeq ($(OS),Windows_NT)
-mb_printf_debug_format_specifier ?= "{0}{1} DEBUG: {2}"
-else
 mb_printf_debug_format_specifier ?= "%s$(call mb_colour_text,BBlue,%sDEBUG): %b"
-endif
 
 ## @var mb_printf_ts_format
-## @desc Timestamp format for log messages (OS-specific)
+## @desc Timestamp format for log messages
 ## @type string
 ## @group mb_printf
-ifeq ($(OS),Windows_NT)
-mb_printf_ts_format ?= "yyyy-MM-dd HH:mm:ss"
-else
 mb_printf_ts_format ?= +'%F %T'
-endif
 
 ## @var mb_printf_opt_display_ts
 ## @desc Display timestamp in log messages
@@ -467,7 +430,6 @@ endif # MB_TARGETS_SKIP
 
 mb_printf_statement_display_guard = $(strip $(mb_printf_opt_display_guard_l)$1$(mb_printf_opt_display_guard_r))## Prevent spaces
 
-## NOTE: mb_os_assign not working so well for this
 define mb_printf_statement
 $(strip \
 	$(eval \
@@ -476,19 +438,8 @@ $(strip \
 			)\
 		)\
 	) \
-	$(if $(mb_os_is_windows), \
-		$(eval mb_printf_statement_ts := $(strip \
-				$(if $(call mb_is_on,$(mb_printf_opt_display_ts)),\
-					$(call mb_printf_statement_display_guard,$(shell $(call mb_powershell,Get-Date -Format $(mb_printf_ts_format))))\
-				) \
-			) \
-		) \
-		$(call mb_powershell,Write-Host ($(mb_printf_format) -f "$(mb_printf_statement_ts)"$(mb_comma)"$(mb_printf_statement_project_name)"$(mb_comma)"$(mb_printf_msg)"\
-		$(if $(mb_printf_breakline),,-NoNewline))) \
-	, \
-		$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format))))) \
-		printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_project_name)" "$(mb_printf_msg)"$(if $(mb_printf_breakline),;printf "\n") \
-	) \
+	$(eval mb_printf_statement_ts := $(if $(call mb_is_on,$(mb_printf_opt_display_ts)),$(call mb_printf_statement_display_guard,$(shell date $(mb_printf_ts_format))))) \
+	printf $(mb_printf_format) "$(mb_printf_statement_ts)" "$(mb_printf_statement_project_name)" "$(mb_printf_msg)"$(if $(mb_printf_breakline),;printf "\n") \
 )
 endef
 

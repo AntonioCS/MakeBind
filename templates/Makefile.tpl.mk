@@ -68,55 +68,33 @@ endif #($(wildcard $(mb_main_mk)),)
 
 ifdef __MB_DOWNLOAD_LATEST_MB__
 
-mb_os_is_windows := $(if $(and $(value OS),$(findstring Windows_NT,$(OS))),1)## Empty if not windows, 1 if windows
 mb_makefile_debug = $(if $(mb_debug_makefile),$(info DEBUG: $(strip $1)))
-define mb_makefile_run_for_os
-$(strip
-	$(eval mb_run_for_os_cmd := $(strip $(if $(mb_os_is_windows),$1,$2)))
-	$(call mb_makefile_debug, Running cmd: $(mb_run_for_os_cmd))
-	$(shell $(mb_run_for_os_cmd))
-)
-endef
 
 define mb_zip_path_generate
-	$(eval mb_tmp_path := $(if $(mb_os_is_windows),$(abspath $(shell powershell -Command "[System.IO.Path]::GetTempPath()")),/tmp))
+	$(eval mb_tmp_path := /tmp)
 	$(eval mb_zip_path := $(mb_tmp_path)/mb.zip)
 	$(call mb_makefile_debug, mb_tmp_path: $(mb_tmp_path))
 	$(call mb_makefile_debug, mb_zip_path: $(mb_zip_path))
 endef
 
 mb_comma := ,## Comma for sed command which is inside a make function
-mb_dollar := $$## Dollar sign for powershell command which is inside a make function
 define mb_latest_release_url_generate
 $(strip
-	$(eval mb_latest_releate_url := $(call mb_makefile_run_for_os,\
-		powershell -Command "$$response = Invoke-RestMethod -Uri '$(mb_latest_url)'; $$url = $$response.zipball_url; Write-Output $$url", \
-		curl -s $(mb_latest_url) | grep '"zipball_url":' | sed -E 's/.*"zipball_url": "(.*)"$(mb_comma)/\1/' \
-	))
+	$(eval mb_latest_releate_url := $(shell curl -s $(mb_latest_url) | grep '"zipball_url":' | sed -E 's/.*"zipball_url": "(.*)"$(mb_comma)/\1/'))
 	$(if $(mb_debug_makefile),$(info DEBUG: Latest URL: $(mb_latest_releate_url)))
 )
 endef
 
 define mb_download_latest_mb
-$(call mb_makefile_run_for_os,
-	powershell -Command "Invoke-WebRequest -Uri $(mb_latest_releate_url) -OutFile $(mb_zip_path)",
-	curl -s -L -o $(mb_zip_path) $(mb_latest_releate_url)
-)
+$(shell curl -s -L -o $(mb_zip_path) $(mb_latest_releate_url))
 endef
 
 define mb_install
 $(strip
 $(eval mb_top_folder := $(abspath $(dir $(mb_mb_default_path))))
-$(call mb_makefile_run_for_os,
-	powershell -Command "Expand-Archive -Path $(mb_zip_path) -DestinationPath $(mb_top_folder)",
-	unzip -nqq $(mb_zip_path) -d $(mb_top_folder)
+$(shell unzip -nqq $(mb_zip_path) -d $(mb_top_folder))
+$(shell mv "`find $(mb_top_folder) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_top_folder)/MakeBind")
 )
-$(call mb_makefile_run_for_os,
-	powershell -Command "$(mb_dollar)extractedDir = Get-ChildItem -Path $(mb_top_folder) |
-	Where-Object { $(mb_dollar)_.PSIsContainer } | Select-Object -First 1;
-	Rename-Item -Path $(mb_dollar)extractedDir.FullName -NewName 'MakeBind',
-    mv "`find $(mb_top_folder) -maxdepth 1 -type d -name '*-MakeBind-*'`" "$(mb_top_folder)/MakeBind"
-))
 endef
 
 endif # __MB_DOWNLOAD_LATEST_MB__
