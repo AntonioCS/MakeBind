@@ -1,3 +1,19 @@
+## [3.0.0] - 2026-01-27
+
+### Removed
+- **Windows support dropped**: MakeBind now supports Linux and macOS only
+  - `mb_os_is_windows` now only detects Windows to show a helpful error directing users to WSL
+  - Removed `mb_powershell`, `mb_powershell_cmdlets`, `mb_powershell_expression` functions
+  - Removed `mb_ask_user_windows` function
+  - Removed Windows-specific branches in `mb_printf_statement`, `mb_os_call`, `mb_os_assign`
+  - Removed Windows format specifiers from `mb_printf_*_format_specifier` variables
+  - Removed Windows self-update code (PowerShell) from `Makefile.tpl.mk`
+  - Windows users should use [WSL (Windows Subsystem for Linux)](https://learn.microsoft.com/en-us/windows/wsl/install)
+
+### Changed
+- **`mb_os_call` signature changed** (BREAKING): Now takes `(linux_cmd, mac_cmd, use_shell)` instead of `(windows_cmd, linux_cmd, mac_cmd, use_shell)`
+- **`mb_os_assign` signature changed** (BREAKING): Now takes `(linux_cmd, mac_cmd)` instead of `(windows_cmd, linux_cmd, mac_cmd)`
+
 ## [2.2.11] - 2026-01-08
 
 ### Changed

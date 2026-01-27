@@ -81,7 +81,7 @@ Set debug flags in your environment or config.mk:
 5. **init_project.mk** - Project initialization when bind-hub folder is missing
 
 **Utility Components** (in `core/util/`):
-- `os_detection.mk` - Cross-platform OS detection (Linux/macOS/Windows)
+- `os_detection.mk` - OS detection (Linux/macOS)
 - `colours.mk` - Terminal color output helpers
 - `cache.mk` - File-based caching system with TTL support
 - `debug.mk` - Debug output utilities
@@ -231,13 +231,13 @@ Variables control behavior:
 - `mb_invoke_dry_run` - Don't execute, just print
 - `mb_invoke_run_in_shell` - Capture output/exit code
 
-### Cross-Platform Compatibility
-Use `mb_os_call` for OS-specific commands:
+### OS-Specific Commands
+Use `mb_os_call` for Linux vs macOS differences:
 ```makefile
-$(call mb_os_call,<windows_command>,<unix_command>)
+$(call mb_os_call,<linux_command>,<mac_command>)
 ```
 
-Check OS: `mb_os_is_windows`, `mb_os_is_linux`, `mb_os_is_mac`
+Check OS: `mb_os_is_linux`, `mb_os_is_osx`, `mb_os_is_linux_or_osx`
 
 ### File Operations
 - `mb_exists` / `mb_not_exists` - Check file existence
@@ -258,7 +258,7 @@ Cache files stored in `tmp/cache/` with TTL support.
 1. **Variable Assignment**: Use `:=` for immediate assignment, `=` for deferred
 2. **Function Calls**: Always use `$(call func,args)` not `$(func args)`
 3. **Recursive Variables**: The module loading uses recursion - be careful with variable naming to avoid collisions (pattern: `$0_prm_<name>_$1`)
-4. **Windows Support**: Test PowerShell commands - some Make features differ on Windows
+4. **OS Differences**: Some commands differ between Linux and macOS - use `mb_os_call` when needed
 5. **Module Dependencies**: Circular dependencies are not detected - avoid them
 6. **Include Guards**: Always use unique include guards in .mk files
 7. **Comments in define blocks**: `##` comments inside `define...endef` are NOT comments - they become literal output text. Only use comments OUTSIDE define blocks or use `$(info ...)` for debug output
@@ -349,6 +349,10 @@ Rules:
 When adding a new module, ensure the "Available Modules" table in `README.md` is updated.
 
 ### Trello Board
-**Board ID: `vBmmD6it`** - Must be set at the start of each session using `mcp__trello__set_active_board`.
+**Board ID: `vBmmD6it`** - Configured via `.kelux.toml` (local config).
+
+**Always use `klx` CLI for Trello operations.** Fall back to Trello MCP only if klx doesn't support the operation.
+
+Before using any Trello tool, invoke the `/kelux` skill to get correct syntax and avoid common gotchas.
 
 Feature proposals should be added as cards in the Trello "Proposals" list instead of markdown files.

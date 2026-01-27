@@ -19,7 +19,7 @@ This folder contains the core functionality of MakeBind. These files are loaded 
 |------|-------------|
 | `variables.mk` | Common constants (`mb_true`, `mb_false`, `mb_on`, `mb_off`, `mb_empty`) |
 | `colours.mk` | Terminal color output helpers |
-| `os_detection.mk` | Cross-platform OS detection (`mb_os_is_linux`, `mb_os_is_mac`, `mb_os_is_windows`) |
+| `os_detection.mk` | OS detection (`mb_os_is_linux`, `mb_os_is_osx`, `mb_os_is_linux_or_osx`) |
 | `cache.mk` | File-based caching system with TTL support |
 | `debug.mk` | Debug output utilities |
 | `git.mk` | Git utilities (`mb_staged_files`, etc.) |
@@ -80,11 +80,11 @@ $(call mb_is_url,https://example.com)
 ```makefile
 # Check operating system
 $(if $(mb_os_is_linux),Linux-specific code)
-$(if $(mb_os_is_mac),macOS-specific code)
-$(if $(mb_os_is_windows),Windows-specific code)
+$(if $(mb_os_is_osx),macOS-specific code)
+$(if $(mb_os_is_linux_or_osx),Unix code)
 
-# Run OS-specific command
-$(call mb_os_call,windows_cmd,unix_cmd)
+# Run OS-specific command (Linux vs macOS)
+$(call mb_os_call,linux_cmd,mac_cmd)
 ```
 
 ### Caching
