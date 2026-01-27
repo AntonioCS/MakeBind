@@ -3,3 +3,7 @@ tmp/*
 *.log
 .claude/mcp.json
 docs
+.kelux.toml
+
+# Claude Code workspace state
+.claude/workspace/
