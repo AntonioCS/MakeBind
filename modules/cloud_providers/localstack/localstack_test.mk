@@ -91,11 +91,12 @@ define test_modules_localstack_api_check_error_without_endpoint
 	$(eval mb_invoke_silent := $(mb_on))
 
 	## Test that localstack_api_check requires an endpoint argument
-	## Note: Expects 3 calls due to cascading errors:
+	## Note: Expects 2 calls due to cascading errors:
 	##   1. localstack_api_check: endpoint required
 	##   2. localstack_api: endpoint path required (called internally)
-	##   3. localstack_api_check: error_msg (api call failed)
-	$(call mb_assert_was_called,mb_printf_error,3)
+	## The third error (api call failed) does not trigger because curl
+	## hits the base LocalStack URL without a path and succeeds.
+	$(call mb_assert_was_called,mb_printf_error,2)
 	$(eval $0_result := $(call localstack_api_check,))
 
 	$(eval mb_invoke_silent := $(mb_off))

@@ -271,6 +271,33 @@ Cache files stored in `tmp/cache/` with TTL support.
 - Keep lines under 120 characters where possible
 - Use consistent indentation (tabs for recipes, spaces for variable definitions)
 
+### `$(if)` Formatting
+
+**Never write `$(if)` as one-liners.** Use multi-line format for readability:
+
+```makefile
+## Correct - multi-line format
+$(if $(call mb_not_exists,$(some_path)),\
+    $(error Path not found)\
+)
+
+$(if $(condition),\
+    $(do_if_true)\
+,\
+    $(do_if_false)\
+)
+
+## Wrong - one-liner (hard to read, hard to debug)
+$(if $(call mb_not_exists,$(some_path)),$(error Path not found))
+```
+
+**Exception:** Simple variable assignments can use inline `$(if)`:
+```makefile
+## OK - simple inline assignment
+mb_exists = $(if $(wildcard $1),$(mb_true))
+$0_arg := $(if $(value 1),$(strip $1),default)
+```
+
 ### Function Argument Naming Convention
 
 Use `$0_arg<N>_<name>` pattern for function arguments to match `@arg N` in docblocks:
@@ -299,6 +326,56 @@ endef
 1. **Simple required arg**: inline check in assignment using `$(if $(value N),...)`
 2. **Optional arg with default**: `$(if $(value N),$(strip $N),default)` - no error needed
 3. **Complex validation**: validate before assignment to avoid `--warn-undefined-variables` warnings
+
+### File Header Block
+
+Every `.mk` file must start with a standard header:
+
+```makefile
+#####################################################################################
+# Project: MakeBind
+# File: <path/to/file.mk>
+# Description: <Brief description>
+# Author: <Author name>
+# License: MIT License
+#####################################################################################
+```
+
+### Define Blocks with `$(strip)`
+
+Always wrap `define` block content in `$(strip ...)` to avoid trailing whitespace issues:
+
+```makefile
+define my_function
+$(strip
+    $(eval $0_arg1 := ...)
+    $(if ...,\
+        ...\
+    )
+)
+endef
+```
+
+### Debug Logging
+
+Use the debug print function with appropriate debug flags:
+
+```makefile
+$(call mb_debug_print,Message here,$(mb_debug_modules))
+```
+
+Available debug flags: `mb_debug`, `mb_debug_modules`, `mb_debug_targets`, `mb_debug_cache`
+
+### Nested Includes
+
+When a module needs to include other files, get the current directory first:
+
+```makefile
+__mb_mymodule_dir := $(dir $(lastword $(MAKEFILE_LIST)))
+
+include $(__mb_mymodule_dir)functions.mk
+include $(__mb_mymodule_dir)targets.mk
+```
 
 ## Important Reminders
 
