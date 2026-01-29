@@ -1,3 +1,12 @@
+## [3.0.1] - Unreleased
+
+### Added
+- **Claude Code skill**: AI-focused skill for MakeBind guidance
+  - New `.claude/skills/makebind/SKILL.md` with comprehensive MakeBind documentation
+  - Covers module system, commands, configuration, common patterns, and pitfalls
+  - `mb/skill/install` target to symlink skill globally to `~/.claude/skills/makebind/`
+  - `mb/skill/uninstall` target to remove the global symlink
+
 ## [3.0.0] - 2026-01-27
 
 ### Removed

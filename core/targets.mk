@@ -168,4 +168,36 @@ define mb_help_msg_help
  3. Call make mb/help-<keyword> to get the help message
 endef
 
+##########################################################################################################################################
+## Claude Code Skill Installation
+##########################################################################################################################################
+mb_skill_source_path := $(mb_makebind_path)/.claude/skills/makebind
+mb_skill_install_path := $(HOME)/.claude/skills/makebind
+
+mb/skill/install: ## Install MakeBind skill globally for Claude Code
+	$(if $(call mb_not_exists,$(mb_skill_source_path)/SKILL.md),\
+		$(error Skill source not found at $(mb_skill_source_path))\
+	)
+	$(if $(and $(call mb_exists,$(mb_skill_install_path)),$(call mb_is_not_symlink,$(mb_skill_install_path))),\
+		$(error $(mb_skill_install_path) exists and is not a symlink. Please backup/remove it manually.)\
+	)
+	$(call mb_printf_info,Installing MakeBind skill to $(mb_skill_install_path))
+	mkdir -p "$(dir $(mb_skill_install_path))"
+	$(if $(call mb_exists,$(mb_skill_install_path)),\
+		rm -f "$(mb_skill_install_path)"\
+	)
+	ln -s "$(mb_skill_source_path)" "$(mb_skill_install_path)"
+	$(call mb_printf_success,MakeBind skill installed. Restart Claude Code to use.)
+
+mb/skill/uninstall: ## Uninstall MakeBind skill from global Claude Code
+	$(if $(call mb_not_exists,$(mb_skill_install_path)),\
+		$(call mb_printf_info,Skill not installed at $(mb_skill_install_path))\
+	)
+	$(if $(and $(call mb_exists,$(mb_skill_install_path)),$(call mb_is_not_symlink,$(mb_skill_install_path))),\
+		$(error $(mb_skill_install_path) is not a symlink. Will not remove.)\
+	)
+	$(if $(call mb_exists,$(mb_skill_install_path)),\
+		rm -f "$(mb_skill_install_path)" && $(call mb_printf_success,MakeBind skill uninstalled)\
+	)
+
 endif # __MB_CORE_TARGETS_MK__

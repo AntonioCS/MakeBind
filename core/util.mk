@@ -80,6 +80,8 @@ endef
 # File helpers
 mb_exists = $(if $(wildcard $1),$(mb_true))
 mb_not_exists = $(if $(call mb_exists,$1),,$(mb_true))
+mb_is_symlink = $(if $(shell test -L "$1" && echo 1),$(mb_true))
+mb_is_not_symlink = $(if $(call mb_is_symlink,$1),,$(mb_true))
 
 ## Useful variables
 

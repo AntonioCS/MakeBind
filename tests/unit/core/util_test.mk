@@ -166,6 +166,51 @@ define test_core_util_random_with_custom_bounds
 endef
 
 ######################################################################################
+# mb_is_symlink tests
+######################################################################################
+
+define test_core_util_is_symlink_returns_true_for_symlink
+	$(eval $0_test_dir := $(shell mktemp -d))
+	$(shell touch $($0_test_dir)/real_file)
+	$(shell ln -s $($0_test_dir)/real_file $($0_test_dir)/symlink_file)
+	$(eval $0_result := $(call mb_is_symlink,$($0_test_dir)/symlink_file))
+	$(call mb_assert,$($0_result),mb_is_symlink should return true for symlink)
+	$(shell rm -rf $($0_test_dir))
+endef
+
+define test_core_util_is_symlink_returns_false_for_regular_file
+	$(eval $0_test_dir := $(shell mktemp -d))
+	$(shell touch $($0_test_dir)/real_file)
+	$(eval $0_result := $(call mb_is_symlink,$($0_test_dir)/real_file))
+	$(call mb_assert_empty,$($0_result),mb_is_symlink should return empty for regular file)
+	$(shell rm -rf $($0_test_dir))
+endef
+
+define test_core_util_is_symlink_returns_false_for_directory
+	$(eval $0_test_dir := $(shell mktemp -d))
+	$(eval $0_result := $(call mb_is_symlink,$($0_test_dir)))
+	$(call mb_assert_empty,$($0_result),mb_is_symlink should return empty for directory)
+	$(shell rm -rf $($0_test_dir))
+endef
+
+define test_core_util_is_not_symlink_returns_true_for_regular_file
+	$(eval $0_test_dir := $(shell mktemp -d))
+	$(shell touch $($0_test_dir)/real_file)
+	$(eval $0_result := $(call mb_is_not_symlink,$($0_test_dir)/real_file))
+	$(call mb_assert,$($0_result),mb_is_not_symlink should return true for regular file)
+	$(shell rm -rf $($0_test_dir))
+endef
+
+define test_core_util_is_not_symlink_returns_false_for_symlink
+	$(eval $0_test_dir := $(shell mktemp -d))
+	$(shell touch $($0_test_dir)/real_file)
+	$(shell ln -s $($0_test_dir)/real_file $($0_test_dir)/symlink_file)
+	$(eval $0_result := $(call mb_is_not_symlink,$($0_test_dir)/symlink_file))
+	$(call mb_assert_empty,$($0_result),mb_is_not_symlink should return empty for symlink)
+	$(shell rm -rf $($0_test_dir))
+endef
+
+######################################################################################
 # mb_unzip function test (structure only - doesn't actually unzip)
 ######################################################################################
 
