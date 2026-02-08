@@ -289,7 +289,7 @@ endef
 
 ## Writing Tests
 
-Tests use `tests/make_testing.mk`:
+Tests use `tests/test_runner.mk` and `tests/asserts.mk`:
 
 ```makefile
 define test_my_feature
@@ -377,6 +377,8 @@ include $(__mb_mymod_dir)functions.mk
 | `containers/` | docker, docker_compose |
 | `webservers/` | nginx |
 | `cloud_providers/aws/` | s3, sqs, sns |
+| `databases/` | postgresql |
+| `infrastructure/` | terraform |
 | `project_builder/` | project scaffolding |
 
 ## Quick Reference
