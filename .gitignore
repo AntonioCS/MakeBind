@@ -7,3 +7,4 @@ docs
 
 # Claude Code workspace state
 .claude/workspace/
+.claude-workspace/
