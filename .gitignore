@@ -2,7 +2,11 @@
 tmp/*
 *.log
 .claude/mcp.json
-docs
+docs/assessments/
+docs/session-notes-*
+docs/plans/
+docs/proposals/
+docs/localstack-module-review.md
 .kelux.toml
 
 # Claude Code workspace state
