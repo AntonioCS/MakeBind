@@ -1,5 +1,12 @@
 ## [3.0.1] - Unreleased
 
+### Fixed
+- **`php/phpstan/analyse` and `php/phpcs/check` now fail when the tool finds errors in send-to-file mode** (#52)
+  - Both targets appended `|| true` after the output redirect, so the exit code was 0 whether the tool
+    passed or failed and the only signal was the output file
+  - The redirect is kept (output still lands in `phpstan_output_file` / `phpcs_output_file`); the exit
+    code now propagates, matching the non-file path
+
 ### Added
 - **Claude Code skill**: AI-focused skill for MakeBind guidance
   - New `.claude/skills/makebind/SKILL.md` with comprehensive MakeBind documentation
