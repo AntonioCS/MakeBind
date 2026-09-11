@@ -33,7 +33,7 @@ $(if $(value php_invoke),,$(error phpstan module requires php module - please ad
 php/phpstan/analyse: ## Run PHPStan analysis (phpstan_files= for paths, phpstan_args= for extra options)
 	$(eval $@_cmd := $(phpstan_bin) analyse $(call phpstan_build_args))
 	$(if $(call mb_is_true,$(phpstan_send_to_file)),\
-		$(eval $@_cmd += > $(phpstan_output_file) 2>&1 || true)\
+		$(eval $@_cmd += > $(phpstan_output_file) 2>&1)\
 		$(call mb_printf_info,Running phpstan and sending output to $(phpstan_output_file))\
 	)
 	$(call php_invoke,$($@_cmd))

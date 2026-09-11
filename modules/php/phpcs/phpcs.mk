@@ -35,7 +35,7 @@ $(if $(value php_invoke),,$(error phpcs module requires php module - please add 
 php/phpcs/check: ## Run PHP CodeSniffer (phpcs_files= for paths, phpcs_args= for extra options)
 	$(eval $@_cmd := $(phpcs_bin) -s $(call phpcs_build_args))
 	$(if $(call mb_is_true,$(phpcs_send_to_file)),\
-		$(eval $@_cmd += > $(phpcs_output_file) 2>&1 || true)\
+		$(eval $@_cmd += > $(phpcs_output_file) 2>&1)\
 		$(call mb_printf_info,Running phpcs and sending output to $(phpcs_output_file))\
 	)
 	$(call php_invoke,$($@_cmd))
